@@ -1,0 +1,321 @@
+/* ============================================================
+   Grove design tokens — BRAND-GUIDE §5, pasted verbatim.
+   Each app sets only --app-accent (via the [data-app] scopes below).
+   ============================================================ */
+:root {
+  /* ---- core surfaces: DARK is primary ---- */
+  --bg:#10140E; --bg-paper:#171C13; --bg-elevated:#1E241A; --bg-sunken:#0B0F09;
+  --border:#2A3122; --text:#ECEFE6; --text-soft:#9BA690;
+
+  /* ---- house + secondary ---- */
+  --accent:#4FA06F;          /* forest green — consistent everywhere */
+  --secondary:#9B82BE;       /* earthy purple */
+
+  /* ---- per-app accent: OVERRIDE THIS ONE LINE PER APP (see [data-app]) ---- */
+  --app-accent:#4FA06F;      /* launcher/chrome default = house green */
+
+  /* ---- semantic ---- */
+  --ok:#5FB47E; --warn:#D8A24F; --danger:#D2685F; --info:#6F86C2;
+
+  /* ---- accent tints (derived) ---- */
+  --accent-weak:   color-mix(in srgb, var(--accent) 14%, var(--bg-paper));
+  --accent-soft:   color-mix(in srgb, var(--accent) 28%, var(--bg-paper));
+  --app-weak:      color-mix(in srgb, var(--app-accent) 16%, var(--bg-paper));
+  --app-soft:      color-mix(in srgb, var(--app-accent) 30%, var(--bg-paper));
+
+  /* ---- type ---- */
+  --font-display:'Fraunces Variable','Fraunces', serif;
+  --font-body:'Plus Jakarta Sans', sans-serif;
+  --font-mono:'JetBrains Mono', monospace;
+  --fs-xs:.64rem; --fs-sm:.8rem; --fs-base:1rem; --fs-lg:1.25rem;
+  --fs-xl:1.563rem; --fs-2xl:1.953rem; --fs-3xl:2.441rem;
+  --fw-title:600; --fw-body:400; --fw-med:500;
+
+  /* ---- radius / spacing (from polish guide) ---- */
+  --r-sm:6px; --r-md:12px; --r-lg:16px; --r-xl:24px; --r-full:999px;
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px; --sp-8:48px;
+  --measure:66ch;
+}
+
+/* ---- LIGHT theme: secondary. Auto + manual override. ---- */
+@media (prefers-color-scheme: light) { :root:not(.theme-dark) {
+  --bg:#F3F5EE; --bg-paper:#FAFBF5; --bg-elevated:#FFFFFF; --bg-sunken:#E8ECE0;
+  --border:#D8DECF; --text:#1A1F15; --text-soft:#5C6651;
+  --accent:#2F6B47; --secondary:#6E5891;
+  --app-accent:#2F6B47;
+  --ok:#2E7D4F; --warn:#B07F2E; --danger:#B03A30; --info:#4E66A6;
+}}
+:root.theme-light {
+  --bg:#F3F5EE; --bg-paper:#FAFBF5; --bg-elevated:#FFFFFF; --bg-sunken:#E8ECE0;
+  --border:#D8DECF; --text:#1A1F15; --text-soft:#5C6651;
+  --accent:#2F6B47; --secondary:#6E5891; --app-accent:#2F6B47;
+  --ok:#2E7D4F; --warn:#B07F2E; --danger:#B03A30; --info:#4E66A6;
+}
+
+/* ============================================================
+   Per-app accent (BRAND-GUIDE §3.3). The shell/launcher use house green;
+   each app's surfaces pick up its accent. Scoped, never global.
+   ============================================================ */
+[data-app="journal"] { --app-accent:#D06A82; } /* Berry */
+[data-app="pantry"]  { --app-accent:#CB7A4F; } /* Clay  */
+[data-app="ledger"]  { --app-accent:#6F86C2; } /* Dusk  */
+[data-app="pets"]    { --app-accent:#D8A24F; } /* Honey */
+[data-app="media"]   { --app-accent:#4CA39B; } /* Tide  */
+
+@media (prefers-color-scheme: light) {
+  :root:not(.theme-dark) [data-app="journal"] { --app-accent:#B24E66; }
+  :root:not(.theme-dark) [data-app="pantry"]  { --app-accent:#A85F36; }
+  :root:not(.theme-dark) [data-app="ledger"]  { --app-accent:#4E66A6; }
+  :root:not(.theme-dark) [data-app="pets"]    { --app-accent:#B07F2E; }
+  :root:not(.theme-dark) [data-app="media"]   { --app-accent:#2F7E77; }
+}
+:root.theme-light [data-app="journal"] { --app-accent:#B24E66; }
+:root.theme-light [data-app="pantry"]  { --app-accent:#A85F36; }
+:root.theme-light [data-app="ledger"]  { --app-accent:#4E66A6; }
+:root.theme-light [data-app="pets"]    { --app-accent:#B07F2E; }
+:root.theme-light [data-app="media"]   { --app-accent:#2F7E77; }
+
+/* Tide/Fern are green-adjacent — primary actions use house green, not the
+   app accent, to avoid two greens fighting (BRAND-GUIDE §3.3). */
+[data-app="media"] .btn.primary { background:var(--accent); }
+
+/* ============================================================
+   Layout primitives
+   ============================================================ */
+.app-root {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.screen {
+  flex: 1;
+  padding: var(--sp-4) var(--sp-4) calc(var(--sp-8) + 64px);
+  width: 100%;
+}
+
+.stack { display: flex; flex-direction: column; gap: var(--sp-3); }
+.row   { display: flex; align-items: center; gap: var(--sp-3); }
+.grow  { flex: 1; min-width: 0; }
+.spread { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); }
+
+/* ---- headers (type scale; UI-POLISH §1) ---- */
+.page-head { margin-bottom: var(--sp-5); }
+.page-head h1 { font-size: var(--fs-2xl); }
+.page-head .sub {
+  font-size: var(--fs-lg);
+  color: var(--text-soft);
+  font-family: var(--font-body);
+  font-weight: var(--fw-body);
+  margin-top: var(--sp-1);
+}
+
+/* ---- cards (surface ramp, not shadow; §7 brand) ---- */
+.card {
+  background: var(--bg-paper);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4) var(--sp-5);
+}
+.card .title { font-family: var(--font-display); font-size: var(--fs-lg); font-weight: var(--fw-title); }
+.card .sub { font-size: var(--fs-sm); color: var(--text-soft); }
+
+/* ---- buttons (.btn family; UI-POLISH §3) ---- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  padding: 10px 16px; min-height: 44px;            /* tap target §9 */
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-weight: var(--fw-med);
+  transition: background 160ms cubic-bezier(.2,.8,.2,1), border-color 160ms;
+}
+.btn:hover { border-color: var(--app-soft); }
+.btn.primary { background: var(--app-accent); border-color: var(--app-accent); color: #0B0F09; }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--text-soft); }
+.btn.ghost:hover { color: var(--text); background: var(--bg-elevated); }
+.btn.danger { color: var(--danger); border-color: transparent; background: transparent; }
+.btn.danger:hover { background: color-mix(in srgb, var(--danger) 14%, var(--bg-paper)); }
+.btn.sm { min-height: 36px; padding: 6px 12px; font-size: var(--fs-sm); }
+.btn.block { width: 100%; }
+.btn:disabled { opacity: .5; pointer-events: none; }
+
+/* equal-width button rows (UI-POLISH §6) */
+.btn-row { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--sp-2); }
+
+/* ---- chips (filters) ---- */
+.chip {
+  padding: 6px 12px; min-height: 36px;
+  border: 1px solid var(--border); border-radius: var(--r-full);
+  background: transparent; color: var(--text-soft); font-size: var(--fs-sm);
+}
+.chip.on { background: var(--app-weak); border-color: var(--app-soft); color: var(--text); }
+
+/* ---- inputs ---- */
+.input, select.input, textarea.input {
+  width: 100%; padding: 12px 14px; min-height: 44px;
+  background: var(--bg-sunken); border: 1px solid var(--border);
+  border-radius: var(--r-md); color: var(--text);
+}
+.input::placeholder { color: color-mix(in srgb, var(--text-soft) 70%, transparent); }
+.input:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; }
+.field-label { font-size: var(--fs-sm); color: var(--text-soft); margin-bottom: var(--sp-1); display:block; }
+
+/* stepper for small integers (UI-POLISH §5) */
+.stepper { display:flex; align-items:center; gap:var(--sp-2); }
+.stepper button { width:40px; height:40px; border-radius:var(--r-md); border:1px solid var(--border); background:var(--bg-elevated); font-size:var(--fs-lg); }
+.stepper .val { min-width: 56px; text-align:center; font-family:var(--font-mono); }
+
+/* ---- empty state (§10) ---- */
+.empty { text-align:center; padding: var(--sp-8) var(--sp-4); color: var(--text-soft); }
+.empty .big { font-size: 2.5rem; display:block; margin-bottom: var(--sp-3); }
+.empty .line { margin-bottom: var(--sp-4); }
+
+/* focus visibility (quality floor) */
+:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 2px; }
+
+/* ============================================================
+   Shell components
+   ============================================================ */
+
+/* ---- top bar ---- */
+.top-bar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-3);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.top-title { flex: 1; font-family: var(--font-display); font-weight: var(--fw-title); font-size: var(--fs-lg); }
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: var(--r-md);
+  background: transparent; border: none; color: var(--text-soft);
+}
+.icon-btn:hover { color: var(--text); background: var(--bg-elevated); }
+
+/* ---- bottom nav (thumb zone) ---- */
+.bottom-nav {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 0;
+  width: 100%; max-width: 560px; z-index: 20;
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  background: color-mix(in srgb, var(--bg-paper) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 8px 4px 10px; min-height: 56px;
+  background: none; border: none; color: var(--text-soft);
+  font-size: var(--fs-xs); font-weight: var(--fw-med);
+  position: relative;
+}
+.nav-item.on { color: var(--app-accent); }            /* accent earns its keep §2/§8 */
+.nav-item.on::before {
+  content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 24px; height: 2px; border-radius: var(--r-full); background: var(--app-accent);
+}
+
+/* ---- launcher ---- */
+.launcher { padding: var(--sp-6) var(--sp-4) var(--sp-8); }
+.launcher-head { margin-bottom: var(--sp-6); }
+.launcher-head .wordmark { font-size: var(--fs-2xl); letter-spacing: .2px; }
+.launcher-head .sub { color: var(--text-soft); margin-top: var(--sp-2); }
+.tile-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-3);
+}
+.tile {
+  display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-1);
+  text-align: left; padding: var(--sp-5) var(--sp-4);
+  background: var(--bg-paper); border: 1px solid var(--border);
+  border-radius: var(--r-lg); color: var(--text);
+  transition: border-color 160ms cubic-bezier(.2,.8,.2,1), transform 160ms;
+}
+.tile:hover { border-color: var(--app-soft); }
+.tile:active { transform: scale(.985); }
+.tile-mark { margin-bottom: var(--sp-2); }
+.tile-name { font-family: var(--font-display); font-weight: var(--fw-title); font-size: var(--fs-lg); }
+.tile-sub { font-size: var(--fs-sm); color: var(--text-soft); }
+
+/* ---- sheet ---- */
+.sheet-scrim {
+  position: fixed; inset: 0; z-index: 40;
+  background: color-mix(in srgb, #000 55%, transparent);
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.sheet {
+  width: 100%; max-width: 560px;
+  background: var(--bg-elevated); border-top-left-radius: var(--r-xl); border-top-right-radius: var(--r-xl);
+  border: 1px solid var(--border); border-bottom: none;
+  padding: var(--sp-3) var(--sp-5) calc(var(--sp-6) + env(safe-area-inset-bottom, 0));
+  max-height: 86vh; overflow-y: auto;
+  animation: sheet-up 280ms cubic-bezier(.2,.8,.2,1);
+}
+@keyframes sheet-up { from { transform: translateY(12%); opacity: .6; } to { transform: none; opacity: 1; } }
+.sheet-grip { width: 36px; height: 4px; border-radius: var(--r-full); background: var(--border); margin: 0 auto var(--sp-3); }
+.sheet-title { font-size: var(--fs-xl); margin-bottom: var(--sp-4); }
+.sheet-body { display: flex; flex-direction: column; gap: var(--sp-4); }
+.sheet-footer { margin-top: var(--sp-5); display: flex; gap: var(--sp-2); }
+
+/* ---- toast (undo) ---- */
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 76px; z-index: 50;
+  width: calc(100% - var(--sp-6)); max-width: 520px;
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--r-md); font-size: var(--fs-sm);
+  animation: sheet-up 200ms cubic-bezier(.2,.8,.2,1);
+}
+.toast-action { background: none; border: none; color: var(--app-accent); font-weight: var(--fw-med); padding: 4px 8px; }
+
+/* ---- setup ---- */
+.setup { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-3); padding-top: var(--sp-8); }
+.setup-mark { margin-bottom: var(--sp-2); }
+.setup .sub { color: var(--text-soft); }
+.setup-body { width: 100%; margin: var(--sp-4) 0; }
+
+/* ---- timeline rows (journal etc.) ---- */
+.event-row {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--bg-paper); border: 1px solid var(--border); border-radius: var(--r-md);
+}
+.event-dot { width: 10px; height: 10px; border-radius: var(--r-full); flex: none; }
+.event-time { font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text-soft); }
+
+/* port-scaffold note card */
+.scaffold-note {
+  border: 1px dashed var(--border); border-radius: var(--r-md);
+  padding: var(--sp-4); color: var(--text-soft); font-size: var(--fs-sm);
+  background: var(--bg-sunken);
+}
+.scaffold-note code { font-family: var(--font-mono); color: var(--text); }
+
+.flip { transform: scaleX(-1); }
+
+/* simple horizontal bar chart (Trends) */
+.bar-row { display:flex; align-items:center; gap:var(--sp-3); margin-bottom:var(--sp-2); }
+.bar-label { width: 38%; font-size: var(--fs-sm); }
+.bar-track { flex:1; height:14px; background:var(--bg-sunken); border-radius:var(--r-full); overflow:hidden; }
+.bar-fill { height:100%; background:var(--app-accent); border-radius:var(--r-full); }
+.bar-count { font-family:var(--font-mono); font-size:var(--fs-sm); color:var(--text-soft); min-width:28px; text-align:right; }
+
+/* ---- auth: login + splash ---- */
+.splash { display:flex; align-items:center; justify-content:center; min-height:70vh; opacity:.9; }
+.login {
+  display:flex; flex-direction:column; align-items:center; text-align:center;
+  gap:var(--sp-2); padding:var(--sp-8) var(--sp-5); max-width:420px; margin:0 auto;
+}
+.login .wordmark { font-size:var(--fs-2xl); margin-top:var(--sp-2); }
+.login .sub { color:var(--text-soft); margin-bottom:var(--sp-5); }
+.login-form { width:100%; display:flex; flex-direction:column; gap:var(--sp-4); text-align:left; }
+.login-form .field-label { margin-bottom:var(--sp-1); }
+.login-error { color:var(--danger); font-size:var(--fs-sm); margin:0; }
+.login-foot { margin-top:var(--sp-5); font-size:var(--fs-sm); }
