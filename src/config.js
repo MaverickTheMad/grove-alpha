@@ -19,10 +19,10 @@ export const cryptoEnabled = isBeta
 // Beta opens self-service sign-up for outside testers.
 export const signupEnabled = isBeta
 
-// Which apps the launcher exposes. Alpha shows all five (incl. half-baked);
-// beta restricts to the polished set.
+// Which apps the launcher exposes. Alpha shows all eight; beta restricts to the
+// polished set (expand as each is hardened).
 export const exposedApps = isBeta
   ? ['journal', 'pantry', 'ledger']
-  : ['journal', 'pantry', 'ledger', 'pets', 'media']
+  : ['journal', 'pantry', 'ledger', 'pets', 'media', 'quest', 'almanac', 'fitness']
 
 export default { mode, authEnabled, cryptoEnabled, signupEnabled, exposedApps }

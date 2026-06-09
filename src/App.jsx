@@ -14,6 +14,9 @@ import Pantry, { meta as pantryMeta } from './apps/pantry'
 import Ledger, { meta as ledgerMeta } from './apps/ledger'
 import Pets, { meta as petsMeta } from './apps/pets'
 import Media, { meta as mediaMeta } from './apps/media'
+import Quest, { meta as questMeta } from './apps/quest'
+import Almanac, { meta as almanacMeta } from './apps/almanac'
+import Fitness, { meta as fitnessMeta } from './apps/fitness'
 
 const REGISTRY = {
   journal: { Component: Journal, meta: journalMeta },
@@ -21,6 +24,9 @@ const REGISTRY = {
   ledger: { Component: Ledger, meta: ledgerMeta },
   pets: { Component: Pets, meta: petsMeta },
   media: { Component: Media, meta: mediaMeta },
+  quest: { Component: Quest, meta: questMeta },
+  almanac: { Component: Almanac, meta: almanacMeta },
+  fitness: { Component: Fitness, meta: fitnessMeta },
 }
 
 const THEME_KEY = 'grove_theme'

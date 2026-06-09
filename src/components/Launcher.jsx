@@ -10,6 +10,9 @@ const TILE_ACCENT = {
   ledger: '#6F86C2',
   pets: '#D8A24F',
   media: '#4CA39B',
+  quest: '#A877B8',
+  almanac: '#79B45F',
+  fitness: '#D9694E',
 }
 
 export default function Launcher({ apps, onOpen, user, onSignOut }) {

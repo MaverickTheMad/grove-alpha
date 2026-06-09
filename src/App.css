@@ -61,6 +61,9 @@
 [data-app="ledger"]  { --app-accent:#6F86C2; } /* Dusk  */
 [data-app="pets"]    { --app-accent:#D8A24F; } /* Honey */
 [data-app="media"]   { --app-accent:#4CA39B; } /* Tide  */
+[data-app="quest"]   { --app-accent:#A877B8; } /* Plum  (reserved) */
+[data-app="almanac"] { --app-accent:#79B45F; } /* Fern  (reserved, green-adjacent) */
+[data-app="fitness"] { --app-accent:#D9694E; } /* Ember (new; brand only reserved 2) */
 
 @media (prefers-color-scheme: light) {
   :root:not(.theme-dark) [data-app="journal"] { --app-accent:#B24E66; }
@@ -68,12 +71,22 @@
   :root:not(.theme-dark) [data-app="ledger"]  { --app-accent:#4E66A6; }
   :root:not(.theme-dark) [data-app="pets"]    { --app-accent:#B07F2E; }
   :root:not(.theme-dark) [data-app="media"]   { --app-accent:#2F7E77; }
+  :root:not(.theme-dark) [data-app="quest"]   { --app-accent:#84569A; }
+  :root:not(.theme-dark) [data-app="almanac"] { --app-accent:#4F7E34; }
+  :root:not(.theme-dark) [data-app="fitness"] { --app-accent:#B0492F; }
 }
 :root.theme-light [data-app="journal"] { --app-accent:#B24E66; }
 :root.theme-light [data-app="pantry"]  { --app-accent:#A85F36; }
 :root.theme-light [data-app="ledger"]  { --app-accent:#4E66A6; }
 :root.theme-light [data-app="pets"]    { --app-accent:#B07F2E; }
 :root.theme-light [data-app="media"]   { --app-accent:#2F7E77; }
+:root.theme-light [data-app="quest"]   { --app-accent:#84569A; }
+:root.theme-light [data-app="almanac"] { --app-accent:#4F7E34; }
+:root.theme-light [data-app="fitness"] { --app-accent:#B0492F; }
+
+/* Fern (almanac) is green-adjacent — primary actions use house green so two
+   greens don't fight (BRAND-GUIDE §3.3), same rule as Tide/media. */
+[data-app="almanac"] .btn.primary { background:var(--accent); border-color:var(--accent); }
 
 /* Tide/Fern are green-adjacent — primary actions use house green, not the
    app accent, to avoid two greens fighting (BRAND-GUIDE §3.3). */

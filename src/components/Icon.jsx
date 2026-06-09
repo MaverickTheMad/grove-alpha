@@ -19,6 +19,9 @@ const PATHS = {
   bills: 'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6',
   budgets: 'M12 3v18M5 8h14M5 16h14',
   goals: 'M12 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0M12 12m-8 0a8 8 0 1 0 16 0 8 8 0 1 0-16 0',
+  workout: 'M5 8v8M8 6v12M16 6v12M19 8v8M8 12h8',
+  quest: 'M5 21V4M5 4h11l-2 4 2 4H5',
+  upcoming: 'M5 5h14v15H5zM5 9h14M9 3v4M15 3v4M9 14l2 2 4-4',
   // ui
   close: 'M6 6l12 12M18 6 6 18',
   back: 'M15 5l-7 7 7 7',
