@@ -32,8 +32,10 @@ async function alreadyMigrated(srcKey) {
   if (error) { console.error(`  ✗ check grove.records: ${error.message}`); return false }
   return (count ?? 0) > 0
 }
-async function insert(type, payload, occurred_at = null) {
-  const { error } = await grove.from('records').insert({ household_id: HOUSEHOLD_ID, app: APP, type, occurred_at, payload, enc: false })
+async function insert(type, payload, occurred_at = null, id = null) {
+  const rec = { household_id: HOUSEHOLD_ID, app: APP, type, occurred_at, payload, enc: false }
+  if (id) rec.id = id
+  const { error } = await grove.from('records').insert(rec)
   if (error) { console.error(`  ✗ insert ${type}: ${error.message}`); return false }
   return true
 }
@@ -82,7 +84,7 @@ async function run() {
         name: r.name, url: r.url || null, category: r.category || 'Other',
         notes: r.notes || '', cook_time: r.cook_time || '', servings: r.servings || '',
         pdf_url: r.pdf_url || '', ingredients: r.ingredients || [], is_favorite: !!r.is_favorite, _src: src,
-      })
+      }, null, r.id)
       if (ok) n++
     }
     console.log(`  recipes -> recipe: +${n} (of ${recipes.length})`)
@@ -95,7 +97,7 @@ async function run() {
     for (const e of extras) {
       const src = `extras:${e.id}`
       if (await alreadyMigrated(src)) continue
-      if (await insert('extra', { name: e.name, quantity: e.quantity || '', active: !!e.active, is_staple: !!e.is_staple, sort_order: e.sort_order ?? 0, _src: src })) n++
+      if (await insert('extra', { name: e.name, quantity: e.quantity || '', active: !!e.active, is_staple: !!e.is_staple, sort_order: e.sort_order ?? 0, _src: src }, null, e.id)) n++
     }
     console.log(`  extras -> extra: +${n} (of ${extras.length})`)
   }
