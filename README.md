@@ -117,11 +117,22 @@ src/
 ├── components/        AuthGate · Login · Launcher · AppShell · BottomNav · Sheet · TimePicker · SetupScreen · Toast · Icon · GroveMark
 └── apps/
     ├── journal/       ✅ reference app, wired end-to-end through data.js
-    ├── pantry/        ⬚ scaffold — port target
+    ├── pantry/        ✅ ported — tabs + records data layer + URL/PDF import
     ├── ledger/        ⬚ scaffold — port target
     ├── pets/          ⬚ scaffold — port target
+    ├── quest/         ⬚ scaffold — port target
+    ├── almanac/       ⬚ scaffold — port target (aggregates the others)
+    ├── fitness/       ⬚ scaffold — port target
     └── media/         ⬚ scaffold — port target
 ```
+
+### Pantry extras (one-time setup)
+- Run `node scripts/migrate-pantry.js` (service-role env) to bring the live
+  `family-shopping-app` data into `grove.records`.
+- For PDF recipe import: create a **public** Supabase Storage bucket named
+  `recipe-pdfs` (allow insert + select).
+- URL recipe import uses the `api/import-recipe.js` Vercel function (no secrets);
+  `vercel.json` already excludes `/api/*` from the SPA rewrite.
 
 ## What's built vs. what ports next
 

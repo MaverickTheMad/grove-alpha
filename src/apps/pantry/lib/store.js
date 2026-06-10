@@ -49,6 +49,11 @@ export async function deleteRecipe(id) {
   await data.remove(id)
 }
 
+export async function restoreRecipe(id) {
+  const r = await data.restore(id)
+  return recipeFromRecord(r)
+}
+
 // ── Extras ──────────────────────────────────────────────────────────────────
 function extraFromRecord(r) {
   return { id: r.id, ...r.data }
@@ -156,6 +161,21 @@ export async function seedIfEmpty() {
   SEED_EXTRAS.forEach((name) => { if (!map[name]) map[name] = detectSection(name) })
   await data.create({ app: APP, type: TYPES.section, data: { map } })
   return true
+}
+
+// ── Storage (recipe PDFs) ─────────────────────────────────────────────────────
+// Storage isn't part of the records model, so this is the one spot that uses the
+// Supabase client directly. Bucket `recipe-pdfs` must exist (public).
+import { supabase } from '../../../supabase'
+
+export async function uploadRecipePdf(file) {
+  const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+  const { data, error } = await supabase.storage
+    .from('recipe-pdfs')
+    .upload(fileName, file, { contentType: 'application/pdf', upsert: false })
+  if (error || !data) return null
+  const { data: urlData } = supabase.storage.from('recipe-pdfs').getPublicUrl(fileName)
+  return urlData?.publicUrl || null
 }
 
 // ── Realtime ──────────────────────────────────────────────────────────────────
