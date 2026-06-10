@@ -16,12 +16,15 @@ const serviceKey = process.env.SUPABASE_SERVICE_KEY
 if (!url || !serviceKey) { console.error('Set SUPABASE_URL and SUPABASE_SERVICE_KEY'); process.exit(1) }
 
 const opts = { auth: { persistSession: false, autoRefreshToken: false } }
-const legacy = createClient(url, serviceKey, { db: { schema: 'public' }, ...opts })
+// The old family-shopping-app lives in its own `shopping` schema (each legacy
+// app has its own). Override with LEGACY_SCHEMA if needed.
+const LEGACY_SCHEMA = process.env.LEGACY_SCHEMA || 'shopping'
+const legacy = createClient(url, serviceKey, { db: { schema: LEGACY_SCHEMA }, ...opts })
 const grove = createClient(url, serviceKey, { db: { schema: 'grove' }, ...opts })
 
 async function read(table) {
   const { data, error } = await legacy.from(table).select('*')
-  if (error) { console.error(`  ✗ read public.${table}: ${error.message}`); return null }
+  if (error) { console.error(`  ✗ read ${LEGACY_SCHEMA}.${table}: ${error.message}`); return null }
   return data || []
 }
 async function alreadyMigrated(srcKey) {
@@ -56,10 +59,11 @@ async function preflight() {
   console.log('  ✓ grove.records is reachable')
   const r = await legacy.from('recipes').select('id').limit(1)
   if (r.error) {
-    dumpError('cannot reach public.recipes', r.error)
+    dumpError(`cannot reach ${LEGACY_SCHEMA}.recipes`, r.error)
+    console.error(`    → permission denied (42501) means service_role needs grants on the ${LEGACY_SCHEMA} schema (see the grant SQL).`)
     return false
   }
-  console.log('  ✓ public.recipes is reachable')
+  console.log(`  ✓ ${LEGACY_SCHEMA}.recipes is reachable`)
   return true
 }
 
