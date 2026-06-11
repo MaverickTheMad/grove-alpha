@@ -23,6 +23,6 @@ export const signupEnabled = isBeta
 // polished set (expand as each is hardened).
 export const exposedApps = isBeta
   ? ['journal', 'pantry', 'ledger']
-  : ['journal', 'pantry', 'ledger', 'pets', 'media', 'quest', 'almanac', 'fitness']
+  : ['journal', 'pantry', 'ledger', 'pets', 'quest', 'almanac', 'fitness', 'settings']
 
 export default { mode, authEnabled, cryptoEnabled, signupEnabled, exposedApps }

@@ -1,0 +1,49 @@
+/* Grove · Settings — utility surface, slate accent (from the global token block). */
+[data-app="settings"] .settings-page { max-width: 640px; margin: 0 auto; padding: var(--sp-4); padding-bottom: 96px; }
+
+[data-app="settings"] .set-head { margin-bottom: var(--sp-5); }
+[data-app="settings"] .set-head h1 { font-family: var(--font-display); font-size: var(--fs-2xl); font-weight: var(--fw-title); line-height: 1.1; }
+[data-app="settings"] .set-head p { color: var(--text-soft); font-size: var(--fs-sm); margin-top: 2px; }
+
+[data-app="settings"] .set-section { margin-bottom: var(--sp-6); }
+[data-app="settings"] .set-section-head { margin-bottom: var(--sp-3); }
+[data-app="settings"] .set-section-head h2 { font-family: var(--font-display); font-size: var(--fs-lg); font-weight: var(--fw-title); }
+[data-app="settings"] .set-section-head p { color: var(--text-soft); font-size: var(--fs-sm); margin-top: 2px; }
+
+[data-app="settings"] .set-card { padding: var(--sp-3) var(--sp-4); }
+[data-app="settings"] .set-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-2) 0; }
+[data-app="settings"] .set-row + .set-row { border-top: 1px solid var(--border); }
+
+/* segmented theme control */
+[data-app="settings"] .seg { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; gap: 4px;
+  background: var(--bg-sunken); border: 1px solid var(--border); border-radius: var(--r-md); padding: 4px; }
+[data-app="settings"] .seg-btn { display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 10px 8px; border-radius: var(--r-sm); color: var(--text-soft); font-weight: var(--fw-med);
+  font-size: var(--fs-sm); background: transparent; border: 0; cursor: pointer; transition: background .15s, color .15s; }
+[data-app="settings"] .seg-btn.on { background: var(--app-accent); color: #fff; }
+[data-app="settings"] .seg-hint { font-size: var(--fs-xs); opacity: .8; font-weight: var(--fw-body); }
+
+/* account / household rows */
+[data-app="settings"] .who { display: flex; align-items: center; gap: var(--sp-3); }
+[data-app="settings"] .who-dot { width: 26px; height: 26px; border-radius: var(--r-full); flex: none; }
+[data-app="settings"] .who-name { font-weight: var(--fw-med); }
+[data-app="settings"] .who-sub { color: var(--text-soft); font-size: var(--fs-sm); }
+[data-app="settings"] .member-row { justify-content: flex-start; gap: var(--sp-3); }
+[data-app="settings"] .tag { margin-left: auto; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .05em;
+  color: var(--text-soft); border: 1px solid var(--border); border-radius: var(--r-full); padding: 1px 8px; }
+
+/* data table */
+[data-app="settings"] .data-table { width: 100%; border-collapse: collapse; }
+[data-app="settings"] .data-table td { padding: var(--sp-2) 0; border-bottom: 1px solid var(--border); }
+[data-app="settings"] .data-table tr:last-child td { border-bottom: 0; }
+[data-app="settings"] .dt-name { font-weight: var(--fw-med); }
+[data-app="settings"] .dt-count { text-align: right; font-family: var(--font-mono); color: var(--text-soft); width: 4ch; padding-right: var(--sp-4); }
+[data-app="settings"] .dt-action { text-align: right; width: 64px; }
+[data-app="settings"] .danger-text { color: var(--danger); }
+[data-app="settings"] .danger-text:disabled { color: var(--text-soft); opacity: .5; }
+
+[data-app="settings"] .btn.block { width: 100%; margin-top: var(--sp-3); }
+[data-app="settings"] .fine { color: var(--text-soft); font-size: var(--fs-xs); line-height: 1.5; margin-top: var(--sp-2); max-width: var(--measure); }
+[data-app="settings"] .about .set-row span:first-child { color: var(--text-soft); }
+[data-app="settings"] .about-note { margin-top: var(--sp-3); padding-top: var(--sp-3); border-top: 1px solid var(--border); }
+[data-app="settings"] .set-foot { text-align: center; color: var(--text-soft); font-size: var(--fs-xs); font-style: italic; margin-top: var(--sp-6); }

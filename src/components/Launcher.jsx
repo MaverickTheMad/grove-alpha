@@ -9,7 +9,7 @@ const TILE_ACCENT = {
   pantry: '#CB7A4F',
   ledger: '#6F86C2',
   pets: '#D8A24F',
-  media: '#4CA39B',
+  settings: '#8593A6',
   quest: '#A877B8',
   almanac: '#79B45F',
   fitness: '#D9694E',

@@ -60,7 +60,7 @@
 [data-app="pantry"]  { --app-accent:#CB7A4F; } /* Clay  */
 [data-app="ledger"]  { --app-accent:#6F86C2; } /* Dusk  */
 [data-app="pets"]    { --app-accent:#D8A24F; } /* Honey */
-[data-app="media"]   { --app-accent:#4CA39B; } /* Tide  */
+[data-app="settings"] { --app-accent:#8593A6; } /* Slate (utility) */
 [data-app="quest"]   { --app-accent:#A877B8; } /* Plum  (reserved) */
 [data-app="almanac"] { --app-accent:#79B45F; } /* Fern  (reserved, green-adjacent) */
 [data-app="fitness"] { --app-accent:#D9694E; } /* Ember (new; brand only reserved 2) */
@@ -70,7 +70,7 @@
   :root:not(.theme-dark) [data-app="pantry"]  { --app-accent:#A85F36; }
   :root:not(.theme-dark) [data-app="ledger"]  { --app-accent:#4E66A6; }
   :root:not(.theme-dark) [data-app="pets"]    { --app-accent:#B07F2E; }
-  :root:not(.theme-dark) [data-app="media"]   { --app-accent:#2F7E77; }
+  :root:not(.theme-dark) [data-app="settings"] { --app-accent:#5E6E84; }
   :root:not(.theme-dark) [data-app="quest"]   { --app-accent:#84569A; }
   :root:not(.theme-dark) [data-app="almanac"] { --app-accent:#4F7E34; }
   :root:not(.theme-dark) [data-app="fitness"] { --app-accent:#B0492F; }
@@ -79,7 +79,7 @@
 :root.theme-light [data-app="pantry"]  { --app-accent:#A85F36; }
 :root.theme-light [data-app="ledger"]  { --app-accent:#4E66A6; }
 :root.theme-light [data-app="pets"]    { --app-accent:#B07F2E; }
-:root.theme-light [data-app="media"]   { --app-accent:#2F7E77; }
+:root.theme-light [data-app="settings"] { --app-accent:#5E6E84; }
 :root.theme-light [data-app="quest"]   { --app-accent:#84569A; }
 :root.theme-light [data-app="almanac"] { --app-accent:#4F7E34; }
 :root.theme-light [data-app="fitness"] { --app-accent:#B0492F; }
@@ -90,7 +90,6 @@
 
 /* Tide/Fern are green-adjacent — primary actions use house green, not the
    app accent, to avoid two greens fighting (BRAND-GUIDE §3.3). */
-[data-app="media"] .btn.primary { background:var(--accent); }
 
 /* ============================================================
    Layout primitives

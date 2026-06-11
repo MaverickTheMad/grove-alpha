@@ -6,6 +6,7 @@ import AuthGate from './components/AuthGate'
 import { ToastProvider } from './components/Toast'
 import { signOut } from './lib/auth'
 import { currentUser } from './lib/identity'
+import { getTheme, cycleTheme as cycleThemeShared, applyTheme, subscribeTheme, resolvedTheme } from './lib/theme'
 
 // App registry. Each app module default-exports its root component and a
 // `meta` { id, name, tagline }. Adding an app = add it here + to exposedApps.
@@ -13,7 +14,7 @@ import Journal, { meta as journalMeta } from './apps/journal'
 import Pantry, { meta as pantryMeta } from './apps/pantry'
 import Ledger, { meta as ledgerMeta } from './apps/ledger'
 import Pets, { meta as petsMeta } from './apps/pets'
-import Media, { meta as mediaMeta } from './apps/media'
+import Settings, { meta as settingsMeta } from './apps/settings'
 import Quest, { meta as questMeta } from './apps/quest'
 import Almanac, { meta as almanacMeta } from './apps/almanac'
 import Fitness, { meta as fitnessMeta } from './apps/fitness'
@@ -23,20 +24,10 @@ const REGISTRY = {
   pantry: { Component: Pantry, meta: pantryMeta },
   ledger: { Component: Ledger, meta: ledgerMeta },
   pets: { Component: Pets, meta: petsMeta },
-  media: { Component: Media, meta: mediaMeta },
+  settings: { Component: Settings, meta: settingsMeta },
   quest: { Component: Quest, meta: questMeta },
   almanac: { Component: Almanac, meta: almanacMeta },
   fitness: { Component: Fitness, meta: fitnessMeta },
-}
-
-const THEME_KEY = 'grove_theme'
-const THEME_CYCLE = ['auto', 'dark', 'light']
-
-function applyTheme(theme) {
-  const root = document.documentElement
-  root.classList.remove('theme-dark', 'theme-light')
-  if (theme === 'dark') root.classList.add('theme-dark')
-  if (theme === 'light') root.classList.add('theme-light')
 }
 
 function appIdFromPath() {
@@ -45,11 +36,11 @@ function appIdFromPath() {
 }
 
 export default function App() {
-  const [theme, setTheme] = useState(() => localStorage.getItem(THEME_KEY) || 'auto')
+  const [theme, setThemeState] = useState(getTheme)
   const [openApp, setOpenApp] = useState(appIdFromPath)
 
-  useEffect(() => applyTheme(theme), [theme])
-  useEffect(() => localStorage.setItem(THEME_KEY, theme), [theme])
+  useEffect(() => { applyTheme(theme) }, [theme])
+  useEffect(() => subscribeTheme(setThemeState), [])
 
   // path-based routing (/journal, /pantry, ...) with browser back support
   useEffect(() => {
@@ -68,17 +59,10 @@ export default function App() {
     setOpenApp(null)
   }, [])
 
-  const cycleTheme = useCallback(() => {
-    setTheme((t) => THEME_CYCLE[(THEME_CYCLE.indexOf(t) + 1) % THEME_CYCLE.length])
-  }, [])
+  const cycleTheme = useCallback(() => { cycleThemeShared() }, [])
 
   const apps = exposedApps.map((id) => ({ id, ...REGISTRY[id].meta }))
-  const resolved =
-    theme === 'auto'
-      ? window.matchMedia?.('(prefers-color-scheme: light)').matches
-        ? 'light'
-        : 'dark'
-      : theme
+  const resolved = resolvedTheme(theme)
 
   return (
     <ToastProvider>
