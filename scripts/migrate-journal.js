@@ -59,8 +59,8 @@ async function insert(type, payload, occurred_at, id) {
 }
 async function preflight() {
   console.log('Preflight checks…')
-  for (const [client, label, table] of [[grove, 'grove', 'records'], [legacy, LEGACY_SCHEMA, 'period_starts']]) {
-    const { error } = await client.from(table).select('id').limit(1)
+  for (const [client, label, table, col] of [[grove, 'grove', 'records', 'id'], [legacy, LEGACY_SCHEMA, 'period_starts', 'start_date']]) {
+    const { error } = await client.from(table).select(col).limit(1)
     if (error) {
       dumpError(`cannot reach ${label}.${table}`, error)
       console.error(`    → 42501: grant service_role usage+select on the ${label} schema. PGRST106: expose the schema.`)
