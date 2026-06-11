@@ -67,7 +67,15 @@ export default function Budgets() {
     await updateCategory(categoryId, { tracked_in_budget: newValue })
   }
 
-  if (!cycle) return <div className="ledger-page"><div className="empty"><p>Loading…</p></div></div>
+  if (!cycle) return (
+    <div className="ledger-page">
+      <div className="page-header"><div><p className="eyebrow">Pay cycle</p><h1>Budgets</h1></div></div>
+      <div className="card"><div className="empty">
+        <h3>No pay cycle set</h3>
+        <p>Pick an anchor paycheck under <strong>Settings → Pay cycle anchor</strong> to budget by cycle. (Add a paycheck first if you don't have one yet.)</p>
+      </div></div>
+    </div>
+  )
 
   return (
     <div className="ledger-page">

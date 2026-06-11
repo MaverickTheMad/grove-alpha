@@ -39,8 +39,11 @@ export async function list({ app, type, from, to } = {}) {
 
   if (app) q = q.eq('app', app)
   if (type) q = Array.isArray(type) ? q.in('type', type) : q.eq('type', type)
-  if (from) q = q.gte('occurred_at', localDayBounds(from).startISO)
-  if (to) q = q.lte('occurred_at', localDayBounds(to).endISO)
+  // from/to may be a bare local day (YYYY-MM-DD) or an already-resolved ISO
+  // timestamp. Convert the former via localDayBounds; pass the latter straight
+  // through (callers like the journal store pre-compute day/range bounds).
+  if (from) q = q.gte('occurred_at', from.includes('T') ? from : localDayBounds(from).startISO)
+  if (to) q = q.lte('occurred_at', to.includes('T') ? to : localDayBounds(to).endISO)
 
   const { data, error } = await q
   if (error) throw error
