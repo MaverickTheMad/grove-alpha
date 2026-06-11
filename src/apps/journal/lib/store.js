@@ -105,6 +105,8 @@ export async function listWorkoutsForDay(dateStr) {
   try {
     const { startISO, endISO } = localDayBounds(dateStr)
     const rows = await db.list({ app: 'fitness', type: 'workout', from: startISO, to: endISO })
-    return rows.map((r) => ({ id: r.id, occurred_at: r.occurredAt, ...r.data }))
+    return rows
+      .filter((r) => r.data.person === 'ren')
+      .map((r) => ({ id: r.id, occurred_at: r.occurredAt, ...r.data }))
   } catch { return [] }
 }

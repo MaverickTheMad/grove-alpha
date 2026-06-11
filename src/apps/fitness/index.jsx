@@ -1,12 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import './fitness.css'
 import BottomNav from '../../components/BottomNav'
-import ScaffoldTab from '../../components/ScaffoldTab'
+import { PEOPLE } from './constants'
+import * as store from './lib/store'
+import PersonGate from './components/PersonGate'
+import WorkoutTab from './tabs/WorkoutTab'
+import ProgressTab from './tabs/ProgressTab'
+import RewardsTab from './tabs/RewardsTab'
 
-// Fitness — per-person workout tracker. Port target. PersonGate (per-person,
-// like Ledger — fold into identity.members()), RestTimer, workout categories
-// (General / Cardio / Pilates-Yoga / Legs / Arms / Chest-Abs-Back), and a
-// rewards/streak layer. Events → records(app:'fitness', type:'workout'|'set').
-export const meta = { id: 'fitness', name: 'Fitness', tagline: 'Workouts & progress' }
+export const meta = { id: 'fitness', name: 'Reps', tagline: 'Workouts & progress' }
 
 const TABS = [
   { id: 'workout', label: 'Workout', icon: 'workout' },
@@ -14,19 +16,59 @@ const TABS = [
   { id: 'rewards', label: 'Rewards', icon: 'goals' },
 ]
 
-const NOTES = {
-  workout: ['category picker + set logging', 'RestTimer component', 'PersonGate → identity.members()'],
-  progress: ['volume / PR charts — bars or lines per data shape (§7)'],
-  rewards: ['streaks / rewards state'],
-}
-const EMOJI = { workout: '🏋️', progress: '📈', rewards: '🏅' }
-
 export default function Fitness() {
   const [tab, setTab] = useState('workout')
-  const t = TABS.find((x) => x.id === tab)
+  const [person, setPerson] = useState(null) // null = choose via the gate first
+  const [profiles, setProfiles] = useState({})
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  const loadProfiles = useCallback(async () => {
+    try {
+      await store.ensureProfiles(PEOPLE)
+      setProfiles(await store.loadProfiles())
+      setError('')
+    } catch (e) {
+      setError(e.message || 'Could not load profiles.')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+  useEffect(() => { loadProfiles() }, [loadProfiles])
+
+  const profile = profiles[person]
+
+  if (loading) {
+    return <main className="screen"><div className="empty" style={{ paddingTop: '20vh' }}><p className="line">Loading…</p></div></main>
+  }
+  if (error) {
+    return (
+      <main className="screen">
+        <div className="empty" style={{ paddingTop: '20vh' }}>
+          <p className="line">{error}</p>
+          <button className="btn primary" onClick={loadProfiles} style={{ marginTop: 12 }}>Retry</button>
+        </div>
+      </main>
+    )
+  }
+  if (!person) {
+    return <div className="fitness-page"><PersonGate profiles={profiles} onChoose={setPerson} /></div>
+  }
+
   return (
     <>
-      <ScaffoldTab title={t.label} sub="Fitness" emoji={EMOJI[tab]} portsHere={NOTES[tab]} />
+      <div className="fitness-page">
+        <div className="who-bar">
+          <button className="who-pill" onClick={() => setPerson(null)} aria-label="Switch person">
+            <span className="who-avatar">{profile?.display_name?.[0]}</span>
+            <span className="who-name">{profile?.display_name}</span>
+            <span className="who-switch">Switch</span>
+          </button>
+        </div>
+        {tab === 'workout' && <WorkoutTab person={person} profile={profile} onProfileChange={loadProfiles} />}
+        {tab === 'progress' && <ProgressTab person={person} profile={profile} onProfileChange={loadProfiles} />}
+        {tab === 'rewards' && <RewardsTab person={person} profile={profile} onProfileChange={loadProfiles} />}
+      </div>
       <BottomNav tabs={TABS} active={tab} onSelect={setTab} />
     </>
   )
