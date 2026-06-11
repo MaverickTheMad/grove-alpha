@@ -1,82 +1,92 @@
 /**
- * One-time migration TEMPLATE (GROVE-ALPHA-BUILD-GUIDE §9 step 3).
+ * One-time migration: rens-journal (`journal` schema) -> grove.records.
+ * Idempotent via payload._src. Run with the SERVICE ROLE key, server-side.
+ * First grant service_role read on the journal schema (SQL editor):
+ *   grant usage on schema journal to service_role;
+ *   grant select on all tables in schema journal to service_role;
  *
- * Reads a legacy app's relational rows from its own schema in reilly-home and
- * packs each into a grove.records row:
- *   { app, type, occurred_at, payload = the rest as JSON, enc=false, household_id }
+ *   export SUPABASE_URL="https://ceomcgjbizynplactgiq.supabase.co"
+ *   export SUPABASE_SERVICE_KEY="<service_role key>"
+ *   node scripts/migrate-journal.js
  *
- * Idempotent: skip rows already migrated (we tag payload._src with the legacy id).
- * Run with the SERVICE ROLE key in a trusted server/CLI context ONLY — never the
- * browser bundle. Usage:
- *
- *   SUPABASE_URL=... SUPABASE_SERVICE_KEY=... node scripts/migrate-journal.js
- *
- * Copy this file per app (migrate-pantry.js, migrate-ledger.js, ...) and map each
- * legacy table → a record `type`.
+ * Event rows (symptom/food/mood/water/exercise) keep their uuid id; cycle_days
+ * and period_starts are keyed by date/start_date (no uuid) and get fresh ids.
  */
 import { createClient } from '@supabase/supabase-js'
 
-const HOUSEHOLD_ID = '00000000-0000-0000-0000-000000000001' // matches identity.js alpha
+const HOUSEHOLD_ID = '00000000-0000-0000-0000-000000000001'
 const APP = 'journal'
+const LEGACY_SCHEMA = process.env.LEGACY_SCHEMA || 'journal'
 
 const url = process.env.SUPABASE_URL
 const serviceKey = process.env.SUPABASE_SERVICE_KEY
-if (!url || !serviceKey) {
-  console.error('Set SUPABASE_URL and SUPABASE_SERVICE_KEY'); process.exit(1)
-}
+if (!url || !serviceKey) { console.error('Set SUPABASE_URL and SUPABASE_SERVICE_KEY'); process.exit(1) }
 
-const legacy = createClient(url, serviceKey, { db: { schema: 'journal' } })
-const grove = createClient(url, serviceKey, { db: { schema: 'grove' } })
+const opts = { auth: { persistSession: false, autoRefreshToken: false } }
+const legacy = createClient(url, serviceKey, { db: { schema: LEGACY_SCHEMA }, ...opts })
+const grove = createClient(url, serviceKey, { db: { schema: 'grove' }, ...opts })
 
-// legacy table → { type, occurredAt(row), payload(row) }
-const MAP = [
-  { table: 'symptom_events', type: 'symptom_event',
-    occurredAt: (r) => r.occurred_at,
-    payload: (r) => ({ symptom: r.symptom, severity: r.severity, notes: r.notes }) },
-  { table: 'food_events', type: 'food_event',
-    occurredAt: (r) => r.occurred_at,
-    payload: (r) => ({ category: r.category, item: r.item, notes: r.notes }) },
-  { table: 'mood_events', type: 'mood_event',
-    occurredAt: (r) => r.occurred_at,
-    payload: (r) => ({ mood: r.mood, notes: r.notes }) },
-  { table: 'water_events', type: 'water_event',
-    occurredAt: (r) => r.occurred_at,
-    payload: (r) => ({ amountOz: r.amount_oz }) },
-  { table: 'exercise_events', type: 'exercise_event',
-    occurredAt: (r) => r.occurred_at,
-    payload: (r) => ({ exerciseType: r.exercise_type, minutes: r.duration_minutes, notes: r.notes }) },
-  { table: 'cycle_days', type: 'cycle_day',
-    occurredAt: (r) => `${r.date}T12:00:00Z`,
-    payload: (r) => ({ date: r.date, flow: r.flow, cyclePhaseOverride: r.cycle_phase_override, sleepHours: r.sleep_hours, notes: r.notes }) },
-  { table: 'period_starts', type: 'period_start',
-    occurredAt: (r) => `${r.start_date}T12:00:00Z`,
-    payload: (r) => ({ date: r.start_date }) },
+const TABLES = [
+  { table: 'cycle_days', type: 'cycle_day', occ: (r) => `${r.date}T12:00:00Z`, key: (r) => r.date, keepId: false },
+  { table: 'period_starts', type: 'period_start', occ: (r) => `${r.start_date}T12:00:00Z`, key: (r) => r.start_date, keepId: false },
+  { table: 'symptom_events', type: 'symptom_event', occ: (r) => r.occurred_at, key: (r) => r.id, keepId: true },
+  { table: 'food_events', type: 'food_event', occ: (r) => r.occurred_at, key: (r) => r.id, keepId: true },
+  { table: 'mood_events', type: 'mood_event', occ: (r) => r.occurred_at, key: (r) => r.id, keepId: true },
+  { table: 'water_events', type: 'water_event', occ: (r) => r.occurred_at, key: (r) => r.id, keepId: true },
+  { table: 'exercise_events', type: 'exercise_event', occ: (r) => r.occurred_at, key: (r) => r.id, keepId: true },
 ]
 
+function dumpError(label, err) {
+  console.error(`  ✗ ${label}`)
+  console.error(`      message: ${err.message || '(empty)'} | code: ${err.code || '(none)'} | hint: ${err.hint || '(none)'}`)
+}
+async function read(table) {
+  const { data, error } = await legacy.from(table).select('*')
+  if (error) { console.error(`  ✗ read ${LEGACY_SCHEMA}.${table}: ${error.message} (${error.code || ''})`); return null }
+  return data || []
+}
 async function alreadyMigrated(srcKey) {
-  const { count } = await grove.from('records').select('id', { count: 'exact', head: true })
-    .eq('app', APP).contains('payload', { _src: srcKey })
+  const { count, error } = await grove.from('records').select('id', { count: 'exact', head: true }).eq('app', APP).contains('payload', { _src: srcKey })
+  if (error) { console.error(`  ✗ check grove.records: ${error.message}`); return false }
   return (count ?? 0) > 0
 }
-
-async function run() {
-  for (const m of MAP) {
-    const { data: rows, error } = await legacy.from(m.table).select('*')
-    if (error) { console.error(`read ${m.table}:`, error.message); continue }
-    let inserted = 0
-    for (const r of rows) {
-      const srcKey = `${m.table}:${r.id ?? r.date ?? r.start_date}`
-      if (await alreadyMigrated(srcKey)) continue
-      const payload = { ...m.payload(r), _src: srcKey }
-      const { error: insErr } = await grove.from('records').insert({
-        household_id: HOUSEHOLD_ID, app: APP, type: m.type,
-        occurred_at: m.occurredAt(r), payload, enc: false,
-      })
-      if (insErr) console.error(`insert ${srcKey}:`, insErr.message)
-      else inserted++
-    }
-    console.log(`${m.table} → ${m.type}: +${inserted} (of ${rows.length})`)
-  }
-  console.log('done.')
+async function insert(type, payload, occurred_at, id) {
+  const rec = { household_id: HOUSEHOLD_ID, app: APP, type, occurred_at: occurred_at || null, payload, enc: false }
+  if (id) rec.id = id
+  const { error } = await grove.from('records').insert(rec)
+  if (error) { console.error(`  ✗ insert ${type}: ${error.message}`); return false }
+  return true
 }
-run()
+async function preflight() {
+  console.log('Preflight checks…')
+  for (const [client, label, table] of [[grove, 'grove', 'records'], [legacy, LEGACY_SCHEMA, 'period_starts']]) {
+    const { error } = await client.from(table).select('id').limit(1)
+    if (error) {
+      dumpError(`cannot reach ${label}.${table}`, error)
+      console.error(`    → 42501: grant service_role usage+select on the ${label} schema. PGRST106: expose the schema.`)
+      return false
+    }
+    console.log(`  ✓ ${label}.${table} reachable`)
+  }
+  return true
+}
+async function run() {
+  if (!(await preflight())) { console.error('\nPreflight failed — nothing written.'); process.exit(1) }
+  console.log('\nMigrating…')
+  for (const { table, type, occ, key, keepId } of TABLES) {
+    const rows = await read(table)
+    if (!rows) continue
+    let n = 0
+    for (const row of rows) {
+      const src = `${table}:${key(row)}`
+      if (await alreadyMigrated(src)) continue
+      const { id, occurred_at, created_at, ...rest } = row
+      const payload = { ...rest, _src: src }
+      if (await insert(type, payload, occ(row), keepId ? id : null)) n++
+    }
+    console.log(`  ${table} -> ${type}: +${n} (of ${rows.length})`)
+  }
+  console.log('\nDone.')
+  process.exit(0)
+}
+run().catch((e) => { console.error('Fatal:', e.message); process.exit(1) })

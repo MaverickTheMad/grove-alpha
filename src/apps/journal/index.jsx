@@ -1,79 +1,53 @@
-import { useEffect, useState, useCallback } from 'react'
-import * as data from '../../lib/data'
+import { useState, useEffect, useCallback } from 'react'
+import './journal.css'
 import BottomNav from '../../components/BottomNav'
-import SetupScreen from '../../components/SetupScreen'
-import { todayStr } from '../../lib/time'
-import { EVENT_TYPES, computeCyclePhase } from './constants'
-import LogTab from './tabs/LogTab'
-import TrendsTab from './tabs/TrendsTab'
-import CalendarTab from './tabs/CalendarTab'
+import * as store from './lib/store'
+import IntakeTab from './tabs/IntakeTab'
+import SetupScreen from './components/SetupScreen'
 
 export const meta = { id: 'journal', name: "Ren's Journal", tagline: 'Cycle & symptoms' }
 
 const TABS = [
-  { id: 'log', label: 'Log', icon: 'log' },
+  { id: 'intake', label: 'Log', icon: 'log' },
   { id: 'trends', label: 'Trends', icon: 'trends' },
-  { id: 'cycle', label: 'Cycle', icon: 'calendar' },
+  { id: 'calendar', label: 'Cycle', icon: 'calendar' },
 ]
 
+function StubTab({ title }) {
+  return <div className="empty" style={{ paddingTop: '15vh' }}><p className="line">{title} — porting in the next pass.</p></div>
+}
+
 export default function Journal() {
-  const [tab, setTab] = useState('log')
-  const [periodStarts, setPeriodStarts] = useState(null) // null = loading
-  const [setupDate, setSetupDate] = useState(todayStr())
+  const [tab, setTab] = useState('intake')
+  const [loading, setLoading] = useState(true)
+  const [needsSetup, setNeedsSetup] = useState(false)
+  const [periodStarts, setPeriodStarts] = useState([])
+  const [refreshKey, setRefreshKey] = useState(0)
 
-  const loadStarts = useCallback(async () => {
-    const rows = await data.list({ app: 'journal', type: EVENT_TYPES.periodStart })
-    setPeriodStarts(rows.map((r) => r.data.date).sort())
+  const reload = useCallback(async () => {
+    const starts = await store.loadPeriodStarts()
+    setPeriodStarts(starts)
+    setNeedsSetup(starts.length === 0)
+    setLoading(false)
   }, [])
+  useEffect(() => { reload() }, [reload])
 
-  useEffect(() => { loadStarts() }, [loadStarts])
+  const bump = () => setRefreshKey((k) => k + 1)
 
-  const addPeriodStart = useCallback(async (date) => {
-    await data.create({
-      app: 'journal',
-      type: EVENT_TYPES.periodStart,
-      occurredAt: new Date(`${date}T12:00:00`).toISOString(),
-      data: { date },
-    })
-    await loadStarts()
-  }, [loadStarts])
-
-  const removePeriodStart = useCallback(async (date) => {
-    const rows = await data.list({ app: 'journal', type: EVENT_TYPES.periodStart, from: date, to: date })
-    for (const r of rows) if (r.data.date === date) await data.remove(r.id)
-    await loadStarts()
-  }, [loadStarts])
-
-  const phaseFor = useCallback(
-    (dateStr) => (periodStarts?.length ? computeCyclePhase(dateStr, periodStarts) : null),
-    [periodStarts],
-  )
-
-  if (periodStarts === null) {
-    return <main className="screen"><p className="sub" style={{ textAlign: 'center', color: 'var(--text-soft)' }}>Loading…</p></main>
+  if (loading) {
+    return <main className="screen"><div className="empty" style={{ paddingTop: '20vh' }}><p className="line">Loading…</p></div></main>
   }
-
-  // first-run setup gate: need at least one period start to compute phases
-  if (periodStarts.length === 0) {
-    return (
-      <SetupScreen
-        appName="Ren's Journal"
-        prompt="When did your most recent period start? This anchors your cycle phases — you can add past starts later."
-        continueLabel="Start tracking"
-        onContinue={() => addPeriodStart(setupDate)}
-      >
-        <input className="input" type="date" max={todayStr()} value={setupDate} onChange={(e) => setSetupDate(e.target.value)} />
-      </SetupScreen>
-    )
+  if (needsSetup) {
+    return <div className="journal-page"><SetupScreen onComplete={reload} /></div>
   }
 
   return (
     <>
-      {tab === 'log' && <LogTab periodStarts={periodStarts} phaseFor={phaseFor} />}
-      {tab === 'trends' && <TrendsTab periodStarts={periodStarts} />}
-      {tab === 'cycle' && (
-        <CalendarTab periodStarts={periodStarts} addPeriodStart={addPeriodStart} removePeriodStart={removePeriodStart} />
-      )}
+      <div className="journal-page">
+        {tab === 'intake' && <IntakeTab periodStarts={periodStarts} onChange={bump} refreshKey={refreshKey} />}
+        {tab === 'trends' && <StubTab title="Trends" />}
+        {tab === 'calendar' && <StubTab title="Cycle" />}
+      </div>
       <BottomNav tabs={TABS} active={tab} onSelect={setTab} />
     </>
   )
