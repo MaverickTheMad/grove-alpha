@@ -7,6 +7,7 @@
 
 import { members } from '../../../lib/identity'
 import * as db from '../../../lib/data'
+import { useState, useEffect, useCallback } from 'react'
 import { APP, TYPES } from '../constants'
 
 // [{ id, name, color, primary_paycheck_id, _settingsId }]
@@ -29,4 +30,12 @@ export async function setPrimaryPaycheck(personId, paycheckId) {
   const data = { person_id: personId, primary_paycheck_id: paycheckId }
   if (existing) await db.update(existing.id, { data })
   else await db.create({ app: APP, type: TYPES.personSettings, data })
+}
+
+// React hook mirroring the old useCorePeople shape (read + refetch).
+export function usePeople() {
+  const [data, setData] = useState([])
+  const refetch = useCallback(async () => { try { setData(await loadPeople()) } catch { setData([]) } }, [])
+  useEffect(() => { refetch() }, [refetch])
+  return { data, refetch, setPrimaryPaycheck }
 }
