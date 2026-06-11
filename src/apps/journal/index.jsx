@@ -4,6 +4,8 @@ import BottomNav from '../../components/BottomNav'
 import * as store from './lib/store'
 import IntakeTab from './tabs/IntakeTab'
 import SetupScreen from './components/SetupScreen'
+import TrendsTab from './tabs/TrendsTab'
+import CalendarTab from './tabs/CalendarTab'
 
 export const meta = { id: 'journal', name: "Ren's Journal", tagline: 'Cycle & symptoms' }
 
@@ -13,9 +15,6 @@ const TABS = [
   { id: 'calendar', label: 'Cycle', icon: 'calendar' },
 ]
 
-function StubTab({ title }) {
-  return <div className="empty" style={{ paddingTop: '15vh' }}><p className="line">{title} — porting in the next pass.</p></div>
-}
 
 export default function Journal() {
   const [tab, setTab] = useState('intake')
@@ -45,8 +44,14 @@ export default function Journal() {
     <>
       <div className="journal-page">
         {tab === 'intake' && <IntakeTab periodStarts={periodStarts} onChange={bump} refreshKey={refreshKey} />}
-        {tab === 'trends' && <StubTab title="Trends" />}
-        {tab === 'calendar' && <StubTab title="Cycle" />}
+        {tab === 'trends' && <TrendsTab periodStarts={periodStarts} refreshKey={refreshKey} />}
+        {tab === 'calendar' && (
+          <CalendarTab
+            periodStarts={periodStarts}
+            onPeriodStartsChange={async () => { await reload(); bump() }}
+            refreshKey={refreshKey}
+          />
+        )}
       </div>
       <BottomNav tabs={TABS} active={tab} onSelect={setTab} />
     </>
