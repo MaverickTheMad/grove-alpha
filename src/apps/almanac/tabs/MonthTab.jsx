@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useTimeline } from '../useTimeline'
 import EventRow from '../components/EventRow'
 import Sheet from '../components/Sheet'
-import { IconChevronLeft, IconChevronRight } from '../components/Icons'
+import Icon from '../../../components/Icon'
 import {
   monthBounds, dateRange, parseLocalDate, todayStr, addDays,
   kindMeta, sortDayEvents, fmtDate,
@@ -43,11 +43,11 @@ export default function MonthTab() {
       <div className="tab-head">
         <div className="week-nav">
           <button className="icon-btn" onClick={() => shiftMonth(-1)} aria-label="Previous month">
-            <IconChevronLeft />
+            <Icon name="chevron-left" size={20} />
           </button>
           <h2>{monthLabel}</h2>
           <button className="icon-btn" onClick={() => shiftMonth(1)} aria-label="Next month">
-            <IconChevronRight />
+            <Icon name="chevron-right" size={20} />
           </button>
         </div>
         {anchor.slice(0, 7) !== today.slice(0, 7) && (

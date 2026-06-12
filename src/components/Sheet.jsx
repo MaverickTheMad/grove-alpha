@@ -2,50 +2,55 @@ import { useEffect, useRef } from 'react'
 
 // One Sheet for the whole suite (build-spec §9 — copied, never forked).
 // Mobile: slides up from the bottom (thumb zone, UI-POLISH §9).
-// Desktop ≥720px: renders as a centered dialog (App.css media query handles the visual switch).
-// Focus is trapped inside while open and restored to the trigger on close (Phase 1 a11y).
+// Desktop ≥720px: renders as a centered dialog (App.css media query).
+// Close button, body-scroll lock, focus trap + restore are all built in.
+//
+// Class names: outputs BOTH canonical (sheet-scrim, sheet-footer) AND legacy
+// fork names (sheet-backdrop, sheet-foot) so per-app CSS rules keep working
+// without touching each app's stylesheet.
 export default function Sheet({ open, onClose, title, children, footer }) {
   const sheetRef = useRef(null)
   const triggerRef = useRef(null)
 
-  // On open: save current focus so we can restore it, then move focus into sheet
+  // Lock body scroll while open
+  useEffect(() => {
+    if (!open) return
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [open])
+
+  // Save trigger, move focus in
   useEffect(() => {
     if (!open) return
     triggerRef.current = document.activeElement
     const t = setTimeout(() => {
       const focusable = sheetRef.current?.querySelectorAll(
-        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        'button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
       )
       focusable?.[0]?.focus()
-    }, 50) // after animation frame
+    }, 50)
     return () => clearTimeout(t)
   }, [open])
 
-  // On close: restore focus to the element that triggered the sheet
+  // Restore focus on close
   useEffect(() => {
     if (open) return
     triggerRef.current?.focus()
   }, [open])
 
-  // Keyboard: Escape closes; Tab is trapped within the sheet
+  // Escape + Tab trap
   useEffect(() => {
     if (!open) return
     const onKey = (e) => {
       if (e.key === 'Escape') { onClose?.(); return }
       if (e.key === 'Tab' && sheetRef.current) {
-        const focusable = Array.from(
-          sheetRef.current.querySelectorAll(
-            'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-          )
-        )
-        if (!focusable.length) return
-        const first = focusable[0]
-        const last = focusable[focusable.length - 1]
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault(); last.focus()
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault(); first.focus()
-        }
+        const els = Array.from(sheetRef.current.querySelectorAll(
+          'button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
+        ))
+        if (!els.length) return
+        const first = els[0], last = els[els.length - 1]
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus() }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
       }
     }
     window.addEventListener('keydown', onKey)
@@ -54,7 +59,8 @@ export default function Sheet({ open, onClose, title, children, footer }) {
 
   if (!open) return null
   return (
-    <div className="sheet-scrim" onClick={onClose}>
+    /* sheet-backdrop kept alongside sheet-scrim for per-app CSS compat */
+    <div className="sheet-scrim sheet-backdrop" onClick={onClose}>
       <div
         ref={sheetRef}
         className="sheet"
@@ -64,9 +70,15 @@ export default function Sheet({ open, onClose, title, children, footer }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sheet-grip" aria-hidden />
-        {title && <h2 className="sheet-title">{title}</h2>}
+        {title && (
+          <div className="sheet-head">
+            <h2 className="sheet-title">{title}</h2>
+            <button className="sheet-x" onClick={onClose} aria-label="Close">✕</button>
+          </div>
+        )}
         <div className="sheet-body">{children}</div>
-        {footer && <div className="sheet-footer">{footer}</div>}
+        {/* sheet-foot kept alongside sheet-footer for per-app CSS compat */}
+        {footer && <div className="sheet-foot sheet-footer">{footer}</div>}
       </div>
     </div>
   )

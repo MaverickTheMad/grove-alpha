@@ -1,5 +1,5 @@
 import { kindMeta, sourceLink, fmtTime, fmtMoney } from '../constants'
-import { IconExternal } from './Icons'
+import Icon from '../../../components/Icon'
 
 // Build the subline as an array of parts; join with " · " for clean separators.
 function sublineParts(row) {
@@ -50,7 +50,7 @@ export default function EventRow({ row }) {
       )}
       {link && (
         <a className="evlink" href={link} target="_blank" rel="noreferrer" aria-label="Open source app">
-          <IconExternal />
+          <Icon name="external" size={14} />
         </a>
       )}
     </div>

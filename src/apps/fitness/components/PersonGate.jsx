@@ -1,5 +1,21 @@
 import { PEOPLE, levelTitle } from '../constants.js'
-import { RepsMark } from './Icons.jsx'
+
+// Barbell mark — the Fitness (Reps) app identity mark. Inlined here since it's
+// only used in this one component (build-spec §9: don't create a fork just for one icon).
+function RepsMark({ size = 26 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 28 28" fill="none"
+      stroke="var(--accent)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="6" y1="14" x2="22" y2="14" />
+      <rect x="6" y="8.5" width="2.6" height="11" rx="1.1" />
+      <rect x="19.4" y="8.5" width="2.6" height="11" rx="1.1" />
+      <rect x="3.2" y="10.5" width="2.2" height="7" rx="1" />
+      <rect x="22.6" y="10.5" width="2.2" height="7" rx="1" />
+      <line x1="1.6" y1="11.5" x2="1.6" y2="16.5" />
+      <line x1="26.4" y1="11.5" x2="26.4" y2="16.5" />
+    </svg>
+  )
+}
 
 export default function PersonGate({ profiles, onChoose }) {
   return (

@@ -6,7 +6,7 @@ import Sheet from '../components/Sheet'
 import AddEvent from '../components/AddEvent'
 import WeekAgenda from '../components/WeekAgenda'
 import WeekTimeGrid from '../components/WeekTimeGrid'
-import { IconChevronLeft, IconChevronRight, IconPlus } from '../components/Icons'
+import Icon from '../../../components/Icon'
 import {
   weekBounds, monthBounds, dateRange, todayStr, addDays,
   sortDayEvents, fmtDate, computeNudges,
@@ -69,14 +69,14 @@ export default function WeekTab() {
       <div className="tab-head">
         <div className="week-nav">
           <button className="icon-btn" onClick={() => setWeekOffset((n) => n - 1)} aria-label="Previous week">
-            <IconChevronLeft />
+            <Icon name="chevron-left" size={20} />
           </button>
           <div>
             <h2>{weekLabel}</h2>
             <div className="muted">{fmtDate(weekStart)} – {fmtDate(weekEnd)}</div>
           </div>
           <button className="icon-btn" onClick={() => setWeekOffset((n) => n + 1)} aria-label="Next week">
-            <IconChevronRight />
+            <Icon name="chevron-right" size={20} />
           </button>
         </div>
         <div className="head-actions">
@@ -84,7 +84,7 @@ export default function WeekTab() {
             <button className="btn ghost sm" onClick={() => setWeekOffset(0)}>Today</button>
           )}
           <button className="btn primary sm" onClick={() => setAdding(true)}>
-            <IconPlus /> Event
+            <Icon name="log" size={16} /> Event
           </button>
         </div>
       </div>
