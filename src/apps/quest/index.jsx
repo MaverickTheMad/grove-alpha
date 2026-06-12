@@ -176,7 +176,7 @@ export default function Quest() {
 
   return (
     <>
-      <div className="quest-page">
+      <div className="quest-page page">
         <section className="hud">
           <div className="hud-top">
             <div>

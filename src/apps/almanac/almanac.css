@@ -4,7 +4,7 @@
   --kind-bill:#c0894a; --kind-payday:#5fb47e; --kind-goal:#6f86c2; --kind-flow:#d06a82;
   --kind-meal:#cb7a4f; --kind-pet:#d8a24f; --kind-gcal:#4ca39b; --kind-family:#9b82be;
 }
-[data-app="almanac"] .almanac-page { padding: var(--sp-4); padding-bottom: 96px; max-width: 760px; margin: 0 auto; }
+[data-app="almanac"] .almanac-page { /* layout handled by .page.wide — only app-specific overrides here */ }
 
 [data-app="almanac"] .icon-btn {
   width:38px; height:38px; border-radius:var(--r-full);

@@ -1,6 +1,6 @@
 /* Grove · Pets (pets) — scoped port onto Grove. Honey accent from the global
    [data-app="pets"] token block. */
-[data-app="pets"] .pets-page { padding: var(--sp-4); padding-bottom: 96px; max-width: 640px; margin: 0 auto; }
+[data-app="pets"] .pets-page { /* layout handled by .page — only app-specific overrides here */ }
 
 [data-app="pets"] .icon-btn { width:38px; height:38px; border-radius:var(--r-full); background:var(--bg-sunken); border:1px solid var(--border); font-size:16px; color:var(--text-soft); display:grid; place-items:center; transition:160ms cubic-bezier(.2,.8,.2,1); }
 [data-app="pets"] .icon-btn:active { transform:scale(.94); color:var(--text); }

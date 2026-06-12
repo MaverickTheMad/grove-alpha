@@ -36,7 +36,7 @@
   --app-weak: color-mix(in srgb, var(--app-accent) 14%, var(--bg-paper));
   --app-soft: color-mix(in srgb, var(--app-accent) 28%, var(--bg-paper));
 }
-[data-app="journal"] .journal-page { padding: var(--sp-4); padding-bottom: 96px; max-width: 640px; margin: 0 auto; }
+[data-app="journal"] .journal-page { /* layout handled by .page — only app-specific overrides here */ }
 
 [data-app="journal"] .tab-pad {
   padding: var(--sp-4) var(--sp-4) var(--sp-6);

@@ -510,6 +510,9 @@
 }
 
 /* content wrapper (Grove shell provides the top bar; app owns bottom nav) */
-[data-app="ledger"] .ledger-page { padding: var(--sp-4); padding-bottom: 96px; max-width: 1100px; margin: 0 auto; }
+[data-app="ledger"] .ledger-page { padding: var(--sp-4); padding-bottom: calc(var(--sp-8) + 64px); max-width: var(--content-wide); margin: 0 auto; }
+@media (min-width: 720px) {
+  [data-app="ledger"] .ledger-page { padding-left: var(--sp-6); padding-right: var(--sp-6); padding-bottom: var(--sp-8); }
+}
 [data-app="ledger"] .page-header h1 { font-family: var(--font-display); font-size: var(--fs-2xl); font-weight: var(--fw-title); line-height: 1.1; }
 [data-app="ledger"] .subtabs { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: var(--sp-3) var(--sp-4) 0; }

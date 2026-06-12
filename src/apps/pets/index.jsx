@@ -50,7 +50,7 @@ export default function Pets() {
 
   return (
     <>
-      <div className="pets-page">
+      <div className="pets-page page">
         {tab === 'reminders' && <RemindersTab pets={pets} onJump={setTab} />}
         {tab === 'pets' && <PetsTab pets={pets} reloadPets={loadPets} />}
         {tab === 'docs' && <DocsTab pets={pets} />}

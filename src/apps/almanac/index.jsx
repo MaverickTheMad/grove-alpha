@@ -17,7 +17,7 @@ export default function Almanac() {
   const [tab, setTab] = useState('week')
   return (
     <>
-      <div className="almanac-page">
+      <div className="almanac-page page wide">
         {tab === 'week' && <WeekTab />}
         {tab === 'month' && <MonthTab />}
         {tab === 'upcoming' && <UpcomingTab />}

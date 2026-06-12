@@ -37,12 +37,12 @@ export default function Journal() {
     return <main className="screen"><div className="empty" style={{ paddingTop: '20vh' }}><p className="line">Loading…</p></div></main>
   }
   if (needsSetup) {
-    return <div className="journal-page"><SetupScreen onComplete={reload} /></div>
+    return <div className="journal-page page"><SetupScreen onComplete={reload} /></div>
   }
 
   return (
     <>
-      <div className="journal-page">
+      <div className="journal-page page">
         {tab === 'intake' && <IntakeTab periodStarts={periodStarts} onChange={bump} refreshKey={refreshKey} />}
         {tab === 'trends' && <TrendsTab periodStarts={periodStarts} refreshKey={refreshKey} />}
         {tab === 'calendar' && (

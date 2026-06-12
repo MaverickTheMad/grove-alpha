@@ -52,12 +52,12 @@ export default function Fitness() {
     )
   }
   if (!person) {
-    return <div className="fitness-page"><PersonGate profiles={profiles} onChoose={setPerson} /></div>
+    return <div className="fitness-page page"><PersonGate profiles={profiles} onChoose={setPerson} /></div>
   }
 
   return (
     <>
-      <div className="fitness-page">
+      <div className="fitness-page page">
         <div className="who-bar">
           <button className="who-pill" onClick={() => setPerson(null)} aria-label="Switch person">
             <span className="who-avatar">{profile?.display_name?.[0]}</span>
