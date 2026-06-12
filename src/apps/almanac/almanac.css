@@ -274,6 +274,14 @@
 [data-app="almanac"] .mcell.is-today .mnum { color:var(--app-accent); }
 [data-app="almanac"] .mdots { display:flex; gap:3px; flex-wrap:wrap; justify-content:center; }
 [data-app="almanac"] .mdot { width:5px; height:5px; border-radius:var(--r-full); }
+/* Desktop: cap cell height so wide viewports don't produce absurdly tall cells */
+@media (min-width:720px) {
+  [data-app="almanac"] .mcell {
+    aspect-ratio: unset;
+    min-height: 80px;
+    max-height: 120px;
+  }
+}
 [data-app="almanac"] .sheet-backdrop {
   position:fixed; inset:0; z-index:50;
   background:rgba(0,0,0,.5);

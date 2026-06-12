@@ -1,5 +1,8 @@
 /* Grove · Settings — utility surface, slate accent (from the global token block). */
-[data-app="settings"] .settings-page { max-width: 640px; margin: 0 auto; padding: var(--sp-4); padding-bottom: 96px; }
+[data-app="settings"] .settings-page { max-width: 640px; margin: 0 auto; padding: var(--sp-4); padding-bottom: calc(var(--sp-8) + 64px); }
+@media (min-width: 720px) {
+  [data-app="settings"] .settings-page { padding-left: var(--sp-6); padding-right: var(--sp-6); padding-bottom: var(--sp-8); }
+}
 
 [data-app="settings"] .set-head { margin-bottom: var(--sp-5); }
 [data-app="settings"] .set-head h1 { font-family: var(--font-display); font-size: var(--fs-2xl); font-weight: var(--fw-title); line-height: 1.1; }

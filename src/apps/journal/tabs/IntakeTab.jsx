@@ -117,22 +117,28 @@ export default function IntakeTab({ periodStarts, onChange, refreshKey }) {
           {adding === 'water'    && <AddWater    date={date} onDone={() => { setAdding(null); load(); onChange?.() }} />}
           {adding === 'exercise' && <AddExercise date={date} onDone={() => { setAdding(null); load(); onChange?.() }} />}
 
-          {/* TIMELINE */}
-          <Timeline
-            symptoms={symptoms}
-            foods={foods}
-            moods={moods}
-            waters={waters}
-            exercises={exercises}
-            workouts={workouts}
-            onReload={() => { load(); onChange?.() }}
-          />
+          {/* At ≥1080px this becomes a 2-col grid: timeline left, summary right */}
+          <div className="log-body">
+            {/* TIMELINE */}
+            <Timeline
+              symptoms={symptoms}
+              foods={foods}
+              moods={moods}
+              waters={waters}
+              exercises={exercises}
+              workouts={workouts}
+              onReload={() => { load(); onChange?.() }}
+            />
 
-          {/* DAY SUMMARY: SLEEP + NOTES */}
-          <DaySummary day={day} updateDay={updateDay} totalWater={totalWater} totalExercise={totalExercise} />
+            {/* DAY SUMMARY + PHASE OVERRIDE — right column on desktop */}
+            <div className="log-aside">
+              {/* DAY SUMMARY: SLEEP + NOTES */}
+              <DaySummary day={day} updateDay={updateDay} totalWater={totalWater} totalExercise={totalExercise} />
 
-          {/* PHASE OVERRIDE */}
-          <PhaseOverride day={day} updateDay={updateDay} computedPhase={computedPhase} />
+              {/* PHASE OVERRIDE */}
+              <PhaseOverride day={day} updateDay={updateDay} computedPhase={computedPhase} />
+            </div>
+          </div>
         </>
       )}
 
