@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import * as store from '../lib/store.js'
+import Sheet from '../../../components/Sheet'
+import { useToast } from '../../../components/Toast'
 import { PHASES, FLOW_LEVELS, computeCyclePhase, todayLocalISO, formatDateLong, localDayBounds, isoToLocalDateStr } from '../constants.js'
 
 // ============================================================
@@ -482,6 +484,7 @@ function CycleLegend() {
 function SelectedDayCard({ date, periodStarts, onClose, onPeriodStartsChange }) {
   const [day, setDay] = useState(null)
   const [events, setEvents] = useState({ symptoms: [], foods: [], moods: [], waters: [], exercises: [] })
+  const [confirmRemove, setConfirmRemove] = useState(false)
   const isPeriodStart = periodStarts.includes(date)
 
   useEffect(() => {
@@ -505,11 +508,16 @@ function SelectedDayCard({ date, periodStarts, onClose, onPeriodStartsChange }) 
 
   const togglePeriodStart = async () => {
     if (isPeriodStart) {
-      if (!confirm('Remove this as a period start date?')) return
-      await store.removePeriodStart(date)
-    } else {
-      await store.addPeriodStart(date)
+      setConfirmRemove(true) // show consequence sheet instead of confirm()
+      return
     }
+    await store.addPeriodStart(date)
+    onPeriodStartsChange()
+  }
+
+  const doRemovePeriodStart = async () => {
+    setConfirmRemove(false)
+    await store.removePeriodStart(date)
     onPeriodStartsChange()
   }
 
@@ -518,18 +526,37 @@ function SelectedDayCard({ date, periodStarts, onClose, onPeriodStartsChange }) 
   const totalFood = events.foods.length
 
   return (
-    <div className="card fade-in">
-      <div className="row-between">
-        <div>
-          <h3 className="card-title section-h" style={{ fontSize: 20 }}>{formatDateLong(date)}</h3>
-          {phase && (
-            <span className="phase-pill-sm" style={{ background: `var(--phase-${phase})` }}>
-              {PHASES[phase].label}
-            </span>
-          )}
+    <>
+      {/* Consequence sheet: removing a period start re-calculates all cycle phases */}
+      <Sheet
+        open={confirmRemove}
+        onClose={() => setConfirmRemove(false)}
+        title="Remove period start?"
+        footer={
+          <>
+            <button className="btn ghost grow" onClick={() => setConfirmRemove(false)}>Keep it</button>
+            <button className="btn danger grow" onClick={doRemovePeriodStart}>Remove</button>
+          </>
+        }
+      >
+        <p style={{ color: 'var(--text-soft)', lineHeight: 1.6 }}>
+          Removing this start date will re-calculate cycle phases for all your logged entries.
+          If this was your actual period start, keep it.
+        </p>
+      </Sheet>
+
+      <div className="card fade-in">
+        <div className="row-between">
+          <div>
+            <h3 className="card-title section-h" style={{ fontSize: 20 }}>{formatDateLong(date)}</h3>
+            {phase && (
+              <span className="phase-pill-sm" style={{ background: `var(--phase-${phase})` }}>
+                {PHASES[phase].label}
+              </span>
+            )}
+          </div>
+          <button className="btn ghost btn sm" onClick={onClose}>✕</button>
         </div>
-        <button className="btn ghost btn sm" onClick={onClose}>✕</button>
-      </div>
 
       <div className="day-detail-stats">
         <div className="dd-stat">
@@ -603,6 +630,7 @@ function SelectedDayCard({ date, periodStarts, onClose, onPeriodStartsChange }) 
         }
       `}</style>
     </div>
+    </>
   )
 }
 
@@ -612,6 +640,8 @@ function SelectedDayCard({ date, periodStarts, onClose, onPeriodStartsChange }) 
 function PeriodHistoryCard({ periodStarts, onChange }) {
   const [open, setOpen] = useState(false)
   const [newDate, setNewDate] = useState('')
+  const [pendingRemoves, setPendingRemoves] = useState({}) // date → timer
+  const toast = useToast()
 
   const add = async () => {
     if (!newDate) return
@@ -620,13 +650,23 @@ function PeriodHistoryCard({ periodStarts, onChange }) {
     onChange()
   }
 
-  const remove = async (d) => {
-    if (!confirm(`Remove ${d}?`)) return
-    await store.removePeriodStart(d)
-    onChange()
+  const remove = (d) => {
+    const timer = setTimeout(async () => {
+      setPendingRemoves(p => { const n = { ...p }; delete n[d]; return n })
+      await store.removePeriodStart(d)
+      onChange()
+    }, 5000)
+    setPendingRemoves(p => ({ ...p, [d]: timer }))
+    toast.show(`Period start ${d} removed.`, {
+      actionLabel: 'Undo',
+      onAction: () => {
+        clearTimeout(timer)
+        setPendingRemoves(p => { const n = { ...p }; delete n[d]; return n })
+      },
+    })
   }
 
-  const sorted = [...periodStarts].sort().reverse()
+  const sorted = [...periodStarts].sort().reverse().filter(d => !pendingRemoves[d])
 
   return (
     <div className="card">

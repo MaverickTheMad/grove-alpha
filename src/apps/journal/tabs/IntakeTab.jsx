@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import * as store from '../lib/store.js'
+import { useToast } from '../../../components/Toast'
 
 // This journal belongs to Ren; her workouts in the Fitness app log under 'ren'.
 const FITNESS_PERSON = 'ren'
@@ -1014,8 +1015,10 @@ function AddExercise({ date, onDone }) {
 // ============ TIMELINE ============
 function Timeline({ symptoms, foods, moods, waters, exercises, workouts = [], onReload }) {
   const [editing, setEditing] = useState(null) // { kind, id }
+  const [pending, setPending] = useState({})   // "kind-id" → timer handle
+  const toast = useToast()
 
-  const events = [
+  const allEvents = [
     ...symptoms.map(e => ({ ...e, kind: 'symptom' })),
     ...foods.map(e => ({ ...e, kind: 'food' })),
     ...moods.map(e => ({ ...e, kind: 'mood' })),
@@ -1024,9 +1027,25 @@ function Timeline({ symptoms, foods, moods, waters, exercises, workouts = [], on
     ...workouts.map(e => ({ ...e, kind: 'workout' })),
   ].sort((a, b) => new Date(a.occurred_at) - new Date(b.occurred_at))
 
-  const deleteEvent = async (kind, id) => {
-    await store.deleteEvent(id)
-    onReload()
+  // Hide optimistically-deleted items so they vanish instantly on tap
+  const events = allEvents.filter(ev => !pending[`${ev.kind}-${ev.id}`])
+
+  const deleteEvent = (kind, id) => {
+    const key = `${kind}-${id}`
+    // Optimistically hide the item, then actually delete after 5s
+    const timer = setTimeout(async () => {
+      setPending(p => { const n = { ...p }; delete n[key]; return n })
+      await store.deleteEvent(id)
+      onReload()
+    }, 5000)
+    setPending(p => ({ ...p, [key]: timer }))
+    toast.show('Entry deleted.', {
+      actionLabel: 'Undo',
+      onAction: () => {
+        clearTimeout(timer)
+        setPending(p => { const n = { ...p }; delete n[key]; return n })
+      },
+    })
   }
 
   const isEditing = (kind, id) => editing?.kind === kind && editing?.id === id
@@ -1034,7 +1053,7 @@ function Timeline({ symptoms, foods, moods, waters, exercises, workouts = [], on
   if (events.length === 0) {
     return (
       <div className="card">
-        <div className="empty">Nothing logged yet today.</div>
+        <div className="empty">Nothing logged yet today — tap a button above to add your first entry.</div>
       </div>
     )
   }

@@ -139,7 +139,10 @@
 [data-app="journal"] .event-meta { font-size: var(--fs-xs); color: var(--text-soft); margin-top: 3px; }
 [data-app="journal"] .event-actions { display: flex; gap: 2px; padding-top: 1px; }
 [data-app="journal"] .event-edit, [data-app="journal"] .event-delete {
-  color: var(--text-soft); padding: 4px 7px; border-radius: var(--r-sm); transition: 120ms;
+  color: var(--text-soft); border-radius: var(--r-sm); transition: 120ms;
+  /* 44×44 minimum tap target (UI-POLISH §9) */
+  min-width: 44px; min-height: 44px;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0;
 }
 [data-app="journal"] .event-edit:hover, [data-app="journal"] .event-edit:active { background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--warn); }
 [data-app="journal"] .event-delete:hover, [data-app="journal"] .event-delete:active { background: var(--app-weak); color: var(--app-accent); }

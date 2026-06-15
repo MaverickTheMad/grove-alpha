@@ -86,7 +86,7 @@ export default function Overview() {
         <div className="card">
           <div className="card-head"><h3>Upcoming bills</h3><span className="eyebrow">Next 5</span></div>
           {upcoming.length === 0 ? (
-            <div className="empty"><p>No bills tracked yet.</p></div>
+            <div className="empty"><p>No bills tracked yet — add recurring bills to see them here.</p></div>
           ) : (
             <table className="ledger">
               <tbody>
@@ -113,7 +113,7 @@ export default function Overview() {
         <div className="card">
           <div className="card-head"><h3>Goals</h3><span className="eyebrow">{goals.length} active</span></div>
           {goals.length === 0 ? (
-            <div className="empty"><p>Create goals to start saving toward something.</p></div>
+            <div className="empty"><p>No active goals — add one on the Goals page to track your savings targets.</p></div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
               {goals.slice(0, 5).map((g) => {

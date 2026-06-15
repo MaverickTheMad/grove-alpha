@@ -88,7 +88,7 @@
 [data-app="fitness"] .check { width:26px; height:26px; border-radius:var(--r-sm); border:2px solid var(--border); background:var(--bg-sunken); color:#fff; font-size:15px; font-weight:700; flex-shrink:0; display:grid; place-items:center; }
 [data-app="fitness"] .check.on { background:var(--ok); border-color:var(--ok); }
 [data-app="fitness"] .ex-name { font-weight:var(--fw-title); }
-[data-app="fitness"] .ex-remove { color:var(--text-soft); font-size:13px; padding:6px; min-width:32px; min-height:32px; }
+[data-app="fitness"] .ex-remove { color:var(--text-soft); font-size:13px; padding:0; min-width:44px; min-height:44px; display:inline-flex; align-items:center; justify-content:center; }
 [data-app="fitness"] .ex-fields { display:flex; gap:var(--sp-2); margin-top:var(--sp-3); align-items:flex-end; }
 [data-app="fitness"] .ex-fields .field { flex:1; }
 [data-app="fitness"] .ex-note { margin-top:10px; font-size:var(--fs-xs); color:var(--text-soft); font-style:italic; max-width:var(--measure); }
@@ -114,7 +114,7 @@
 [data-app="fitness"] .reward-grid { display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-3); }
 [data-app="fitness"] .reward-card { position:relative; background:var(--bg-paper); border:1px solid var(--border); border-radius:var(--r-lg); padding:var(--sp-4) var(--sp-3); text-align:center; display:flex; flex-direction:column; align-items:center; gap:6px; }
 [data-app="fitness"] .reward-card.cant { opacity:.6; }
-[data-app="fitness"] .reward-edit { position:absolute; top:8px; right:8px; width:30px; height:30px; border-radius:var(--r-full); background:var(--bg-sunken); color:var(--text-soft); font-size:12px; }
+[data-app="fitness"] .reward-edit { position:absolute; top:8px; right:8px; width:44px; height:44px; border-radius:var(--r-full); background:var(--bg-sunken); color:var(--text-soft); font-size:14px; display:inline-flex; align-items:center; justify-content:center; }
 [data-app="fitness"] .reward-emoji { font-size:32px; }
 [data-app="fitness"] .reward-name { font-weight:var(--fw-title); font-size:var(--fs-sm); }
 [data-app="fitness"] .reward-cost { color:var(--gold); font-size:var(--fs-sm); margin-bottom:4px; font-family:var(--font-mono); }

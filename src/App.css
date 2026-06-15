@@ -170,6 +170,18 @@
 .card .title { font-family: var(--font-display); font-size: var(--fs-lg); font-weight: var(--fw-title); }
 .card .sub { font-size: var(--fs-sm); color: var(--text-soft); }
 
+/* Clickable card pattern: button.card or .rcard gets cursor + hover border
+   so desktop users know it's interactive (mobile already knows from tap, §9) */
+button.card, .rcard, .tile {
+  cursor: pointer;
+  transition: border-color 140ms cubic-bezier(.2,.8,.2,1),
+              background   140ms cubic-bezier(.2,.8,.2,1);
+}
+@media (hover: hover) {
+  button.card:hover, .rcard:hover { border-color: var(--app-soft); background: var(--bg-elevated); }
+  .tile:hover { border-color: var(--app-soft); }
+}
+
 /* ---- buttons (.btn family; UI-POLISH §3) ---- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useRecords } from '../lib/useRecords'
 import { fmt, todayISO } from '../lib/format'
+import { useToast } from '../../../components/Toast'
 
 // Sort options. Category sort groups rows by category name; within a category
 // the newest transactions come first.
@@ -16,6 +17,8 @@ export default function Transactions() {
   const { data: transactions, insert, update, remove } = useRecords('transaction', { orderBy: 'date', ascending: false })
   const { data: categories } = useRecords('category', { orderBy: 'sort_order' })
   const { data: accounts } = useRecords('account')
+  const toast = useToast()
+  const [pendingTx, setPendingTx] = useState(new Set()) // ids optimistically hidden
 
   const [search, setSearch] = useState('')
   const [filterCategory, setFilterCategory] = useState('')
@@ -46,15 +49,15 @@ export default function Transactions() {
 
   const filtered = useMemo(() => {
     return transactions.filter(t => {
+      if (pendingTx.has(t.id)) return false   // optimistically hidden
       if (search && !t.description?.toLowerCase().includes(search.toLowerCase())) return false
       if (filterCategory && t.category_id !== filterCategory) return false
       if (filterAccount && t.account_id !== filterAccount) return false
-      // Dates are stored as YYYY-MM-DD, so string comparison is correct here.
       if (startDate && t.date < startDate) return false
       if (endDate && t.date > endDate) return false
       return true
     })
-  }, [transactions, search, filterCategory, filterAccount, startDate, endDate])
+  }, [transactions, pendingTx, search, filterCategory, filterAccount, startDate, endDate])
 
   const sorted = useMemo(() => {
     const arr = [...filtered]
@@ -174,7 +177,21 @@ export default function Transactions() {
         </td>
         <td className="col-act">
           <button className="icon-btn" onClick={() => openEdit(t)} title="Edit">&#9998;</button>
-          <button className="icon-btn" onClick={() => { if (confirm('Delete?')) remove(t.id) }} title="Delete">&times;</button>
+          <button className="icon-btn" onClick={() => {
+            const id = t.id
+            const timer = setTimeout(async () => {
+              setPendingTx(p => { const s = new Set(p); s.delete(id); return s })
+              await remove(id)
+            }, 5000)
+            setPendingTx(p => new Set([...p, id]))
+            toast.show('Transaction deleted.', {
+              actionLabel: 'Undo',
+              onAction: () => {
+                clearTimeout(timer)
+                setPendingTx(p => { const s = new Set(p); s.delete(id); return s })
+              },
+            })
+          }} title="Delete" aria-label="Delete transaction">&times;</button>
         </td>
       </tr>
     )
