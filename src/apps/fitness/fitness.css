@@ -41,7 +41,8 @@
 [data-app="fitness"] .step-btn:active { background:var(--accent-weak); color:var(--accent); }
 [data-app="fitness"] .step-val { flex:1; text-align:center; font-family:var(--font-mono); font-size:var(--fs-base); min-width:34px; }
 [data-app="fitness"] .step-val input { width:100%; text-align:center; background:transparent; border:none; padding:10px 0; color:var(--text); }
-[data-app="fitness"] .step-val input:focus { outline:none; }
+[data-app="fitness"] .step-val input:focus:not(:focus-visible) { outline: none; }
+[data-app="fitness"] .step-val input:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; }
 [data-app="fitness"] .empty { text-align:center; padding:40px 20px; color:var(--text-soft); display:flex; flex-direction:column; align-items:center; gap:10px; }
 [data-app="fitness"] .empty.full { min-height:70vh; justify-content:center; }
 [data-app="fitness"] .empty .big { font-size:44px; opacity:.9; }

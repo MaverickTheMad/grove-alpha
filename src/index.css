@@ -68,3 +68,16 @@ time,
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ── Skip navigation (keyboard a11y) ────────────────────────────────────────
+   Visually hidden until focused; jumps past chrome to the main content area.
+   Wire it to #grove-main (Launcher) or the first <main> in each app. */
+.skip-nav {
+  position: fixed; top: var(--sp-2); left: var(--sp-2); z-index: 999;
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--accent); color: #0B0F09;
+  border-radius: var(--r-md); font-weight: var(--fw-med);
+  transform: translateY(-120%); transition: transform 120ms;
+  text-decoration: none;
+}
+.skip-nav:focus { transform: translateY(0); outline: 2px solid var(--text); outline-offset: 2px; }

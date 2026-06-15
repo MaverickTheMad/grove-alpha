@@ -216,9 +216,12 @@
   min-height: 38px;
 }
 [data-app="ledger"] .input:focus, [data-app="ledger"] .select:focus {
-  outline: none;
   border-color: var(--app-accent);
 }
+[data-app="ledger"] .input:focus:not(:focus-visible),
+[data-app="ledger"] .select:focus:not(:focus-visible) { outline: none; }
+[data-app="ledger"] .input:focus-visible,
+[data-app="ledger"] .select:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; }
 [data-app="ledger"] .input.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 [data-app="ledger"] .input[type="color"] { padding: 4px; cursor: pointer; }
 [data-app="ledger"] input[type="checkbox"] {

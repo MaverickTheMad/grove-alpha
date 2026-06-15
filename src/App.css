@@ -177,9 +177,15 @@ button.card, .rcard, .tile {
   transition: border-color 140ms cubic-bezier(.2,.8,.2,1),
               background   140ms cubic-bezier(.2,.8,.2,1);
 }
+/* :active press feedback — matches .tile:active already on tiles (§4) */
+button.card:active, .rcard:active { transform: scale(.985); }
 @media (hover: hover) {
   button.card:hover, .rcard:hover { border-color: var(--app-soft); background: var(--bg-elevated); }
   .tile:hover { border-color: var(--app-soft); }
+}
+/* Keyboard focus ring on clickable cards — completes the global :focus-visible rule */
+button.card:focus-visible, .rcard:focus-visible {
+  outline: 2px solid var(--app-accent); outline-offset: 2px;
 }
 
 /* ---- buttons (.btn family; UI-POLISH §3) ---- */
@@ -480,8 +486,8 @@ button.card, .rcard, .tile {
 /* calendar */
 [data-app="pantry"] .cal { border:1px solid var(--border); border-radius:var(--r-lg); overflow:hidden; }
 [data-app="pantry"] .cal-dayhead { display:grid; grid-template-columns:repeat(7,1fr); border-bottom:1px solid var(--border); }
-[data-app="pantry"] .cal-dayhead div { text-align:center; padding:6px 0; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-soft); }
-[data-app="pantry"] .cal-weeklabel { display:flex; justify-content:space-between; padding:4px 10px; background:var(--bg-sunken); border-bottom:1px solid var(--border); font-size:9px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:var(--text-soft); }
+[data-app="pantry"] .cal-dayhead div { text-align:center; padding:6px 0; font-size:var(--fs-xs); font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-soft); }
+[data-app="pantry"] .cal-weeklabel { display:flex; justify-content:space-between; padding:4px 10px; background:var(--bg-sunken); border-bottom:1px solid var(--border); font-size:var(--fs-xs); font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:var(--text-soft); }
 [data-app="pantry"] .cal-row { display:grid; grid-template-columns:repeat(7,1fr); }
 [data-app="pantry"] .cal-cell { min-height:68px; padding:5px; text-align:left; background:var(--bg-paper); border-right:1px solid var(--border); border-bottom:1px solid var(--border); display:flex; flex-direction:column; gap:3px; cursor:pointer; }
 [data-app="pantry"] .cal-cell:nth-child(7n) { border-right:none; }
@@ -496,7 +502,7 @@ button.card, .rcard, .tile {
 }
 [data-app="pantry"] .cal-date { width:20px; height:20px; border-radius:var(--r-full); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:var(--text-soft); }
 [data-app="pantry"] .cal-date.today { background:var(--accent); color:#fff; }
-[data-app="pantry"] .cal-meal { font-size:9px; line-height:1.2; font-weight:500; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+[data-app="pantry"] .cal-meal { font-size:var(--fs-xs); line-height:1.2; font-weight:500; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 
 /* checkbox */
 [data-app="pantry"] .pcheck { width:20px; height:20px; border-radius:var(--r-sm); border:2px solid var(--border); background:var(--bg-sunken); display:flex; align-items:center; justify-content:center; flex:none; color:#fff; font-size:12px; }
@@ -526,3 +532,10 @@ button.card, .rcard, .tile {
 [data-app="pantry"] .qstep { display:flex; align-items:center; gap:2px; border:1px solid var(--border); border-radius:var(--r-full); padding:2px 4px; background:var(--bg-elevated); }
 [data-app="pantry"] .qstep button { width:24px; height:24px; border:none; background:none; color:var(--text-soft); font-weight:700; border-radius:var(--r-full); }
 [data-app="pantry"] .qstep .v { min-width:26px; text-align:center; font-size:12px; font-weight:700; color:var(--app-accent); font-family:var(--font-mono); }
+
+/* Launcher main content area — wraps the tile grid for the <main> landmark */
+.launcher-main { padding: 0 var(--sp-4) var(--sp-8); }
+@media (min-width: 720px) { .launcher-main { padding: 0 var(--sp-6) var(--sp-8); } }
+
+/* App content wrapper — the skip-nav target inside AppShell */
+.app-content { display: flex; flex-direction: column; flex: 1; }

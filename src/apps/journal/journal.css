@@ -259,7 +259,8 @@
 [data-app="journal"] .stat-value { font-family: var(--font-display); font-size: var(--fs-2xl); color: var(--text); line-height: 1; }
 [data-app="journal"] .stat-unit { font-size: var(--fs-sm); color: var(--text-soft); margin-left: 3px; }
 [data-app="journal"] .stat-input { font-family: var(--font-display); font-size: var(--fs-xl); color: var(--text); background: transparent; border: none; width: 100%; text-align: center; padding: 2px 0; }
-[data-app="journal"] .stat-input:focus { outline: none; }
+[data-app="journal"] .stat-input:focus:not(:focus-visible) { outline: none; }
+[data-app="journal"] .stat-input:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; }
 [data-app="journal"] .stat-label { font-size: var(--fs-xs); color: var(--text-soft); margin-top: 4px; letter-spacing: .05em; text-transform: uppercase; }
 [data-app="journal"] .ring-wrap { display: grid; place-items: center; padding: 8px 0 4px; }
 [data-app="journal"] .cycle-ring { width: 100%; max-width: 380px; height: auto; display: block; }

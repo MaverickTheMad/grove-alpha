@@ -66,6 +66,8 @@ export default function App() {
 
   return (
     <ToastProvider>
+      {/* Skip-nav: first focusable element; keyboard users jump past chrome to main content */}
+      <a className="skip-nav" href="#grove-main">Skip to content</a>
       <AuthGate>
         {openApp && REGISTRY[openApp] ? (
           <AppShell

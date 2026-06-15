@@ -17,6 +17,8 @@ const TILE_ACCENT = {
 
 export default function Launcher({ apps, onOpen, user, onSignOut }) {
   return (
+    // Launcher gets its own root (no [data-app]) so app-scoped CSS doesn't bleed in.
+    // header + main landmarks give screen readers the correct page structure.
     <div className="app-root launcher">
       <header className="launcher-head">
         <div className="spread">
@@ -35,22 +37,27 @@ export default function Launcher({ apps, onOpen, user, onSignOut }) {
         </p>
       </header>
 
-      <div className="tile-grid">
-        {apps.map((a) => (
-          <button
-            key={a.id}
-            className="tile"
-            data-app={a.id}
-            onClick={() => onOpen(a.id)}
-          >
-            <span className="tile-mark">
-              <GroveMark size={48} color={TILE_ACCENT[a.id]} tile />
-            </span>
-            <span className="tile-name">{a.name}</span>
-            <span className="tile-sub">{a.tagline}</span>
-          </button>
-        ))}
-      </div>
+      {/* <main> landmark: the primary content of the launcher page */}
+      <main id="grove-main" className="launcher-main">
+        <div className="tile-grid" role="list" aria-label="Apps">
+          {apps.map((a) => (
+            <button
+              key={a.id}
+              className="tile"
+              data-app={a.id}
+              onClick={() => onOpen(a.id)}
+              role="listitem"
+              aria-label={`Open ${a.name} — ${a.tagline}`}
+            >
+              <span className="tile-mark" aria-hidden>
+                <GroveMark size={48} color={TILE_ACCENT[a.id]} tile />
+              </span>
+              <span className="tile-name">{a.name}</span>
+              <span className="tile-sub">{a.tagline}</span>
+            </button>
+          ))}
+        </div>
+      </main>
     </div>
   )
 }
