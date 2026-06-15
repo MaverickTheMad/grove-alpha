@@ -20,6 +20,7 @@ export default function LogTab({ ctx }) {
   const [date, setDate] = useState(todayStr())
   const [events, setEvents] = useState([])
   const [sheet, setSheet] = useState(null) // 'mood' | 'food' | 'water' | 'exercise' | 'sleep'
+  const [retiming, setRetiming] = useState(null) // { id, when } for a food block being retimed
 
   const isToday = date === todayStr()
   const dayDone = completions[date] || []
@@ -44,6 +45,38 @@ export default function LogTab({ ctx }) {
     if (ev._type === 'workout') return  // owned by the Fitness app; read-only here
     setEvents(prev => prev.filter(e => !(e.id === ev.id && e._type === ev._type)))
     await store.deleteEvent(ev.id)
+  }
+
+  // Delete every food row in a same-time block at once.
+  async function deleteGroup(group) {
+    setEvents(prev => prev.filter(e => !(e._type === 'food' && e.occurred_at === group.occurred_at)))
+    await Promise.all(group.items.map(it => store.deleteEvent(it.id)))
+  }
+
+  // Retime a whole food block — applies one new time to every item in it.
+  async function saveRetime(group) {
+    const when = retiming?.when || group.occurred_at
+    setRetiming(null)
+    await Promise.all(group.items.map(it => store.updateEvent(it.id, when, {
+      category: it.category, item: it.item, notes: it.notes ?? null,
+    })))
+    loadEvents()
+  }
+
+  // Foods logged together (same occurred_at) collapse into one block, so the
+  // set can be retimed or removed in a single action.
+  function groupForRender(list) {
+    const out = []
+    const byTime = {}
+    for (const ev of list) {
+      if (ev._type !== 'food') { out.push(ev); continue }
+      const key = ev.occurred_at
+      if (byTime[key]) { byTime[key].items.push(ev); continue }
+      const g = { _type: 'food-group', id: `fg-${key}`, occurred_at: key, items: [ev] }
+      byTime[key] = g
+      out.push(g)
+    }
+    return out
   }
 
   function fmtTime(iso) {
@@ -119,7 +152,31 @@ export default function LogTab({ ctx }) {
         {events.length === 0 ? (
           <div className="empty">The page is yet unwritten</div>
         ) : (
-          events.map(ev => (
+          groupForRender(events).map(ev => ev._type === 'food-group' ? (
+            <div key={ev.id}>
+              <div className="tl-item">
+                <span className="tl-time num">{fmtTime(ev.occurred_at)}</span>
+                <span className="tl-tag food">feast</span>
+                <span className="tl-body">
+                  {ev.items.length > 1
+                    ? <span className="tl-foodlist">{ev.items.map(f => f.item || f.category).join(', ')}</span>
+                    : (ev.items[0].item || ev.items[0].category)}
+                </span>
+                <button className="tl-edit" onClick={() => setRetiming(retiming?.id === ev.id ? null : { id: ev.id, when: ev.occurred_at })} aria-label="Retime this block">✎</button>
+                <button className="tl-del" onClick={() => deleteGroup(ev)} aria-label={ev.items.length > 1 ? 'Delete all foods at this time' : 'Delete'}>×</button>
+              </div>
+              {retiming?.id === ev.id && (
+                <div className="tl-retime">
+                  <div className="tl-retime-label">Move this whole feast to a new time</div>
+                  <TimePicker value={retiming.when} onChange={(w) => setRetiming({ id: ev.id, when: w })} />
+                  <div className="row" style={{ gap: 8, marginTop: 10 }}>
+                    <button className="btn ghost" style={{ flex: 1 }} onClick={() => setRetiming(null)}>Cancel</button>
+                    <button className="btn" style={{ flex: 1 }} onClick={() => saveRetime(ev)}>Save time</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
             <div className="tl-item" key={`${ev._type}-${ev.id}`}>
               <span className="tl-time num">{fmtTime(ev.occurred_at)}</span>
               <span className={`tl-tag ${ev._type}`}>{ev._type === 'workout' ? 'trial' : ev._type}</span>

@@ -15,7 +15,7 @@ const PATHS = {
   recipes: 'M6 4h9a3 3 0 0 1 3 3v13H6zM6 16h12',
   list: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01',
   extras: 'M12 5v14M5 12h14',
-  overview: 'M4 13h6V4H4zM14 20h6v-9h-6zM14 8h6V4h-6zM4 20h6v-3H4z',
+  overview: 'M4 5h16v14H4zM12 5v14M4 12h16',
   bills: 'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6',
   budgets: 'M12 3v18M5 8h14M5 16h14',
   goals: 'M12 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0M12 12m-8 0a8 8 0 1 0 16 0 8 8 0 1 0-16 0',
@@ -48,11 +48,27 @@ const PATHS = {
   clock: 'M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z',
   users: 'M16 19v-2a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v2M9.5 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M21 19v-2a3 3 0 0 0-2.2-2.9M16 4.1a3 3 0 0 1 0 5.8',
   cart: 'M3 4h2l2.4 12h10l2-8H6M9 20a1 1 0 1 0 0 .01M17 20a1 1 0 1 0 0 .01',
-  settings: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z',
+  // Sliders, not a cog: the dense multi-tooth gear read far heavier and larger
+  // than every other tab glyph (it filled the whole 24-box). This sits in the
+  // same optical box and weight as the rest of the nav set.
+  settings: 'M4 8h9M17 8h3M4 16h3M11 16h9M14 5v6M8 13v6',
+}
+
+// Optical size correction. A few glyphs draw notably smaller/larger than the
+// rest at the same 24-box, which made nav rows look uneven app-to-app (utensils
+// and the dumbbell read small; the cart read wide). Scale them about the centre
+// so every icon lands in the same optical box. 1.0 = untouched.
+const OPTICAL = {
+  meals: 1.06,
+  recipes: 1.08,
+  workout: 1.08,
+  cart: 0.93,
 }
 
 export default function Icon({ name, size = 22, className, filled = false }) {
   const d = PATHS[name] || PATHS.info
+  const k = OPTICAL[name] || 1
+  const path = <path d={d} />
   return (
     <svg
       width={size}
@@ -66,7 +82,9 @@ export default function Icon({ name, size = 22, className, filled = false }) {
       className={className}
       aria-hidden="true"
     >
-      <path d={d} />
+      {k === 1 ? path : (
+        <g transform={`translate(12 12) scale(${k}) translate(-12 -12)`}>{path}</g>
+      )}
     </svg>
   )
 }

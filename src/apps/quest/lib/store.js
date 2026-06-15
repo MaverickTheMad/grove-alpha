@@ -69,6 +69,10 @@ export async function addEvent(type, occurredAtISO, payload) {
   return eventFrom(rec)
 }
 export async function deleteEvent(id) { await db.remove(id) }
+export async function updateEvent(id, occurredAtISO, payload) {
+  const rec = await db.update(id, { data: payload, occurredAt: occurredAtISO })
+  return eventFrom(rec)
+}
 
 // ── Cross-app (read-only) ─────────────────────────────────────────────────────
 export async function listRecipes() {

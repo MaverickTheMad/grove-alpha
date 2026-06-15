@@ -179,6 +179,16 @@
 [data-app="quest"] .tl-body { flex:1; color:var(--text); min-width:0; }
 [data-app="quest"] .tl-del { color:var(--text-soft); font-size:18px; padding:4px 8px; border-radius:var(--r-sm); }
 [data-app="quest"] .tl-del:active { background:var(--bg-sunken); }
+[data-app="quest"] .tl-edit { color:var(--text-soft); font-size:15px; padding:4px 8px; border-radius:var(--r-sm); }
+[data-app="quest"] .tl-edit:active { background:var(--bg-sunken); }
+[data-app="quest"] .tl-foodlist { color:var(--text); }
+[data-app="quest"] .tl-retime {
+  margin:0 0 10px; padding:12px 14px;
+  background:color-mix(in srgb, var(--app-accent) 8%, var(--bg-elevated));
+  border:1px solid color-mix(in srgb, var(--app-accent) 35%, transparent);
+  border-radius:var(--r-md);
+}
+[data-app="quest"] .tl-retime-label { font-size:var(--fs-sm); color:var(--text-soft); margin-bottom:10px; }
 [data-app="quest"] .tl-src {
   font-size:10px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase;
   color:var(--text-soft); padding:2px 7px; border:1px solid var(--border);

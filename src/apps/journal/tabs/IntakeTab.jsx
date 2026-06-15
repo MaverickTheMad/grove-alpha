@@ -1018,28 +1018,43 @@ function Timeline({ symptoms, foods, moods, waters, exercises, workouts = [], on
   const [pending, setPending] = useState({})   // "kind-id" → timer handle
   const toast = useToast()
 
-  const allEvents = [
+  const nonFood = [
     ...symptoms.map(e => ({ ...e, kind: 'symptom' })),
-    ...foods.map(e => ({ ...e, kind: 'food' })),
     ...moods.map(e => ({ ...e, kind: 'mood' })),
     ...waters.map(e => ({ ...e, kind: 'water' })),
     ...exercises.map(e => ({ ...e, kind: 'exercise' })),
     ...workouts.map(e => ({ ...e, kind: 'workout' })),
-  ].sort((a, b) => new Date(a.occurred_at) - new Date(b.occurred_at))
+  ]
 
-  // Hide optimistically-deleted items so they vanish instantly on tap
-  const events = allEvents.filter(ev => !pending[`${ev.kind}-${ev.id}`])
+  // Foods logged together share one exact occurred_at — collapse them into a
+  // single block so the whole set can be retimed (e.g. AM → PM) or removed in
+  // one edit, instead of fixing each item separately.
+  const groupsByTime = {}
+  for (const f of foods) {
+    const key = f.occurred_at
+    if (!groupsByTime[key]) groupsByTime[key] = { kind: 'food-group', id: `fg-${key}`, occurred_at: key, items: [] }
+    groupsByTime[key].items.push(f)
+  }
+  const foodGroups = Object.values(groupsByTime)
 
-  const deleteEvent = (kind, id) => {
-    const key = `${kind}-${id}`
-    // Optimistically hide the item, then actually delete after 5s
+  const allItems = [...nonFood, ...foodGroups]
+    .sort((a, b) => new Date(a.occurred_at) - new Date(b.occurred_at))
+
+  // pending key: food-group → its id; everything else → "kind-id"
+  const pendKey = (it) => (it.kind === 'food-group' ? it.id : `${it.kind}-${it.id}`)
+  const items = allItems.filter(it => !pending[pendKey(it)])
+  const entryCount = items.reduce((n, it) => n + (it.kind === 'food-group' ? it.items.length : 1), 0)
+
+  // Optimistically hide, then delete after 5s (undo cancels). Works for a single
+  // event id or a whole food block (array of ids).
+  const scheduleDelete = (key, ids, label) => {
     const timer = setTimeout(async () => {
       setPending(p => { const n = { ...p }; delete n[key]; return n })
-      await store.deleteEvent(id)
+      await Promise.all(ids.map(id => store.deleteEvent(id)))
       onReload()
     }, 5000)
     setPending(p => ({ ...p, [key]: timer }))
-    toast.show('Entry deleted.', {
+    toast.show(label, {
       actionLabel: 'Undo',
       onAction: () => {
         clearTimeout(timer)
@@ -1048,9 +1063,13 @@ function Timeline({ symptoms, foods, moods, waters, exercises, workouts = [], on
     })
   }
 
+  const deleteEvent = (kind, id) => scheduleDelete(`${kind}-${id}`, [id], 'Entry deleted.')
+  const deleteGroup = (g) => scheduleDelete(g.id, g.items.map(i => i.id),
+    g.items.length > 1 ? `${g.items.length} foods deleted.` : 'Entry deleted.')
+
   const isEditing = (kind, id) => editing?.kind === kind && editing?.id === id
 
-  if (events.length === 0) {
+  if (items.length === 0) {
     return (
       <div className="card">
         <div className="empty">Nothing logged yet today — tap a button above to add your first entry.</div>
@@ -1062,38 +1081,66 @@ function Timeline({ symptoms, foods, moods, waters, exercises, workouts = [], on
     <div className="card">
       <div className="card-head">
         <h3 className="card-title section-h">Today's log</h3>
-        <span className="card-sub">{events.length} entries</span>
+        <span className="card-sub">{entryCount} {entryCount === 1 ? 'entry' : 'entries'}</span>
       </div>
       <div>
-        {events.map(ev => (
-          <div key={ev.kind + ev.id}>
+        {items.map(it => it.kind === 'food-group' ? (
+          <div key={it.id}>
             <div className="event-item">
-              <span className="event-time">{formatTimeLocal(ev.occurred_at)}</span>
+              <span className="event-time">{formatTimeLocal(it.occurred_at)}</span>
               <div className="event-body">
-                <EventBody ev={ev} />
+                <FoodGroupBody group={it} />
               </div>
               <div className="event-actions">
-                {ev.kind === 'workout' ? (
+                <button
+                  className="event-edit"
+                  onClick={() => setEditing(isEditing('food-group', it.id) ? null : { kind: 'food-group', id: it.id })}
+                  aria-label="Edit food block"
+                >✎</button>
+                <button
+                  className="event-delete"
+                  onClick={() => deleteGroup(it)}
+                  aria-label={it.items.length > 1 ? 'Delete all foods at this time' : 'Delete'}
+                >×</button>
+              </div>
+            </div>
+            {isEditing('food-group', it.id) && (
+              <EditFoodGroup
+                group={it}
+                onDone={() => { setEditing(null); onReload() }}
+                onCancel={() => setEditing(null)}
+              />
+            )}
+          </div>
+        ) : (
+          <div key={it.kind + it.id}>
+            <div className="event-item">
+              <span className="event-time">{formatTimeLocal(it.occurred_at)}</span>
+              <div className="event-body">
+                <EventBody ev={it} />
+              </div>
+              <div className="event-actions">
+                {it.kind === 'workout' ? (
                   <span className="event-src" title="Logged in the Fitness app">Reps</span>
                 ) : (
                   <>
                     <button
                       className="event-edit"
-                      onClick={() => setEditing(isEditing(ev.kind, ev.id) ? null : { kind: ev.kind, id: ev.id })}
+                      onClick={() => setEditing(isEditing(it.kind, it.id) ? null : { kind: it.kind, id: it.id })}
                       aria-label="Edit"
                     >✎</button>
                     <button
                       className="event-delete"
-                      onClick={() => deleteEvent(ev.kind, ev.id)}
+                      onClick={() => deleteEvent(it.kind, it.id)}
                       aria-label="Delete"
                     >×</button>
                   </>
                 )}
               </div>
             </div>
-            {isEditing(ev.kind, ev.id) && ev.kind !== 'workout' && (
+            {isEditing(it.kind, it.id) && it.kind !== 'workout' && (
               <EditEvent
-                ev={ev}
+                ev={it}
                 onDone={() => { setEditing(null); onReload() }}
                 onCancel={() => setEditing(null)}
               />
@@ -1104,6 +1151,124 @@ function Timeline({ symptoms, foods, moods, waters, exercises, workouts = [], on
     </div>
   )
 }
+
+// One timeline block for foods logged at the same time. A lone item reads like
+// any other entry; 2+ items stack as chips under a single time/edit/delete.
+function FoodGroupBody({ group }) {
+  if (group.items.length === 1) {
+    const ev = group.items[0]
+    return (
+      <>
+        <div className="event-label">
+          <span className="event-tag tag-food">Food</span>
+          {ev.item} <span className="muted">· {ev.category}</span>
+        </div>
+        {ev.notes && <div className="event-meta">{ev.notes}</div>}
+        <style>{eventTagStyle}</style>
+      </>
+    )
+  }
+  const sharedNote = group.items.find(i => i.notes)?.notes
+  return (
+    <>
+      <div className="event-label">
+        <span className="event-tag tag-food">Food</span>
+        {group.items.length} items
+      </div>
+      <div className="fg-items">
+        {group.items.map(ev => (
+          <span key={ev.id} className="fg-chip">{ev.item}<span className="muted"> · {ev.category}</span></span>
+        ))}
+      </div>
+      {sharedNote && <div className="event-meta">{sharedNote}</div>}
+      <style>{eventTagStyle}{fgStyle}</style>
+    </>
+  )
+}
+
+// Edit a whole food block at once: remove items, and set one time for all of
+// them. Removing every item then saving deletes the block.
+function EditFoodGroup({ group, onDone, onCancel }) {
+  const [time, setTime] = useState(group.occurred_at)
+  const [items, setItems] = useState(group.items)
+  const [saving, setSaving] = useState(false)
+
+  const removeItem = (id) => setItems(prev => prev.filter(i => i.id !== id))
+
+  const save = async () => {
+    setSaving(true)
+    const removed = group.items.filter(g => !items.some(i => i.id === g.id))
+    await Promise.all(removed.map(r => store.deleteEvent(r.id)))
+    // retime every remaining item to the shared time, preserving its payload
+    await Promise.all(items.map(it => store.updateEvent(it.id, time, {
+      category: it.category, item: it.item, notes: it.notes ?? null,
+    })))
+    onDone()
+  }
+
+  return (
+    <div className="edit-panel rise">
+      <div className="edit-panel-header">
+        <span className="edit-panel-title">Edit food block</span>
+        <button className="btn ghost btn sm" onClick={onCancel}>Cancel</button>
+      </div>
+
+      <label className="field-label">
+        Items <span className="muted" style={{ textTransform: 'none', fontWeight: 400 }}>(tap × to remove; re-add from the Food panel)</span>
+      </label>
+      <div className="fg-edit-items">
+        {items.map(it => (
+          <span key={it.id} className="fg-edit-chip">
+            {it.item} <span className="muted">· {it.category}</span>
+            <button className="fg-edit-remove" onClick={() => removeItem(it.id)} aria-label={`Remove ${it.item}`}>×</button>
+          </span>
+        ))}
+        {items.length === 0 && <span className="muted" style={{ fontSize: 13 }}>All items removed — saving will delete this block.</span>}
+      </div>
+
+      <label className="field-label" style={{ marginTop: 14 }}>
+        Time <span className="muted" style={{ textTransform: 'none', fontWeight: 400 }}>(applies to the whole block)</span>
+      </label>
+      <TimePicker value={time} onChange={setTime} />
+
+      <button
+        className="btn btn amber-btn btn block"
+        style={{ marginTop: 14 }}
+        onClick={save}
+        disabled={saving}
+      >
+        {saving ? 'Saving…' : items.length === 0 ? 'Delete block' : `Save ${items.length} item${items.length > 1 ? 's' : ''}`}
+      </button>
+
+      <style>{fgStyle}</style>
+    </div>
+  )
+}
+
+const fgStyle = `
+  .fg-items { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+  .fg-chip {
+    font-size: var(--fs-xs);
+    background: var(--bg-sunken);
+    color: var(--text);
+    padding: 3px 9px;
+    border-radius: var(--r-full);
+  }
+  .fg-edit-items { display: flex; flex-wrap: wrap; gap: 6px; }
+  .fg-edit-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--text);
+    background: var(--bg-paper);
+    border: 1px solid var(--border);
+    padding: 4px 6px 4px 10px;
+    border-radius: var(--r-full);
+  }
+  .fg-edit-remove {
+    color: var(--text-soft); font-size: 15px; line-height: 1;
+    width: 22px; height: 22px; border-radius: var(--r-full);
+  }
+  .fg-edit-remove:active { background: var(--app-weak); color: var(--app-accent); }
+`
 
 function EventBody({ ev }) {
   if (ev.kind === 'symptom') {

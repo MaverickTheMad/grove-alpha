@@ -40,6 +40,14 @@ button {
   font-size: inherit;
   color: inherit;
   cursor: pointer;
+  /* Reset the UA button chrome. Without this, any button that doesn't set its
+     own surface falls back to the browser's default (light ButtonFace + bevel),
+     which renders as a white box on Grove's dark theme. Components that need a
+     surface (.btn, .chip, .nav-item, .tile…) opt back in explicitly. */
+  appearance: none;
+  -webkit-appearance: none;
+  background: none;
+  border: none;
 }
 
 input,
