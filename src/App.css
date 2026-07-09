@@ -65,10 +65,11 @@
 [data-app="pantry"]  { --app-accent:#CB7A4F; } /* Clay  */
 [data-app="ledger"]  { --app-accent:#6F86C2; } /* Dusk  */
 [data-app="pets"]    { --app-accent:#D8A24F; } /* Honey */
-[data-app="settings"] { --app-accent:#8593A6; } /* Slate (utility) */
-[data-app="quest"]   { --app-accent:#A877B8; } /* Plum  (reserved) */
-[data-app="almanac"] { --app-accent:#79B45F; } /* Fern  (reserved, green-adjacent) */
-[data-app="fitness"] { --app-accent:#D9694E; } /* Ember (new; brand only reserved 2) */
+[data-app="settings"] { --app-accent:#8593A6; } /* Slate  */
+[data-app="quest"]   { --app-accent:#86B24F; } /* Fern   */
+[data-app="almanac"] { --app-accent:#A986C4; } /* Plum   */
+[data-app="fitness"] { --app-accent:#CE6B62; } /* Coral  */
+[data-app="media"]   { --app-accent:#4CA39B; } /* Tide   */
 
 @media (prefers-color-scheme: light) {
   :root:not(.theme-dark) [data-app="journal"] { --app-accent:#B24E66; }
@@ -76,25 +77,25 @@
   :root:not(.theme-dark) [data-app="ledger"]  { --app-accent:#4E66A6; }
   :root:not(.theme-dark) [data-app="pets"]    { --app-accent:#B07F2E; }
   :root:not(.theme-dark) [data-app="settings"] { --app-accent:#5E6E84; }
-  :root:not(.theme-dark) [data-app="quest"]   { --app-accent:#84569A; }
-  :root:not(.theme-dark) [data-app="almanac"] { --app-accent:#4F7E34; }
-  :root:not(.theme-dark) [data-app="fitness"] { --app-accent:#B0492F; }
+  :root:not(.theme-dark) [data-app="quest"]   { --app-accent:#5E8A2F; } /* Fern  */
+  :root:not(.theme-dark) [data-app="almanac"] { --app-accent:#7A619B; } /* Plum  */
+  :root:not(.theme-dark) [data-app="fitness"] { --app-accent:#A8524A; } /* Coral */
+  :root:not(.theme-dark) [data-app="media"]   { --app-accent:#347D76; } /* Tide  */
 }
 :root.theme-light [data-app="journal"] { --app-accent:#B24E66; }
 :root.theme-light [data-app="pantry"]  { --app-accent:#A85F36; }
 :root.theme-light [data-app="ledger"]  { --app-accent:#4E66A6; }
 :root.theme-light [data-app="pets"]    { --app-accent:#B07F2E; }
 :root.theme-light [data-app="settings"] { --app-accent:#5E6E84; }
-:root.theme-light [data-app="quest"]   { --app-accent:#84569A; }
-:root.theme-light [data-app="almanac"] { --app-accent:#4F7E34; }
-:root.theme-light [data-app="fitness"] { --app-accent:#B0492F; }
+:root.theme-light [data-app="quest"]   { --app-accent:#5E8A2F; }
+:root.theme-light [data-app="almanac"] { --app-accent:#7A619B; }
+:root.theme-light [data-app="fitness"] { --app-accent:#A8524A; }
+:root.theme-light [data-app="media"]   { --app-accent:#347D76; }
 
-/* Fern (almanac) is green-adjacent — primary actions use house green so two
-   greens don't fight (BRAND-GUIDE §3.3), same rule as Tide/media. */
-[data-app="almanac"] .btn.primary { background:var(--accent); border-color:var(--accent); }
-
-/* Tide/Fern are green-adjacent — primary actions use house green, not the
-   app accent, to avoid two greens fighting (BRAND-GUIDE §3.3). */
+/* Quest (Fern) and Media (Tide) are green-adjacent — primary actions use
+   house green so two greens don't fight (BRAND-GUIDE §3.3). */
+[data-app="quest"] .btn.primary,
+[data-app="media"] .btn.primary { background:var(--accent); border-color:var(--accent); }
 
 /* ============================================================
    Layout primitives
@@ -200,7 +201,7 @@ button.card:focus-visible, .rcard:focus-visible {
   transition: background 160ms cubic-bezier(.2,.8,.2,1), border-color 160ms;
 }
 .btn:hover { border-color: var(--app-soft); }
-.btn.primary { background: var(--app-accent); border-color: var(--app-accent); color: #0B0F09; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--bg-sunken); }
 .btn.primary:hover { filter: brightness(1.06); }
 .btn.ghost { background: transparent; border-color: transparent; color: var(--text-soft); }
 .btn.ghost:hover { color: var(--text); background: var(--bg-elevated); }
@@ -236,10 +237,33 @@ button.card:focus-visible, .rcard:focus-visible {
 .stepper button { width:40px; height:40px; border-radius:var(--r-md); border:1px solid var(--border); background:var(--bg-elevated); font-size:var(--fs-lg); }
 .stepper .val { min-width: 56px; text-align:center; font-family:var(--font-mono); }
 
+/* ---- segmented sub-tabs (promoted from ledger/ui.jsx; reusable across all apps) ---- */
+.subtabs {
+  display: flex; gap: 2px;
+  background: var(--bg-sunken); border-radius: var(--r-md);
+  padding: 3px; margin-bottom: var(--sp-4);
+}
+.subtab {
+  flex: 1; padding: 7px 12px; min-height: 36px;
+  border-radius: var(--r-sm); border: none;
+  background: transparent; color: var(--text-soft);
+  font-size: var(--fs-sm); font-weight: var(--fw-med);
+  transition: background 140ms, color 140ms;
+}
+.subtab.active, .subtab[aria-selected="true"] {
+  background: var(--bg-elevated); color: var(--text);
+}
+
 /* ---- empty state (§10) ---- */
 .empty { text-align:center; padding: var(--sp-8) var(--sp-4); color: var(--text-soft); }
 .empty .big { font-size: 2.5rem; display:block; margin-bottom: var(--sp-3); }
 .empty .line { margin-bottom: var(--sp-4); }
+.empty h2, .empty .empty-title {
+  font-family: var(--font-display); font-size: var(--fs-xl); font-weight: var(--fw-title);
+  color: var(--text); margin-bottom: var(--sp-2);
+}
+/* Card-style empty state wraps .empty in .card */
+.card.empty { padding: var(--sp-8) var(--sp-5); }
 
 /* focus visibility (quality floor) */
 :focus-visible { outline: 2px solid var(--app-accent); outline-offset: 2px; }
@@ -423,7 +447,7 @@ button.card:focus-visible, .rcard:focus-visible {
   border-radius: var(--r-md); font-size: var(--fs-sm);
   animation: sheet-up 200ms cubic-bezier(.2,.8,.2,1);
 }
-.toast-action { background: none; border: none; color: var(--app-accent); font-weight: var(--fw-med); padding: 4px 8px; }
+.toast-action { background: none; border: none; color: var(--accent); font-weight: var(--fw-med); padding: 4px 8px; }
 /* Desktop: no bottom bar, so toast sits at bottom of content area */
 @media (min-width: 720px) {
   .toast { bottom: var(--sp-5); left: calc(50% + 44px); max-width: 500px; }
