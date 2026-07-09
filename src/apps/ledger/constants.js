@@ -21,6 +21,14 @@ export const TYPES = {
   statementImport: 'statement_import',
   appSetting: 'app_setting',
   personSettings: 'person_settings', // per-member { primary_paycheck_id } (was on core.people)
+  // Build 02 — Home Fund plan records
+  homePlan: 'home_plan',
+  homeDebtTarget: 'home_debt_target',
+  homeFuelLine: 'home_fuel_line',
+  homePhase: 'home_phase',
+  homeMilestone: 'home_milestone',
+  homeChecklistItem: 'home_checklist_item',
+  homeChecklistState: 'home_checklist_state',
 }
 
 // Map a legacy table name -> record type, for the migration + any generic loads.

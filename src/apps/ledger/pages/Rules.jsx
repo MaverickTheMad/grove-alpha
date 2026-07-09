@@ -42,27 +42,18 @@ export default function Rules() {
     setModalOpen(false); setEditing(null)
   }
 
-  // Live preview of which existing transactions would match this rule's edited form
   const preview = useMemo(() => {
     if (!editing || !editing.match_value || !transactions.length) return []
     const { transactions: result } = applyRules(transactions.slice(0, 200), [{
-      id: '__preview',
-      active: true,
-      priority: 0,
-      match_field: editing.match_field,
-      match_type: editing.match_type,
-      match_value: editing.match_value
+      id: '__preview', active: true, priority: 0,
+      match_field: editing.match_field, match_type: editing.match_type, match_value: editing.match_value
     }])
     return result.filter(t => t._ruleId === '__preview').slice(0, 8)
   }, [editing, transactions])
 
-  // Test against arbitrary text
   const testResult = useMemo(() => {
     if (!testInput.trim() || rules.length === 0) return null
-    const { transactions: result } = applyRules(
-      [{ description: testInput, amount: 0 }],
-      rules
-    )
+    const { transactions: result } = applyRules([{ description: testInput, amount: 0 }], rules)
     const matched = result[0]
     if (!matched._ruleId) return { matched: false }
     const rule = rules.find(r => r.id === matched._ruleId)
@@ -78,7 +69,7 @@ export default function Rules() {
           <h1>Rules</h1>
           <p>When importing, these rules auto-assign categories to transactions.</p>
         </div>
-        <button className="btn" onClick={openNew}>+ Add rule</button>
+        <button className="btn" onClick={openNew}>Add a rule</button>
       </div>
 
       <div className="card" style={{ marginBottom: '1.5rem' }}>
@@ -110,7 +101,11 @@ export default function Rules() {
         {rules.length === 0 ? (
           <div className="empty">
             <h3>No rules yet</h3>
-            <p>Add your first rule — e.g. "description contains WEGMANS → Groceries".</p>
+            <p style={{ marginBottom: '0.75rem' }}>
+              Rules auto-assign categories when you import a statement.
+              Example: description contains <strong>WEGMANS</strong> → Groceries.
+            </p>
+            <button className="btn" onClick={openNew}>Add a rule</button>
           </div>
         ) : (
           <table className="ledger">
@@ -148,11 +143,7 @@ export default function Rules() {
                     <td style={{ fontSize: 13 }}>{acct?.name || <span style={{ color: 'var(--ink-faint)' }}>any</span>}</td>
                     <td className="num">{r.hits || 0}</td>
                     <td>
-                      <input
-                        type="checkbox"
-                        checked={r.active}
-                        onChange={() => update(r.id, { active: !r.active })}
-                      />
+                      <input type="checkbox" checked={r.active} onChange={() => update(r.id, { active: !r.active })} />
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <button className="icon-btn" onClick={() => openEdit(r)}>✎</button>
@@ -196,13 +187,7 @@ export default function Rules() {
 
               <div className="field">
                 <label>Value</label>
-                <input
-                  className="input mono"
-                  value={editing.match_value || ''}
-                  onChange={(e) => setEditing({ ...editing, match_value: e.target.value })}
-                  placeholder="WEGMANS"
-                  autoFocus
-                />
+                <input className="input mono" value={editing.match_value || ''} onChange={(e) => setEditing({ ...editing, match_value: e.target.value })} placeholder="WEGMANS" autoFocus />
               </div>
 
               <div className="field">
@@ -243,9 +228,7 @@ export default function Rules() {
             </div>
             <div className="modal-actions">
               {editing.id && (
-                <button className="btn btn-ghost" style={{ marginRight: 'auto', color: 'var(--negative)' }} onClick={() => { if (confirm('Delete rule?')) { remove(editing.id); setModalOpen(false) } }}>
-                  Delete
-                </button>
+                <button className="btn btn-ghost" style={{ marginRight: 'auto', color: 'var(--negative)' }} onClick={() => { if (confirm('Delete rule?')) { remove(editing.id); setModalOpen(false) } }}>Delete</button>
               )}
               <button className="btn btn-ghost" onClick={() => setModalOpen(false)}>Cancel</button>
               <button className="btn" onClick={handleSave} disabled={!editing.match_value?.trim() || !editing.category_id}>Save</button>

@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useRecords } from '../lib/useRecords'
 import { fmt, monthShort } from '../lib/format'
 import { projectSnowball } from '../lib/snowball'
+import { useIsDesktop } from '../../../lib/viewport'
 
 const blankDebt = (nextOrder) => ({
   name: '',
@@ -21,45 +22,35 @@ export default function Snowball() {
   const [view, setView] = useState('summary')
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState(null)
+  const isDesktop = useIsDesktop(720)
 
-  // Memoize activeDebts so the schedule's column list has a stable reference
-  // and useMemo deps don't churn every render.
   const activeDebts = useMemo(() => debts.filter(d => !d.paid_off), [debts])
   const projection = useMemo(() => projectSnowball(debts), [debts])
 
   const totals = useMemo(() => ({
     balance: activeDebts.reduce((s, d) => s + Number(d.current_balance), 0),
-    monthly: activeDebts.reduce((s, d) =>
-      s + (Number(d.snowball_payment) || Number(d.min_payment) || 0), 0),
+    monthly: activeDebts.reduce((s, d) => s + (Number(d.snowball_payment) || Number(d.min_payment) || 0), 0),
     monthsToFree: projection.months.length,
     payoffDate: projection.months[projection.months.length - 1]?.date
   }), [activeDebts, projection])
 
   const totalInterest = useMemo(() =>
-    projection.months.reduce((s, m) =>
-      s + Object.values(m.debts).reduce((ss, d) => ss + d.interest, 0), 0
-    ),
+    projection.months.reduce((s, m) => s + Object.values(m.debts).reduce((ss, d) => ss + d.interest, 0), 0),
     [projection]
   )
 
   const openNew = () => {
     const nextOrder = Math.max(0, ...debts.map(d => Number(d.payoff_order) || 0)) + 1
-    setEditing(blankDebt(nextOrder))
-    setModalOpen(true)
+    setEditing(blankDebt(nextOrder)); setModalOpen(true)
   }
-  const openEdit = (d) => {
-    setEditing({ ...d, _aprPercent: (Number(d.apr) * 100).toFixed(2) })
-    setModalOpen(true)
-  }
+  const openEdit = (d) => { setEditing({ ...d, _aprPercent: (Number(d.apr) * 100).toFixed(2) }); setModalOpen(true) }
 
   const handleSave = async () => {
     const aprDecimal = (parseFloat(editing._aprPercent) || 0) / 100
     const snowballPayment = editing.snowball_payment !== '' && editing.snowball_payment != null
-      ? Number(editing.snowball_payment)
-      : Number(editing.min_payment) || 0
+      ? Number(editing.snowball_payment) : Number(editing.min_payment) || 0
     const payoffOrder = editing.payoff_order !== '' && editing.payoff_order != null
-      ? Number(editing.payoff_order)
-      : 99
+      ? Number(editing.payoff_order) : 99
     const payload = {
       name: editing.name,
       starting_balance: Number(editing.starting_balance) || Number(editing.current_balance) || 0,
@@ -73,17 +64,20 @@ export default function Snowball() {
     }
     if (editing.id) await update(editing.id, payload)
     else await insert(payload)
-    setModalOpen(false)
-    setEditing(null)
+    setModalOpen(false); setEditing(null)
   }
 
   const handleDelete = async () => {
     if (!editing?.id) return
     if (!confirm(`Delete "${editing.name}"? Payment history will be deleted too.`)) return
     await remove(editing.id)
-    setModalOpen(false)
-    setEditing(null)
+    setModalOpen(false); setEditing(null)
   }
+
+  const sortedDebts = useMemo(() =>
+    [...debts].sort((a, b) => (Number(a.payoff_order) || 99) - (Number(b.payoff_order) || 99)),
+    [debts]
+  )
 
   return (
     <div className="ledger-page">
@@ -96,7 +90,7 @@ export default function Snowball() {
         <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
           <button className={'btn btn-sm ' + (view === 'summary' ? '' : 'btn-ghost')} onClick={() => setView('summary')}>Summary</button>
           <button className={'btn btn-sm ' + (view === 'schedule' ? '' : 'btn-ghost')} onClick={() => setView('schedule')}>Schedule</button>
-          <button className="btn" onClick={openNew} style={{ marginLeft: 8 }}>+ Add debt</button>
+          <button className="btn" onClick={openNew} style={{ marginLeft: 8 }}>Add debt</button>
         </div>
       </div>
 
@@ -121,13 +115,15 @@ export default function Snowball() {
       </div>
 
       {view === 'summary' && (
-        <div className="card" style={{ padding: 0 }}>
-          {debts.length === 0 ? (
+        debts.length === 0 ? (
+          <div className="card">
             <div className="empty">
               <h3>No debts yet</h3>
               <p>Add your first debt to start tracking the snowball.</p>
             </div>
-          ) : (
+          </div>
+        ) : isDesktop ? (
+          <div className="card" style={{ padding: 0 }}>
             <table className="ledger">
               <thead>
                 <tr>
@@ -141,42 +137,65 @@ export default function Snowball() {
                 </tr>
               </thead>
               <tbody>
-                {[...debts].sort((a, b) => (Number(a.payoff_order) || 99) - (Number(b.payoff_order) || 99)).map(d => (
+                {sortedDebts.map(d => (
                   <tr key={d.id} style={{ opacity: d.paid_off ? 0.5 : 1 }}>
                     <td className="mono">{d.payoff_order}</td>
                     <td style={{ fontWeight: 500 }}>{d.name}</td>
                     <td className="num">{fmt(d.current_balance, { showCents: false })}</td>
                     <td className="num">{(Number(d.apr) * 100).toFixed(2)}%</td>
                     <td className="num">{fmt(Number(d.snowball_payment) || Number(d.min_payment) || 0, { showCents: false })}</td>
-                    <td>
-                      {d.paid_off ? <span className="pill pill-paid">Paid off</span> : <span className="pill">Active</span>}
-                    </td>
+                    <td>{d.paid_off ? <span className="pill pill-paid">Paid off</span> : <span className="pill">Active</span>}</td>
                     <td style={{ textAlign: 'right' }}>
-                      <button className="icon-btn" onClick={() => openEdit(d)} title="Edit">✎</button>
+                      <button className="icon-btn" onClick={() => openEdit(d)}>✎</button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
+            {sortedDebts.map(d => (
+              <div key={d.id} className="card" style={{ opacity: d.paid_off ? 0.55 : 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ fontWeight: 'var(--fw-title)', fontSize: 'var(--fs-base)' }}>{d.name}</div>
+                    <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-soft)', marginTop: 2 }}>
+                      {(Number(d.apr) * 100).toFixed(2)}% APR · min {fmt(Number(d.min_payment) || 0, { showCents: false })}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div className="mono" style={{ fontSize: 'var(--fs-lg)', fontWeight: 'var(--fw-med)' }}>{fmt(d.current_balance, { showCents: false })}</div>
+                    {d.paid_off
+                      ? <span className="pill pill-paid" style={{ marginTop: 4 }}>Paid off</span>
+                      : <span className="pill" style={{ marginTop: 4 }}>#{d.payoff_order}</span>}
+                  </div>
+                </div>
+                <button className="icon-btn" style={{ marginTop: 8 }} onClick={() => openEdit(d)}>✎ Edit</button>
+              </div>
+            ))}
+          </div>
+        )
       )}
 
       {view === 'schedule' && (
-        <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+        <>
+          <div className="card" style={{ padding: 'var(--sp-3) var(--sp-4)', background: 'var(--bg-elevated)', borderColor: 'var(--border)', marginBottom: 'var(--sp-3)', display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
+            <span style={{ fontSize: '1rem' }}>⚠</span>
+            <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-soft)' }}>
+              <strong style={{ color: 'var(--text)' }}>Estimate.</strong> Projected payoff based on current balances and payments. Actual timing will vary.
+            </span>
+          </div>
           {activeDebts.length === 0 ? (
-            <div className="empty">
-              <h3>No active debts</h3>
-              <p>Add a debt to see the projected payoff schedule.</p>
-            </div>
-          ) : (
-            <>
+            <div className="card"><div className="empty"><h3>No active debts</h3><p>Add a debt to see the projected payoff schedule.</p></div></div>
+          ) : isDesktop ? (
+            <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
               <table className="ledger" style={{ minWidth: 700 }}>
                 <thead>
                   <tr>
                     <th>Month</th>
                     {activeDebts.map(d => <th key={d.id} style={{ textAlign: 'right' }}>{d.name}</th>)}
-                    <th style={{ textAlign: 'right' }}>Total Bal.</th>
+                    <th style={{ textAlign: 'right' }}>Total</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -205,9 +224,40 @@ export default function Snowball() {
                   Showing first 36 months · payoff in month {projection.months.length}
                 </div>
               )}
-            </>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
+              {projection.months.slice(0, 24).map((m, i) => (
+                <div key={`${m.date.getTime()}-${i}`} className="card">
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-sm)', color: 'var(--text-soft)', marginBottom: 'var(--sp-2)' }}>
+                    {monthShort(m.date.getMonth() + 1)} {m.date.getFullYear()}
+                  </div>
+                  {activeDebts.map(d => {
+                    const row = m.debts[d.id]
+                    if (!row) return null
+                    return (
+                      <div key={d.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-sm)', padding: '2px 0' }}>
+                        <span style={{ color: 'var(--text-soft)' }}>{d.name}</span>
+                        <span className="mono" style={{ color: row.cleared ? 'var(--ok)' : 'inherit' }}>
+                          {row.cleared ? '✓ cleared' : fmt(row.balance, { showCents: false })}
+                        </span>
+                      </div>
+                    )
+                  })}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'var(--fw-med)', marginTop: 'var(--sp-2)', paddingTop: 'var(--sp-2)', borderTop: '1px solid var(--border)' }}>
+                    <span>Total</span>
+                    <span className="mono">{fmt(m.totalBalance, { showCents: false })}</span>
+                  </div>
+                </div>
+              ))}
+              {projection.months.length > 24 && (
+                <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-soft)', padding: 'var(--sp-3)' }}>
+                  Showing first 24 months · payoff in month {projection.months.length}
+                </div>
+              )}
+            </div>
           )}
-        </div>
+        </>
       )}
 
       {modalOpen && editing && (
@@ -219,7 +269,6 @@ export default function Snowball() {
                 <label>Name</label>
                 <input className="input" value={editing.name || ''} onChange={(e) => setEditing({ ...editing, name: e.target.value })} placeholder="Capital One CC, Subaru Loan, etc." autoFocus />
               </div>
-
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div className="field">
                   <label>Current balance</label>
@@ -230,7 +279,6 @@ export default function Snowball() {
                   <input className="input mono" type="number" step="0.01" value={editing._aprPercent ?? ''} onChange={(e) => setEditing({ ...editing, _aprPercent: e.target.value })} placeholder="27.99" />
                 </div>
               </div>
-
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div className="field">
                   <label>Minimum payment</label>
@@ -241,7 +289,6 @@ export default function Snowball() {
                   <input className="input mono" type="number" step="0.01" value={editing.snowball_payment ?? ''} onChange={(e) => setEditing({ ...editing, snowball_payment: parseFloat(e.target.value) || 0 })} placeholder="Defaults to min" />
                 </div>
               </div>
-
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div className="field">
                   <label>Payoff order</label>
@@ -255,22 +302,13 @@ export default function Snowball() {
                   </select>
                 </div>
               </div>
-
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
                 <input type="checkbox" checked={editing.paid_off || false} onChange={(e) => setEditing({ ...editing, paid_off: e.target.checked })} />
                 Mark as paid off
               </label>
-
-              <div style={{ fontSize: 12, color: 'var(--ink-muted)', background: 'var(--paper-warm)', padding: '0.65rem 0.8rem', borderRadius: 'var(--radius-sm)', lineHeight: 1.5 }}>
-                <strong>Tip:</strong> Snowball payment can be higher than the minimum — the extra goes to principal. When a debt clears, its full snowball payment cascades to the next debt in the payoff order.
-              </div>
             </div>
             <div className="modal-actions">
-              {editing.id && (
-                <button className="btn btn-ghost" style={{ marginRight: 'auto', color: 'var(--negative)' }} onClick={handleDelete}>
-                  Delete
-                </button>
-              )}
+              {editing.id && <button className="btn btn-ghost" style={{ marginRight: 'auto', color: 'var(--negative)' }} onClick={handleDelete}>Delete</button>}
               <button className="btn btn-ghost" onClick={() => setModalOpen(false)}>Cancel</button>
               <button className="btn" onClick={handleSave} disabled={!editing.name?.trim()}>Save</button>
             </div>

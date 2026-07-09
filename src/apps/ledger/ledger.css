@@ -566,3 +566,65 @@
 }
 [data-app="ledger"] .page-header h1 { font-family: var(--font-display); font-size: var(--fs-2xl); font-weight: var(--fw-title); line-height: 1.1; }
 [data-app="ledger"] .subtabs { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: var(--sp-3) var(--sp-4) 0; }
+
+/* ── Build 03: Overview ─────────────────────────────────────────── */
+[data-app="ledger"] .ov-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); align-items: start; }
+[data-app="ledger"] .ov-person-col { display: flex; flex-direction: column; gap: var(--sp-3); }
+[data-app="ledger"] .ov-person-card { padding: var(--sp-4); }
+[data-app="ledger"] .ov-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: var(--fw-title); font-size: var(--fs-sm); color: #fff; flex-shrink: 0; }
+[data-app="ledger"] .ov-hero-net { font-family: var(--font-mono); font-size: var(--fs-3xl); font-weight: 600; line-height: 1; }
+[data-app="ledger"] .ov-hero-label { font-size: var(--fs-xs); color: var(--text-soft); margin-top: var(--sp-1); }
+[data-app="ledger"] .ov-kpi-row { display: flex; gap: var(--sp-4); margin-top: var(--sp-3); }
+[data-app="ledger"] .ov-kpi-label { font-size: var(--fs-xs); color: var(--text-soft); }
+[data-app="ledger"] .ov-kpi-val { font-family: var(--font-mono); font-size: var(--fs-base); font-weight: 500; margin-top: 2px; }
+[data-app="ledger"] .ov-days-left { font-size: var(--fs-xs); color: var(--text-soft); margin-top: var(--sp-2); }
+[data-app="ledger"] .ov-member-row { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) 0; border-top: 1px solid var(--border); }
+[data-app="ledger"] .ov-member-name { font-weight: 500; font-size: var(--fs-sm); flex: 1; }
+[data-app="ledger"] .ov-cycle-label { font-size: var(--fs-xs); color: var(--text-soft); }
+[data-app="ledger"] .ov-right-col { display: flex; flex-direction: column; gap: var(--sp-3); }
+
+/* ── Build 04: Transactions ─────────────────────────────────────── */
+[data-app="ledger"] .tx-mobile-cat { display: none; margin-top: 2px; }
+[data-app="ledger"] .tx-filters-desktop { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
+[data-app="ledger"] .tx-filters-desktop .input,
+[data-app="ledger"] .tx-filters-desktop .select { flex: 1; min-width: 120px; max-width: 220px; }
+[data-app="ledger"] .col-person { min-width: 90px; }
+@media (max-width: 719px) {
+  [data-app="ledger"] .tx-mobile-cat { display: inline-flex; }
+  [data-app="ledger"] table.ledger .col-person { display: none; }
+}
+
+/* ── Build 05: Insights ─────────────────────────────────────────── */
+[data-app="ledger"] .ins-scrubber { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-3); margin-bottom: var(--sp-5); }
+
+/* ── Build 06: Goals ────────────────────────────────────────────── */
+[data-app="ledger"] .goal-card { padding: var(--sp-4); }
+[data-app="ledger"] .goal-body { display: flex; align-items: flex-start; gap: var(--sp-4); }
+[data-app="ledger"] .goal-numbers { flex: 1; }
+[data-app="ledger"] .goal-pace-estimate { margin-top: var(--sp-2); font-size: var(--fs-xs); color: var(--text-soft); }
+[data-app="ledger"] .goal-pace-label { font-weight: 500; color: var(--text); }
+[data-app="ledger"] .goal-pace-note { font-style: italic; }
+[data-app="ledger"] .goal-log { margin-top: var(--sp-3); padding-top: var(--sp-3); border-top: 1px solid var(--border); font-size: var(--fs-xs); color: var(--text-soft); display: flex; flex-direction: column; gap: var(--sp-1); }
+
+/* ── Build 06: Bills ────────────────────────────────────────────── */
+[data-app="ledger"] .bill-row-paid td { opacity: 0.65; }
+[data-app="ledger"] .bill-check-wrap { display: flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
+[data-app="ledger"] .bill-name { font-weight: 500; font-size: var(--fs-sm); }
+[data-app="ledger"] .bill-struck { text-decoration: line-through; color: var(--text-soft); }
+[data-app="ledger"] .bill-amount { font-family: var(--font-mono); }
+
+/* ── Build 06: Budgets ──────────────────────────────────────────── */
+[data-app="ledger"] .bud-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: var(--fw-title); font-size: var(--fs-base); color: #fff; flex-shrink: 0; }
+
+/* ── Build 02: HomeFund ─────────────────────────────────────────── */
+[data-app="ledger"] .hf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); align-items: start; }
+[data-app="ledger"] .hf-full { grid-column: 1 / -1; }
+[data-app="ledger"] .hf-card-a {}
+[data-app="ledger"] .hf-debt-row { padding: var(--sp-3); border-radius: var(--r-md); background: var(--bg-sunken); }
+[data-app="ledger"] .hf-debt-active { background: var(--app-soft); border: 1px solid color-mix(in srgb, var(--app-accent) 30%, transparent); }
+[data-app="ledger"] .hf-pill-active { background: var(--app-soft); color: var(--app-accent); border: 1px solid var(--app-accent); }
+@media (max-width: 1079px) {
+  [data-app="ledger"] .hf-grid { grid-template-columns: 1fr; }
+  [data-app="ledger"] .hf-full { grid-column: 1; }
+  [data-app="ledger"] .ov-two-col { grid-template-columns: 1fr; }
+}

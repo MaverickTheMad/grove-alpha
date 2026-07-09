@@ -2,6 +2,35 @@ import { useState, useMemo } from 'react'
 import { useRecords } from '../lib/useRecords'
 import { fmt, todayISO } from '../lib/format'
 
+function ProgressRing({ pct, color, size = 80 }) {
+  const r = (size - 10) / 2
+  const circ = 2 * Math.PI * r
+  const filled = (Math.min(100, pct) / 100) * circ
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--bg-sunken)" strokeWidth="9" />
+      <circle
+        cx={size / 2} cy={size / 2} r={r} fill="none"
+        stroke={color || 'var(--app-accent)'} strokeWidth="9"
+        strokeDasharray={`${filled} ${circ - filled}`}
+        strokeDashoffset={circ / 4}
+        strokeLinecap="round"
+        style={{ transition: 'stroke-dasharray 280ms ease' }}
+      />
+    </svg>
+  )
+}
+
+function PaceEstimate({ monthsToGo }) {
+  if (!monthsToGo || monthsToGo <= 0) return null
+  return (
+    <div className="goal-pace-estimate">
+      <span className="goal-pace-label">~{monthsToGo} mo at current pace</span>
+      <span className="goal-pace-note">Estimate</span>
+    </div>
+  )
+}
+
 export default function Goals() {
   const { data: goals, insert, update, remove } = useRecords('goal', { orderBy: 'sort_order', filter: (g) => !g.archived })
   const { data: contributions, insert: insertContribution, refetch: refetchContributions } = useRecords('goal_contribution', { orderBy: 'date', ascending: false })
@@ -18,11 +47,12 @@ export default function Goals() {
     monthly: goals.reduce((s, g) => s + Number(g.monthly_contribution || 0), 0)
   }), [goals])
 
-  const openNew = () => { setEditing({ name: '', target_amount: 0, current_amount: 0, monthly_contribution: 0, color: '#b8945a' }); setModalOpen(true) }
+  const openNew = () => { setEditing({ name: '', target_amount: 0, current_amount: 0, monthly_contribution: 0, color: '#6F86C2' }); setModalOpen(true) }
   const openEdit = (g) => { setEditing({ ...g }); setModalOpen(true) }
   const handleSave = async () => {
-    if (editing.id) await update(editing.id, { name: editing.name, target_amount: editing.target_amount, current_amount: editing.current_amount, monthly_contribution: editing.monthly_contribution, target_date: editing.target_date, color: editing.color, account_id: editing.account_id || null })
-    else await insert({ name: editing.name, target_amount: editing.target_amount, current_amount: editing.current_amount, monthly_contribution: editing.monthly_contribution, target_date: editing.target_date, color: editing.color, account_id: editing.account_id || null })
+    const payload = { name: editing.name, target_amount: editing.target_amount, current_amount: editing.current_amount, monthly_contribution: editing.monthly_contribution, target_date: editing.target_date, color: editing.color, account_id: editing.account_id || null }
+    if (editing.id) await update(editing.id, payload)
+    else await insert(payload)
     setModalOpen(false); setEditing(null)
   }
 
@@ -36,6 +66,25 @@ export default function Goals() {
     setContributeAmount('')
   }
 
+  if (goals.length === 0) {
+    return (
+      <div className="ledger-page">
+        <div className="page-header">
+          <div><p className="eyebrow">Sinking funds</p><h1>Goals</h1></div>
+          <button className="btn" onClick={openNew}>Add goal</button>
+        </div>
+        <div className="card">
+          <div className="empty">
+            <h3>No goals yet</h3>
+            <p>Create a goal to start saving toward a target — house downpayment, vacation, emergency fund, and more.</p>
+          </div>
+        </div>
+
+        {modalOpen && editing && <GoalModal editing={editing} setEditing={setEditing} accounts={accounts} onSave={handleSave} onClose={() => { setModalOpen(false); setEditing(null) }} onDelete={null} />}
+      </div>
+    )
+  }
+
   return (
     <div className="ledger-page">
       <div className="page-header">
@@ -44,7 +93,7 @@ export default function Goals() {
           <h1>Goals</h1>
           <p>Envelopes for the things you're saving toward.</p>
         </div>
-        <button className="btn" onClick={openNew}>+ Add goal</button>
+        <button className="btn" onClick={openNew}>Add goal</button>
       </div>
 
       <div className="grid-3" style={{ marginBottom: '1.5rem' }}>
@@ -66,36 +115,55 @@ export default function Goals() {
         {goals.map(g => {
           const pct = g.target_amount ? Math.min(100, (Number(g.current_amount) / Number(g.target_amount)) * 100) : 0
           const remaining = Number(g.target_amount || 0) - Number(g.current_amount || 0)
-          const monthsToGo = g.monthly_contribution > 0 ? Math.ceil(remaining / Number(g.monthly_contribution)) : null
+          const monthsToGo = g.monthly_contribution > 0 && remaining > 0 ? Math.ceil(remaining / Number(g.monthly_contribution)) : null
+          const recentContribs = contributions.filter(c => c.goal_id === g.id).slice(0, 3)
+
           return (
-            <div key={g.id} className="card" style={{ borderTopWidth: 3, borderTopColor: g.color }}>
+            <div key={g.id} className="card goal-card" style={{ borderTopWidth: 3, borderTopColor: g.color || 'var(--app-accent)' }}>
               <div className="card-head">
                 <h3>{g.name}</h3>
-                <div>
-                  <button className="icon-btn" onClick={() => openEdit(g)}>✎</button>
+                <button className="icon-btn" onClick={() => openEdit(g)}>✎</button>
+              </div>
+
+              <div className="goal-body">
+                <ProgressRing pct={pct} color={g.color} size={84} />
+                <div className="goal-numbers">
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-2xl)', fontWeight: 'var(--fw-title)' }}>
+                    {fmt(g.current_amount, { showCents: false })}
+                  </div>
+                  <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-soft)' }}>
+                    of {fmt(g.target_amount || 0, { showCents: false })} · {pct.toFixed(0)}% funded
+                  </div>
+                  {g.monthly_contribution > 0 && (
+                    <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-soft)', marginTop: 2 }}>
+                      {fmt(g.monthly_contribution, { showCents: false })}/mo
+                    </div>
+                  )}
+                  <PaceEstimate monthsToGo={monthsToGo} />
                 </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
-                <span style={{ fontFamily: 'var(--serif)', fontSize: '1.6rem' }}>{fmt(g.current_amount, { showCents: false })}</span>
-                <span className="mono" style={{ fontSize: 13, color: 'var(--ink-muted)' }}>
-                  of {fmt(g.target_amount || 0, { showCents: false })}
-                </span>
-              </div>
-              <div className="progress" style={{ marginBottom: 12 }}>
-                <div className="progress-fill" style={{ width: `${pct}%`, background: g.color }} />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--ink-muted)', marginBottom: 12 }}>
-                <span>{pct.toFixed(0)}% funded</span>
-                {monthsToGo !== null && monthsToGo > 0 && <span>~{monthsToGo} mo at current pace</span>}
-              </div>
+
+              {recentContribs.length > 0 && (
+                <div className="goal-log">
+                  {recentContribs.map(c => (
+                    <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-xs)', color: 'var(--text-soft)', padding: '3px 0' }}>
+                      <span>{c.date}</span>
+                      <span className="mono">+{fmt(c.amount, { showCents: false })}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {contributeFor?.id === g.id ? (
-                <div style={{ display: 'flex', gap: 6 }}>
+                <div style={{ display: 'flex', gap: 6, marginTop: 'var(--sp-3)' }}>
                   <input className="input mono" type="number" placeholder="Amount" value={contributeAmount} onChange={(e) => setContributeAmount(e.target.value)} autoFocus />
                   <button className="btn btn-sm" onClick={addContribution}>Add</button>
                   <button className="btn btn-ghost btn-sm" onClick={() => { setContributeFor(null); setContributeAmount('') }}>Cancel</button>
                 </div>
               ) : (
-                <button className="btn btn-ghost btn-sm" onClick={() => setContributeFor(g)} style={{ width: '100%' }}>+ Contribute</button>
+                <button className="btn btn-ghost btn-sm" onClick={() => setContributeFor(g)} style={{ width: '100%', marginTop: 'var(--sp-3)' }}>
+                  + Contribute
+                </button>
               )}
             </div>
           )
@@ -103,54 +171,65 @@ export default function Goals() {
       </div>
 
       {modalOpen && editing && (
-        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setModalOpen(false)}>
-          <div className="modal">
-            <h2>{editing.id ? 'Edit goal' : 'New goal'}</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              <div className="field">
-                <label>Name</label>
-                <input className="input" value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} placeholder="House Downpayment, Vacation..." />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                <div className="field">
-                  <label>Target</label>
-                  <input className="input mono" type="number" step="0.01" value={editing.target_amount || ''} onChange={(e) => setEditing({ ...editing, target_amount: parseFloat(e.target.value) || 0 })} />
-                </div>
-                <div className="field">
-                  <label>Current</label>
-                  <input className="input mono" type="number" step="0.01" value={editing.current_amount || ''} onChange={(e) => setEditing({ ...editing, current_amount: parseFloat(e.target.value) || 0 })} />
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                <div className="field">
-                  <label>Monthly contribution</label>
-                  <input className="input mono" type="number" step="0.01" value={editing.monthly_contribution || ''} onChange={(e) => setEditing({ ...editing, monthly_contribution: parseFloat(e.target.value) || 0 })} />
-                </div>
-                <div className="field">
-                  <label>Target date</label>
-                  <input className="input" type="date" value={editing.target_date || ''} onChange={(e) => setEditing({ ...editing, target_date: e.target.value || null })} />
-                </div>
-              </div>
-              <div className="field">
-                <label>Account</label>
-                <select className="select" value={editing.account_id || ''} onChange={(e) => setEditing({ ...editing, account_id: e.target.value || null })}>
-                  <option value="">— None —</option>
-                  {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                </select>
-              </div>
-              <div className="field">
-                <label>Color</label>
-                <input className="input" type="color" value={editing.color || '#b8945a'} onChange={(e) => setEditing({ ...editing, color: e.target.value })} style={{ height: 38 }} />
-              </div>
+        <GoalModal
+          editing={editing} setEditing={setEditing} accounts={accounts}
+          onSave={handleSave}
+          onClose={() => { setModalOpen(false); setEditing(null) }}
+          onDelete={editing.id ? () => { if (confirm('Delete goal?')) { remove(editing.id); setModalOpen(false) } } : null}
+        />
+      )}
+    </div>
+  )
+}
+
+function GoalModal({ editing, setEditing, accounts, onSave, onClose, onDelete }) {
+  return (
+    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <h2>{editing.id ? 'Edit goal' : 'New goal'}</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+          <div className="field">
+            <label>Name</label>
+            <input className="input" value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} placeholder="House Downpayment, Vacation..." />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div className="field">
+              <label>Target</label>
+              <input className="input mono" type="number" step="0.01" value={editing.target_amount || ''} onChange={(e) => setEditing({ ...editing, target_amount: parseFloat(e.target.value) || 0 })} />
             </div>
-            <div className="modal-actions">
-              {editing.id && <button className="btn btn-ghost" style={{ marginRight: 'auto', color: 'var(--negative)' }} onClick={() => { if (confirm('Delete goal?')) { remove(editing.id); setModalOpen(false) } }}>Delete</button>}
-              <button className="btn btn-ghost" onClick={() => setModalOpen(false)}>Cancel</button>
-              <button className="btn" onClick={handleSave}>Save</button>
+            <div className="field">
+              <label>Current</label>
+              <input className="input mono" type="number" step="0.01" value={editing.current_amount || ''} onChange={(e) => setEditing({ ...editing, current_amount: parseFloat(e.target.value) || 0 })} />
             </div>
           </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div className="field">
+              <label>Monthly contribution</label>
+              <input className="input mono" type="number" step="0.01" value={editing.monthly_contribution || ''} onChange={(e) => setEditing({ ...editing, monthly_contribution: parseFloat(e.target.value) || 0 })} />
+            </div>
+            <div className="field">
+              <label>Target date</label>
+              <input className="input" type="date" value={editing.target_date || ''} onChange={(e) => setEditing({ ...editing, target_date: e.target.value || null })} />
+            </div>
+          </div>
+          <div className="field">
+            <label>Account</label>
+            <select className="select" value={editing.account_id || ''} onChange={(e) => setEditing({ ...editing, account_id: e.target.value || null })}>
+              <option value="">— None —</option>
+              {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+          </div>
+          <div className="field">
+            <label>Color</label>
+            <input className="input" type="color" value={editing.color || '#6F86C2'} onChange={(e) => setEditing({ ...editing, color: e.target.value })} style={{ height: 38 }} />
+          </div>
         </div>
-      )}
+        <div className="modal-actions">
+          {onDelete && <button className="btn btn-ghost" style={{ marginRight: 'auto', color: 'var(--negative)' }} onClick={onDelete}>Delete</button>}
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn" onClick={onSave}>Save</button>
+        </div>
+      </div>
     </div>
   )
 }

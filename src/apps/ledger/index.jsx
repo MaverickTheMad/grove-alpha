@@ -9,6 +9,7 @@ import Budgets from './pages/Budgets'
 import Goals from './pages/Goals'
 import Snowball from './pages/Snowball'
 import Rules from './pages/Rules'
+import HomeFund from './pages/HomeFund'
 const Insights = lazy(() => import('./pages/Insights'))
 const Imports = lazy(() => import('./pages/Imports'))
 import Settings from './pages/Settings'
@@ -18,7 +19,7 @@ export const meta = { id: 'ledger', name: 'Ledger', tagline: 'Budget & bills' }
 const TABS = [
   { id: 'overview', label: 'Overview', icon: 'overview' },
   { id: 'money', label: 'Money', icon: 'cart' },
-  { id: 'plan', label: 'Plan', icon: 'calendar' },
+  { id: 'home', label: 'Home Fund', icon: 'home' },
   { id: 'insights', label: 'Insights', icon: 'trends' },
   { id: 'settings', label: 'Settings', icon: 'settings' },
 ]
@@ -28,7 +29,8 @@ const MONEY_TABS = [
   { id: 'imports', label: 'Imports' },
   { id: 'rules', label: 'Rules' },
 ]
-const PLAN_TABS = [
+const HOME_TABS = [
+  { id: 'homefund', label: 'Home Fund' },
   { id: 'budgets', label: 'Budgets' },
   { id: 'bills', label: 'Bills' },
   { id: 'goals', label: 'Goals' },
@@ -38,7 +40,7 @@ const PLAN_TABS = [
 export default function Ledger() {
   const [tab, setTab] = useState('overview')
   const [moneyView, setMoneyView] = useState('transactions')
-  const [planView, setPlanView] = useState('budgets')
+  const [homeView, setHomeView] = useState('homefund')
 
   return (
     <>
@@ -57,13 +59,14 @@ export default function Ledger() {
         </div>
       )}
 
-      {tab === 'plan' && (
+      {tab === 'home' && (
         <div>
-          <SubTabs tabs={PLAN_TABS} current={planView} onChange={setPlanView} />
-          {planView === 'budgets' && <Budgets />}
-          {planView === 'bills' && <Bills />}
-          {planView === 'goals' && <Goals />}
-          {planView === 'snowball' && <Snowball />}
+          <SubTabs tabs={HOME_TABS} current={homeView} onChange={setHomeView} />
+          {homeView === 'homefund' && <HomeFund />}
+          {homeView === 'budgets' && <Budgets />}
+          {homeView === 'bills' && <Bills />}
+          {homeView === 'goals' && <Goals />}
+          {homeView === 'snowball' && <Snowball />}
         </div>
       )}
 

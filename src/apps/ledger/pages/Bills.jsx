@@ -11,8 +11,6 @@ export default function Bills() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState(null)
 
-  const monthStart = `${year}-${String(month).padStart(2, '0')}-01`
-
   const billsWithStatus = useMemo(() =>
     bills.map(b => {
       const dueDate = `${year}-${String(month).padStart(2, '0')}-${String(b.due_day || 1).padStart(2, '0')}`
@@ -30,9 +28,18 @@ export default function Bills() {
 
   const togglePaid = async (bill) => {
     if (bill._payment) {
-      await updatePayment(bill._payment.id, { paid: !bill._payment.paid, paid_date: !bill._payment.paid ? new Date().toISOString().slice(0, 10) : null })
+      await updatePayment(bill._payment.id, {
+        paid: !bill._payment.paid,
+        paid_date: !bill._payment.paid ? new Date().toISOString().slice(0, 10) : null
+      })
     } else {
-      await insertPayment({ bill_id: bill.id, due_date: bill._dueDate, amount: bill.amount, paid: true, paid_date: new Date().toISOString().slice(0, 10) })
+      await insertPayment({
+        bill_id: bill.id,
+        due_date: bill._dueDate,
+        amount: bill.amount,
+        paid: true,
+        paid_date: new Date().toISOString().slice(0, 10)
+      })
     }
     refetchPayments()
   }
@@ -53,7 +60,7 @@ export default function Bills() {
           <h1>Bills</h1>
           <p>The recurring ones — checked off as you pay.</p>
         </div>
-        <button className="btn" onClick={openNew}>+ Add bill</button>
+        <button className="btn" onClick={openNew}>Add bill</button>
       </div>
 
       <div className="grid-3" style={{ marginBottom: '1.5rem' }}>
@@ -71,59 +78,63 @@ export default function Bills() {
         </div>
       </div>
 
-      <div className="card">
-        <table className="ledger">
-          <thead>
-            <tr>
-              <th style={{ width: 40 }}></th>
-              <th>Bill</th>
-              <th>Due</th>
-              <th>Category</th>
-              <th style={{ textAlign: 'right' }}>Amount</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {billsWithStatus.map(b => {
-              const cat = categories.find(c => c.id === b.category_id)
-              return (
-                <tr key={b.id} style={{ opacity: b._paid ? 0.55 : 1 }}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={b._paid}
-                      onChange={() => togglePaid(b)}
-                      style={{ width: 18, height: 18, cursor: 'pointer' }}
-                    />
-                  </td>
-                  <td>
-                    <div style={{ fontWeight: 500, textDecoration: b._paid ? 'line-through' : 'none' }}>{b.name}</div>
-                    {b.autopay && <span className="pill pill-auto" style={{ marginTop: 4 }}>Autopay</span>}
-                  </td>
-                  <td>{ordinal(b.due_day || 1)}</td>
-                  <td>
-                    {cat ? (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
-                        <span className="dot" style={{ background: cat.color }}></span>
-                        {cat.name}
-                      </span>
-                    ) : <span style={{ color: 'var(--ink-faint)' }}>—</span>}
-                  </td>
-                  <td className="num">{fmt(b.amount, { showCents: false })}</td>
-                  <td style={{ width: 90 }}>
-                    <button className="icon-btn" onClick={() => openEdit(b)} title="Edit">✎</button>
-                    <button className="icon-btn" onClick={() => { if (confirm(`Delete ${b.name}?`)) remove(b.id) }} title="Delete">×</button>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-        {bills.length === 0 && (
+      <div className="card" style={{ padding: 0 }}>
+        {bills.length === 0 ? (
           <div className="empty">
             <h3>No bills yet</h3>
             <p>Add your first recurring bill to start tracking.</p>
           </div>
+        ) : (
+          <table className="ledger">
+            <thead>
+              <tr>
+                <th style={{ width: 48 }}></th>
+                <th>Bill</th>
+                <th style={{ width: 80 }}>Due</th>
+                <th>Category</th>
+                <th style={{ textAlign: 'right', width: 100 }}>Amount</th>
+                <th style={{ width: 72 }}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {billsWithStatus.map(b => {
+                const cat = categories.find(c => c.id === b.category_id)
+                return (
+                  <tr key={b.id} className={b._paid ? 'bill-row-paid' : ''}>
+                    <td>
+                      <label className="bill-check-wrap" aria-label={b._paid ? 'Mark unpaid' : 'Mark paid'}>
+                        <input type="checkbox" checked={b._paid} onChange={() => togglePaid(b)} />
+                      </label>
+                    </td>
+                    <td>
+                      <div className={'bill-name' + (b._paid ? ' bill-struck' : '')}>{b.name}</div>
+                      <div style={{ display: 'flex', gap: 6, marginTop: 2 }}>
+                        {b.autopay && (
+                          <span className="pill pill-auto" style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                            Autopay
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td style={{ fontSize: 13, color: 'var(--text-soft)' }}>{ordinal(b.due_day || 1)}</td>
+                    <td>
+                      {cat ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
+                          <span className="dot" style={{ background: cat.color }}></span>{cat.name}
+                        </span>
+                      ) : <span style={{ color: 'var(--ink-faint)' }}>—</span>}
+                    </td>
+                    <td className={'num bill-amount' + (b._paid ? ' bill-struck' : '')}>{fmt(b.amount, { showCents: false })}</td>
+                    <td style={{ width: 72 }}>
+                      <button className="icon-btn" onClick={() => openEdit(b)}>✎</button>
+                      <button className="icon-btn" onClick={() => { if (confirm(`Delete ${b.name}?`)) remove(b.id) }}>×</button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         )}
       </div>
 
@@ -153,7 +164,7 @@ export default function Bills() {
                   {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, minHeight: 44 }}>
                 <input type="checkbox" checked={editing.autopay || false} onChange={(e) => setEditing({ ...editing, autopay: e.target.checked })} />
                 Autopay
               </label>

@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useRecords } from '../lib/useRecords'
+import { useToast } from '../../../components/Toast'
 import { commitImport, undoImport } from '../lib/imports'
 import { fmt } from '../lib/format'
 import { extractPdfText } from '../lib/pdfParser'
@@ -12,6 +13,7 @@ const STEP_REVIEW = 'review'
 const STEP_DONE   = 'done'
 
 export default function Imports() {
+  const toast = useToast()
   const [step, setStep] = useState(STEP_UPLOAD)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -135,7 +137,15 @@ export default function Imports() {
       })
       setBatchSummary(summary)
       setStep(STEP_DONE)
-            refetchImports()
+      refetchImports()
+      toast.show(`${summary.count} transaction${summary.count !== 1 ? 's' : ''} added.`, {
+        actionLabel: 'Undo',
+        onAction: async () => {
+          await undoImport(summary.batchId)
+          refetchImports()
+          reset()
+        }
+      })
     } catch (e) {
       console.error(e)
       setError('Commit failed: ' + e.message)
@@ -454,7 +464,7 @@ function ReviewStep({ parsed, updateRow, categories, accounts, stats, onCommit, 
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
         <button className="btn" onClick={onCommit} disabled={busy || stats.willImport === 0}>
-          {busy ? 'Committing...' : `Commit ${stats.willImport} transaction${stats.willImport !== 1 ? 's' : ''} →`}
+          {busy ? 'Adding...' : `Add ${stats.willImport} transaction${stats.willImport !== 1 ? 's' : ''}`}
         </button>
       </div>
     </div>

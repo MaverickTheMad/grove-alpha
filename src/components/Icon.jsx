@@ -18,6 +18,7 @@ const PATHS = {
   list: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01',
   extras: 'M12 5v14M5 12h14',
   overview: 'M4 5h16v14H4zM12 5v14M4 12h16',
+  home: 'M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5ZM9 21v-7h6v7',
   bills: 'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6',
   budgets: 'M12 3v18M5 8h14M5 16h14',
   goals: 'M12 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0M12 12m-8 0a8 8 0 1 0 16 0 8 8 0 1 0-16 0',
