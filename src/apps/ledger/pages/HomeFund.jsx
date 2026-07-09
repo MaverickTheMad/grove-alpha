@@ -517,12 +517,12 @@ export default function HomeFund() {
       <div className="card-head"><h3>Ground rules</h3></div>
       <ol style={{ margin: 0, padding: '0 0 0 1.25rem', display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
         {[
-          'The grocery cap is the guardrail — if we're over, cut dining before anything else.',
-          'Any "found money" (bonus, refund, gift) goes to the active debt target first.',
+          "The grocery cap is the guardrail — if we’re over, cut dining before anything else.",
+          'Any “found money” (bonus, refund, gift) goes to the active debt target first.',
           'One eating-out splurge per week max during Sprint phase.',
-          'Don't open new credit during Buy phase — no new accounts 6 months before applying.',
+          "Don’t open new credit during Buy phase — no new accounts 6 months before applying.",
           'Subscriptions audit every quarter — cut anything unused.',
-          'Emergency floor stays at floor at all times; don't raid it for wants.',
+          "Emergency floor stays at floor at all times; don’t raid it for wants.",
         ].map((rule, i) => (
           <li key={i} style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-soft)', lineHeight: 1.5 }}>{rule}</li>
         ))}
