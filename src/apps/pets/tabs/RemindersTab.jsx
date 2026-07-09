@@ -3,7 +3,7 @@ import * as store from '../lib/store.js'
 import Sheet from '../../../components/Sheet'
 import Toast from '../components/Toast.jsx'
 import {
-  IconSyringe, IconPill, IconBell, IconAlert, IconClock, IconPlus, IconPaw,
+  IconSyringe, IconPill, IconBell, IconAlert, IconClock, IconCheck, IconPlus, IconPaw,
 } from '../../../components/Icon'
 import {
   daysUntil, relativeDays, fmtDate, todayStr, speciesMeta, UPCOMING_WINDOW_DAYS,
@@ -13,13 +13,14 @@ import {
 function bucket(days) {
   if (days == null) return 'later'
   if (days < 0) return 'overdue'
+  if (days === 0) return 'today'
   if (days <= 7) return 'soon'
   if (days <= UPCOMING_WINDOW_DAYS) return 'upcoming'
   return 'later'
 }
 
 function BucketBadge({ b, due }) {
-  const Ic = b === 'overdue' ? IconAlert : IconClock
+  const Ic = b === 'overdue' ? IconAlert : b === 'today' ? IconCheck : IconClock
   return (
     <span className={`badge ${b}`}>
       <Ic size={11} />
@@ -102,6 +103,7 @@ export default function RemindersTab({ pets, onJump }) {
   }
 
   const overdue  = items.filter((i) => bucket(daysUntil(i.due)) === 'overdue')
+  const today    = items.filter((i) => bucket(daysUntil(i.due)) === 'today')
   const soon     = items.filter((i) => bucket(daysUntil(i.due)) === 'soon')
   const upcoming = items.filter((i) => bucket(daysUntil(i.due)) === 'upcoming')
   const later    = items.filter((i) => bucket(daysUntil(i.due)) === 'later')
@@ -119,23 +121,27 @@ export default function RemindersTab({ pets, onJump }) {
             const b = bucket(daysUntil(it.due))
             return (
               <div className="row" key={it.key}>
-                <div className="avatar app-tint">
-                  {pet?.photo_url
-                    ? <img src={pet.photo_url} alt="" />
-                    : <it.Ic size={20} />}
-                </div>
+                {it.remId ? (
+                  <input
+                    type="checkbox"
+                    className="rem-check"
+                    aria-label={`Mark ${it.label} done`}
+                    onChange={() => markDone(it)}
+                  />
+                ) : (
+                  <div className="avatar app-tint">
+                    {pet?.photo_url
+                      ? <img src={pet.photo_url} alt="" />
+                      : <it.Ic size={20} />}
+                  </div>
+                )}
                 <div className="grow">
                   <div className="title">{it.label}</div>
                   <div className="sub">
                     {pet?.name || '—'} · {it.kind} · {fmtDate(it.due)}
                   </div>
                 </div>
-                <div className="row-end">
-                  <BucketBadge b={b} due={it.due} />
-                  {it.remId && (
-                    <button className="btn ghost sm" onClick={() => markDone(it)}>Done</button>
-                  )}
-                </div>
+                <BucketBadge b={b} due={it.due} />
               </div>
             )
           })}
@@ -158,12 +164,13 @@ export default function RemindersTab({ pets, onJump }) {
         <div className="empty">
           <div className="big">✓</div>
           <h3>All caught up</h3>
-          <p>Nothing due. Schedule a grooming or flea dose so it&rsquo;s on the books.</p>
+          <p>Meds, vet visits, and grooming will show up here as they come due.</p>
           <button className="btn primary" onClick={() => setAdding(true)}>Add a reminder</button>
         </div>
       ) : (
         <>
           <Group title="Overdue" list={overdue} />
+          <Group title="Today" list={today} />
           <Group title="This week" list={soon} />
           <Group title={`Next ${UPCOMING_WINDOW_DAYS} days`} list={upcoming} />
           <Group title="Later" list={later} />

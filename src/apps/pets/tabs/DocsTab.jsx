@@ -87,26 +87,25 @@ export default function DocsTab({ pets }) {
         <div className="empty">
           <IconDoc size={36} />
           <h3>Nothing here yet</h3>
-          <p>Upload vet receipts, invoices, lab results, or adoption papers — searchable by pet later.</p>
+          <p>Keep vet records, insurance, and invoices together, linked to each pet.</p>
           <button className="btn primary" onClick={() => setAdding(true)}>Add a document</button>
         </div>
       ) : (
-        <div className="card flush-list">
+        <div className="doc-grid">
           {shown.map((d) => {
             const pet = petById(d.pet_id)
+            const headLabel = `${pet ? pet.name : 'Household'} · ${typeLabel(d.doc_type)}`
             return (
-              <div className="row" key={d.id}>
-                <div className="grow">
-                  <div className="title">{d.title}</div>
-                  <div className="sub">
-                    {pet ? `${pet.name} · ` : 'Household · '}{typeLabel(d.doc_type)} · {fmtDate(d.doc_date)}
-                    {d.amount != null ? ` · ${fmtMoney(d.amount)}` : ''}
-                  </div>
+              <div className="doc-card" key={d.id}>
+                <div className="doc-card-head">{headLabel}</div>
+                <div className="doc-card-sub">{d.title}</div>
+                <div className="doc-card-date">{fmtDate(d.doc_date)}{d.amount != null ? ` · ${fmtMoney(d.amount)}` : ''}</div>
+                <div className="doc-card-foot">
+                  {d.file_url
+                    ? <a className="btn ghost sm" href={d.file_url} target="_blank" rel="noreferrer">Open</a>
+                    : <span />}
+                  <button className="row-x" aria-label="Delete document" onClick={() => del(d)}>✕</button>
                 </div>
-                {d.file_url && (
-                  <a className="btn ghost sm" href={d.file_url} target="_blank" rel="noreferrer">Open</a>
-                )}
-                <button className="row-x" aria-label="Delete" onClick={() => del(d)}>✕</button>
               </div>
             )
           })}

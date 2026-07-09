@@ -20,7 +20,7 @@ export default function PetsTab({ pets, reloadPets }) {
     <div className="tab-pad">
       <div className="section-h-row">
         <h2 className="section-h flush">Our pets</h2>
-        <button className="btn ghost sm" onClick={() => setEditing('new')}>
+        <button className="btn primary sm" onClick={() => setEditing('new')}>
           <IconPlus size={14} /> Add pet
         </button>
       </div>
@@ -29,8 +29,8 @@ export default function PetsTab({ pets, reloadPets }) {
         <div className="empty full">
           <IconPaw size={44} />
           <h3>No pets yet</h3>
-          <p>Add your first furry family member to start tracking vaccines, weight, and visits.</p>
-          <button className="btn primary" onClick={() => setEditing('new')}>Add a pet</button>
+          <p>Add a pet to track their care, reminders, and documents in one place.</p>
+          <button className="btn primary" onClick={() => setEditing('new')}>Add your first pet</button>
         </div>
       ) : (
         <div className="col-2">
@@ -45,8 +45,12 @@ export default function PetsTab({ pets, reloadPets }) {
                   <div className="pet-name">{p.name}</div>
                   <div className="pet-sub">
                     {meta.label}{p.breed ? ` · ${p.breed}` : ''}
-                    {p.birthday ? ` · ${ageFromBirthday(p.birthday)}${p.birthday_estimated ? ' (est.)' : ''}` : ''}
                   </div>
+                  {p.birthday && (
+                    <div className="pet-sub mono" style={{ fontFamily:'var(--font-mono)', fontSize:'var(--fs-xs)', marginTop:2 }}>
+                      {ageFromBirthday(p.birthday)}{p.birthday_estimated ? ' (est.)' : ''}
+                    </div>
+                  )}
                 </div>
                 <span className="pet-caret" aria-hidden>›</span>
               </button>
@@ -625,8 +629,8 @@ function PetEditor({ open, pet, onClose, onSaved }) {
             {saving ? 'Saving…' : pet ? 'Save changes' : 'Add pet'}
           </button>
           {pet && (
-            <button className="btn ghost danger block" onClick={() => setConfirmArchive(true)}>
-              Archive {pet.name}
+            <button className="btn danger-text block" onClick={() => setConfirmArchive(true)}>
+              Remove {pet.name}
             </button>
           )}
         </>
@@ -741,9 +745,10 @@ function PetEditor({ open, pet, onClose, onSaved }) {
         open={confirmArchive}
         onClose={() => setConfirmArchive(false)}
         onConfirm={archive}
-        title={`Archive ${pet?.name || 'this pet'}?`}
-        body={<>They&rsquo;ll be hidden from the main list, but every record we have for them is kept. You can restore them later from the database.</>}
-        confirmLabel="Archive"
+        title={`Remove ${pet?.name || 'this pet'}?`}
+        body={<>This removes {pet?.name || 'this pet'}&rsquo;s profile, care history, and reminders. Documents already saved to Documents will stay in place.</>}
+        confirmLabel={`Remove ${pet?.name || 'pet'}`}
+        cancelLabel="Keep pet"
       />
     </Sheet>
   )

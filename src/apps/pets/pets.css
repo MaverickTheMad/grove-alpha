@@ -177,6 +177,51 @@
 [data-app="pets"] .totals-strip .value { font-family:var(--font-mono); font-size:var(--fs-xl); color:var(--app-accent); font-weight:var(--fw-title); }
 [data-app="pets"] a.subtle { color:var(--accent); text-decoration:none; font-weight:var(--fw-med); }
 [data-app="pets"] a.subtle:active { opacity:.6; }
+/* ── today badge — house green accent ── */
+[data-app="pets"] .badge.today { background:var(--accent-weak); color:var(--accent); }
+
+/* ── doc grid — 2-col desktop ── */
+[data-app="pets"] .doc-grid {
+  display:grid; grid-template-columns:1fr; gap:var(--sp-3);
+}
+@media (min-width:720px) {
+  [data-app="pets"] .doc-grid { grid-template-columns:1fr 1fr; }
+}
+[data-app="pets"] .doc-card {
+  background:var(--bg-paper); border:1px solid var(--border);
+  border-radius:var(--r-lg); padding:var(--sp-4);
+  display:flex; flex-direction:column; gap:var(--sp-2);
+  transition:border-color 160ms;
+}
+[data-app="pets"] .doc-card:hover { border-color:var(--app-soft); }
+[data-app="pets"] .doc-card-head {
+  font-weight:var(--fw-med); font-size:var(--fs-base); color:var(--text);
+}
+[data-app="pets"] .doc-card-sub {
+  font-size:var(--fs-sm); color:var(--text-soft);
+}
+[data-app="pets"] .doc-card-date {
+  font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--text-faint);
+}
+[data-app="pets"] .doc-card-foot {
+  display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3);
+  margin-top:var(--sp-1);
+}
+
+/* ── reminder checkbox row ── */
+[data-app="pets"] .rem-check {
+  width:20px; height:20px; flex-shrink:0; accent-color:var(--accent);
+  cursor:pointer;
+}
+
+/* ── "danger text" link-style action for destructive confirm ── */
+[data-app="pets"] .btn.danger-text {
+  background:transparent; border-color:transparent;
+  color:var(--danger); font-size:var(--fs-sm); font-weight:var(--fw-med);
+  min-height:44px;
+}
+[data-app="pets"] .btn.danger-text:active { opacity:.6; }
+
 @keyframes fade { from { opacity:0; } }
 @keyframes rise { from { transform:translateY(100%); } }
 @keyframes risesm { from { transform:translateY(20px); opacity:0; } }
