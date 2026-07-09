@@ -1,209 +1,100 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import './quest.css'
 import BottomNav from '../../components/BottomNav'
+import { ToastProvider } from '../../components/Toast'
 import * as store from './lib/store'
-import {
-  DEFAULT_HABITS, BADGES,
-  levelProgress, rankTitle, todayStr, addDays, weekStart,
-} from './constants'
-import LogTab from './tabs/LogTab'
+import { levelProgress, rankTitle, isoToLocalDateStr, todayStr, addDays } from './constants'
 import QuestsTab from './tabs/QuestsTab'
+import LogTab from './tabs/LogTab'
 import TrendsTab from './tabs/TrendsTab'
 
-export const meta = { id: 'quest', name: "Mav's Quest Log", tagline: 'Habits & adventure' }
+export const meta = { id: 'quest', name: 'Quest', tagline: 'Goals worth the walk' }
 
 const TABS = [
-  { id: 'log', label: 'Chronicle', icon: 'log' },
-  { id: 'quests', label: 'Hero', icon: 'goals' },
-  { id: 'trends', label: 'Annals', icon: 'trends' },
+  { id: 'chronicle', label: 'Chronicle', icon: 'log' },
+  { id: 'hero',      label: 'Hero',      icon: 'goals' },
+  { id: 'annals',    label: 'Annals',    icon: 'trends' },
 ]
 
+function computeStreak(quests) {
+  const days = new Set(quests.filter(q => q.completed_at).map(q => isoToLocalDateStr(q.completed_at)))
+  let s = 0
+  let cursor = todayStr()
+  if (!days.has(cursor)) cursor = addDays(cursor, -1)
+  while (days.has(cursor)) { s++; cursor = addDays(cursor, -1) }
+  return s
+}
+
 export default function Quest() {
-  const [tab, setTab] = useState('log')
+  const [tab, setTab]       = useState('hero')
   const [loading, setLoading] = useState(true)
-
+  const [quests, setQuests] = useState([])
   const [totalXp, setTotalXp] = useState(0)
-  const [earnedBadges, setEarnedBadges] = useState([])
-  const [claimedChallenges, setClaimedChallenges] = useState([])
-  const [completions, setCompletions] = useState({})
-  const [workoutCount, setWorkoutCount] = useState(0)
-
-  const [toast, setToast] = useState(null)
-  const toastTimer = useRef(null)
 
   const reload = useCallback(async () => {
-    const [gs, hc, exCount] = await Promise.all([
-      store.ensureGameState(),
-      store.listHabitCompletions(),
-      store.countWorkouts(),
-    ])
+    const [allQuests, gs] = await Promise.all([store.listAllQuests(), store.ensureGameState()])
+    setQuests(allQuests)
     setTotalXp(gs.total_xp || 0)
-    setEarnedBadges(gs.earned_badges || [])
-    setClaimedChallenges(gs.claimed_challenges || [])
-    const map = {}
-    for (const r of hc) {
-      if (!map[r.date]) map[r.date] = []
-      map[r.date].push(r.habit_id)
-    }
-    setCompletions(map)
-    setWorkoutCount(exCount || 0)
     setLoading(false)
   }, [])
+
   useEffect(() => { reload() }, [reload])
 
-  const persistGame = useCallback(async (patch) => { await store.updateGameState(patch) }, [])
+  const prog    = levelProgress(totalXp)
+  const rank    = rankTitle(prog.level)
+  const streak  = computeStreak(quests)
 
-  const awardXp = useCallback((amount, label) => {
-    setTotalXp((prev) => {
-      const next = prev + amount
-      persistGame({ total_xp: next })
-      return next
-    })
-    if (toastTimer.current) clearTimeout(toastTimer.current)
-    setToast(`+${amount} XP${label ? ' · ' + label : ''}`)
-    toastTimer.current = setTimeout(() => setToast(null), 1200)
-  }, [persistGame])
+  const activeQuests    = quests.filter(q => !q.completed_at)
+  const completedQuests = [...quests.filter(q => q.completed_at)]
+    .sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at))
 
-  const computeHabitStreak = useCallback((habitId) => {
-    let streak = 0
-    let cursor = todayStr()
-    if (!(completions[cursor] || []).includes(habitId)) cursor = addDays(cursor, -1)
-    while ((completions[cursor] || []).includes(habitId)) { streak++; cursor = addDays(cursor, -1) }
-    return streak
-  }, [completions])
+  const handleComplete = useCallback(async (quest) => {
+    const xpGain = quest.xp_reward || 10
+    const now = new Date().toISOString()
+    setQuests(prev => prev.map(q => q.id === quest.id ? { ...q, completed_at: now } : q))
+    const newXp = totalXp + xpGain
+    setTotalXp(newXp)
+    // eslint-disable-next-line no-unused-vars
+    const { completed_at: _ca, createdAt: _cr, id: _id, ...fields } = quest
+    await store.completeQuest(quest.id, fields)
+    await store.updateGameState({ total_xp: newXp })
+  }, [totalXp])
 
-  const isPerfectDay = useCallback((dateStr) => {
-    const done = completions[dateStr] || []
-    return DEFAULT_HABITS.every((h) => done.includes(h.id))
-  }, [completions])
+  const handleDelete = useCallback(async (questId) => {
+    setQuests(prev => prev.filter(q => q.id !== questId))
+    await store.deleteQuest(questId)
+  }, [])
 
-  const computePerfectStreak = useCallback(() => {
-    let streak = 0
-    let cursor = todayStr()
-    if (!isPerfectDay(cursor)) cursor = addDays(cursor, -1)
-    while (isPerfectDay(cursor)) { streak++; cursor = addDays(cursor, -1) }
-    return streak
-  }, [isPerfectDay])
+  const handleRestore = useCallback(async (questId) => {
+    await store.restoreQuest(questId)
+    reload()
+  }, [reload])
 
-  const habitStreaks = {}
-  for (const h of DEFAULT_HABITS) habitStreaks[h.id] = computeHabitStreak(h.id)
-  const perfectStreak = computePerfectStreak()
-  const totalPerfectDays = Object.keys(completions).filter(isPerfectDay).length
-  const daysLogged = Object.keys(completions).length
-  const maxWaterStreak = habitStreaks.water || 0
-
-  const prog = levelProgress(totalXp)
-  const rank = rankTitle(prog.level)
-
-  useEffect(() => {
-    if (loading) return
-    const ctx = { totalXp, level: prog.level, perfectStreak, habitStreaks, totalPerfectDays, workoutCount, daysLogged, maxWaterStreak }
-    const newly = BADGES.filter((b) => !earnedBadges.includes(b.id) && b.check(ctx)).map((b) => b.id)
-    if (newly.length) {
-      const updated = [...earnedBadges, ...newly]
-      setEarnedBadges(updated)
-      persistGame({ earned_badges: updated })
-      const b = BADGES.find((x) => x.id === newly[0])
-      if (toastTimer.current) clearTimeout(toastTimer.current)
-      setToast(`✦ ${b.name} earned!`)
-      toastTimer.current = setTimeout(() => setToast(null), 1800)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalXp, completions, workoutCount, loading])
-
-  const toggleHabit = useCallback(async (habitId) => {
-    const today = todayStr()
-    const done = completions[today] || []
-    const isOn = done.includes(habitId)
-    const habit = DEFAULT_HABITS.find((h) => h.id === habitId)
-    setCompletions((prev) => {
-      const cur = prev[today] || []
-      const nextDay = isOn ? cur.filter((x) => x !== habitId) : [...cur, habitId]
-      return { ...prev, [today]: nextDay }
-    })
-    if (isOn) {
-      await store.removeHabitCompletion(today, habitId)
-    } else {
-      await store.addHabitCompletion(today, habitId)
-      awardXp(habit.xp, habit.label)
-    }
-  }, [completions, awardXp])
-
-  const challengeStatus = useCallback((chal) => {
-    const today = todayStr()
-    const wk = weekStart(today)
-    const periodKey = chal.scope === 'daily' ? today : wk
-    const claimKey = `${chal.id}:${periodKey}`
-    const claimed = claimedChallenges.includes(claimKey)
-    let progress = 0, target = chal.target || 1, complete = false
-    const doneToday = completions[today] || []
-    if (chal.kind === 'allHabitsToday') {
-      progress = doneToday.length; target = DEFAULT_HABITS.length; complete = progress >= target
-    } else if (chal.kind === 'tripleToday') {
-      const need = ['mood', 'water', 'workout']
-      progress = need.filter((h) => doneToday.includes(h)).length; target = 3; complete = progress >= target
-    } else if (chal.kind === 'perfectThisWeek') {
-      let n = 0
-      for (let i = 0; i < 7; i++) { const d = addDays(wk, i); if (DEFAULT_HABITS.every((h) => (completions[d] || []).includes(h.id))) n++ }
-      progress = n; complete = progress >= target
-    } else if (chal.kind === 'habitThisWeek') {
-      let n = 0
-      for (let i = 0; i < 7; i++) { const d = addDays(wk, i); if ((completions[d] || []).includes(chal.habit)) n++ }
-      progress = n; complete = progress >= target
-    }
-    return { claimKey, claimed, progress, target, complete }
-  }, [completions, claimedChallenges])
-
-  const claimChallenge = useCallback((chal) => {
-    const { claimKey, claimed, complete } = challengeStatus(chal)
-    if (claimed || !complete) return
-    const updated = [...claimedChallenges, claimKey]
-    setClaimedChallenges(updated)
-    persistGame({ claimed_challenges: updated })
-    awardXp(chal.bonus, chal.name)
-  }, [challengeStatus, claimedChallenges, persistGame, awardXp])
+  const handleAdd = useCallback(async (fields) => {
+    const rec = await store.createQuest(fields)
+    setQuests(prev => [rec, ...prev])
+  }, [])
 
   if (loading) {
-    return <main className="screen"><div className="empty" style={{ paddingTop: '20vh' }}><p className="line">Unfurling the scroll…</p></div></main>
+    return (
+      <ToastProvider>
+        <main className="screen">
+          <div className="quest-loading">Unfurling the scroll…</div>
+        </main>
+      </ToastProvider>
+    )
   }
 
-  const gameCtx = {
-    totalXp, prog, rank, perfectStreak, habitStreaks,
-    completions, toggleHabit, awardXp, reload,
-    earnedBadges, claimedChallenges, challengeStatus, claimChallenge,
-    totalPerfectDays, workoutCount, daysLogged,
-  }
+  const ctx = { prog, rank, streak, totalXp, activeQuests, completedQuests, handleComplete, handleDelete, handleRestore, handleAdd }
 
   return (
-    <>
-      <div className="quest-page page">
-        <section className="hud">
-          <div className="hud-top">
-            <div>
-              <h1 className="hud-title">Mav's <b>Adventuring Log</b></h1>
-              <div className="hud-rank">{rank}</div>
-            </div>
-            <div className="lvl-badge">
-              <span className="n">{prog.level}</span>
-              <span className="l">lvl</span>
-            </div>
-          </div>
-          <div className="xpbar-wrap">
-            <div className="xpbar-meta">
-              <span className="streak-chip">🔥 {perfectStreak} day{perfectStreak === 1 ? '' : 's'}</span>
-              <span className="xp">{prog.into} / {prog.span} XP</span>
-            </div>
-            <div className="xpbar"><div className="xpbar-fill" style={{ width: `${prog.pct * 100}%` }} /></div>
-          </div>
-        </section>
-
-        {tab === 'log' && <LogTab ctx={gameCtx} />}
-        {tab === 'quests' && <QuestsTab ctx={gameCtx} />}
-        {tab === 'trends' && <TrendsTab ctx={gameCtx} />}
+    <ToastProvider>
+      <div className="page">
+        {tab === 'chronicle' && <LogTab ctx={ctx} />}
+        {tab === 'hero'      && <QuestsTab ctx={ctx} />}
+        {tab === 'annals'    && <TrendsTab ctx={ctx} />}
       </div>
-
-      {toast && <div className="xp-toast">{toast}</div>}
       <BottomNav tabs={TABS} active={tab} onSelect={setTab} />
-    </>
+    </ToastProvider>
   )
 }
