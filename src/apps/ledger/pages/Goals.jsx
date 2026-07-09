@@ -66,52 +66,48 @@ export default function Goals() {
     setContributeAmount('')
   }
 
+  const PageHeader = ({ children }) => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+      <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-xl)', color: 'var(--text)', margin: 0 }}>Goals</h2>
+      {children}
+    </div>
+  )
+
+  const AddBtn = () => (
+    <button onClick={openNew} style={{ background: 'var(--accent)', color: '#0B0F09', border: 'none', borderRadius: 12, padding: '10px 18px', fontFamily: 'inherit', fontWeight: 700, fontSize: 'var(--fs-sm)', cursor: 'pointer' }}>Add goal</button>
+  )
+
   if (goals.length === 0) {
     return (
-      <div className="ledger-page">
-        <div className="page-header">
-          <div><p className="eyebrow">Sinking funds</p><h1>Goals</h1></div>
-          <button className="btn" onClick={openNew}>Add goal</button>
-        </div>
-        <div className="card">
-          <div className="empty">
-            <h3>No goals yet</h3>
-            <p>Create a goal to start saving toward a target — house downpayment, vacation, emergency fund, and more.</p>
+      <div className="ledger-page" style={{ paddingTop: 'var(--sp-5)' }}>
+        <PageHeader><AddBtn /></PageHeader>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '48px 24px', background: 'var(--bg-paper)', border: '1px solid var(--border)', borderRadius: 16 }}>
+          <div style={{ width: 60, height: 60, borderRadius: 'var(--r-md)', background: 'color-mix(in srgb, var(--app-accent) 10%, var(--bg-elevated))', border: '1px solid color-mix(in srgb, var(--app-accent) 22%, var(--border))', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="var(--app-accent)" strokeWidth="1.7"/><circle cx="12" cy="12" r="3.5" stroke="var(--app-accent)" strokeWidth="1.7"/></svg>
           </div>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-xl)', color: 'var(--text)', margin: '0 0 8px' }}>No goals yet</h3>
+          <p style={{ color: 'var(--text-soft)', fontSize: 'var(--fs-base)', lineHeight: 1.6, margin: '0 0 24px', maxWidth: '40ch' }}>Create a goal to start saving toward a target — house downpayment, vacation, emergency fund.</p>
+          <AddBtn />
         </div>
-
         {modalOpen && editing && <GoalModal editing={editing} setEditing={setEditing} accounts={accounts} onSave={handleSave} onClose={() => { setModalOpen(false); setEditing(null) }} onDelete={null} />}
       </div>
     )
   }
 
   return (
-    <div className="ledger-page">
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">Sinking funds</p>
-          <h1>Goals</h1>
-          <p>Envelopes for the things you're saving toward.</p>
-        </div>
-        <button className="btn" onClick={openNew}>Add goal</button>
+    <div className="ledger-page" style={{ paddingTop: 'var(--sp-5)' }}>
+      <PageHeader><AddBtn /></PageHeader>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 16 }}>
+        {[{ label: 'Total saved', value: totals.saved, color: 'var(--app-accent)' }, { label: 'Total target', value: totals.target, color: 'var(--text)' }, { label: 'Monthly contributions', value: totals.monthly, color: 'var(--text-soft)' }].map(({ label, value, color }) => (
+          <div key={label} style={{ background: 'var(--bg-paper)', border: '1px solid var(--border)', borderRadius: 16, padding: '15px 17px' }}>
+            <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-soft)', marginBottom: 6 }}>{label}</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xl)', fontWeight: 500, color }}>{fmt(value, { showCents: false })}</div>
+          </div>
+        ))}
       </div>
 
-      <div className="grid-3" style={{ marginBottom: '1.5rem' }}>
-        <div className="stat-card accent">
-          <div className="stat-label">Total saved</div>
-          <div className="stat-value">{fmt(totals.saved, { showCents: false })}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Total target</div>
-          <div className="stat-value">{fmt(totals.target, { showCents: false })}</div>
-        </div>
-        <div className="stat-card warm">
-          <div className="stat-label">Monthly contributions</div>
-          <div className="stat-value">{fmt(totals.monthly, { showCents: false })}</div>
-        </div>
-      </div>
-
-      <div className="grid-2">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
         {goals.map(g => {
           const pct = g.target_amount ? Math.min(100, (Number(g.current_amount) / Number(g.target_amount)) * 100) : 0
           const remaining = Number(g.target_amount || 0) - Number(g.current_amount || 0)
@@ -119,7 +115,7 @@ export default function Goals() {
           const recentContribs = contributions.filter(c => c.goal_id === g.id).slice(0, 3)
 
           return (
-            <div key={g.id} className="card goal-card" style={{ borderTopWidth: 3, borderTopColor: g.color || 'var(--app-accent)' }}>
+            <div key={g.id} style={{ background: 'var(--bg-paper)', border: '1px solid var(--border)', borderRadius: 16, padding: '18px 20px', borderTop: `3px solid ${g.color || 'var(--app-accent)'}` }}>
               <div className="card-head">
                 <h3>{g.name}</h3>
                 <button className="icon-btn" onClick={() => openEdit(g)}>✎</button>

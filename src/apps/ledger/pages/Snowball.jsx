@@ -80,83 +80,61 @@ export default function Snowball() {
   )
 
   return (
-    <div className="ledger-page">
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">Debt payoff</p>
-          <h1>Snowball</h1>
-          <p>Smallest balance first. As each clears, its payment cascades to the next.</p>
+    <div className="ledger-page" style={{ paddingTop: 'var(--sp-5)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-xl)', color: 'var(--text)', margin: 0, flex: 1 }}>Snowball</h2>
+        <div style={{ display: 'flex', gap: 4, background: 'var(--bg-sunken)', border: '1px solid var(--border)', borderRadius: 999, padding: 4 }}>
+          {['summary', 'schedule'].map(v => (
+            <button key={v} onClick={() => setView(v)} style={{ padding: '6px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'var(--fs-sm)', background: view === v ? 'var(--bg-elevated)' : 'transparent', color: view === v ? 'var(--text)' : 'var(--text-soft)', fontWeight: view === v ? 600 : 400 }}>
+              {v.charAt(0).toUpperCase() + v.slice(1)}
+            </button>
+          ))}
         </div>
-        <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
-          <button className={'btn btn-sm ' + (view === 'summary' ? '' : 'btn-ghost')} onClick={() => setView('summary')}>Summary</button>
-          <button className={'btn btn-sm ' + (view === 'schedule' ? '' : 'btn-ghost')} onClick={() => setView('schedule')}>Schedule</button>
-          <button className="btn" onClick={openNew} style={{ marginLeft: 8 }}>Add debt</button>
-        </div>
+        <button onClick={openNew} style={{ background: 'var(--accent)', color: '#0B0F09', border: 'none', borderRadius: 12, padding: '10px 18px', fontFamily: 'inherit', fontWeight: 700, fontSize: 'var(--fs-sm)', cursor: 'pointer' }}>Add debt</button>
       </div>
 
-      <div className="grid-4" style={{ marginBottom: '1.5rem' }}>
-        <div className="stat-card">
-          <div className="stat-label">Total balance</div>
-          <div className="stat-value">{fmt(totals.balance, { showCents: false })}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Monthly payment</div>
-          <div className="stat-value">{fmt(totals.monthly, { showCents: false })}</div>
-        </div>
-        <div className="stat-card warm">
-          <div className="stat-label">Total interest</div>
-          <div className="stat-value">{fmt(totalInterest, { showCents: false })}</div>
-        </div>
-        <div className="stat-card accent">
-          <div className="stat-label">Debt-free in</div>
-          <div className="stat-value">{totals.monthsToFree} mo</div>
-          <div className="stat-sub">{totals.payoffDate?.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 16 }}>
+        {[{ label: 'Total balance', value: fmt(totals.balance, { showCents: false }), color: 'var(--text)' }, { label: 'Monthly payment', value: fmt(totals.monthly, { showCents: false }), color: 'var(--text)' }, { label: 'Total interest', value: fmt(totalInterest, { showCents: false }), color: 'var(--warn)' }, { label: 'Debt-free in', value: `${totals.monthsToFree} mo`, color: 'var(--app-accent)' }].map(({ label, value, color }) => (
+          <div key={label} style={{ background: 'var(--bg-paper)', border: '1px solid var(--border)', borderRadius: 16, padding: '15px 17px' }}>
+            <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-soft)', marginBottom: 6 }}>{label}</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xl)', fontWeight: 500, color }}>{value}</div>
+          </div>
+        ))}
       </div>
 
       {view === 'summary' && (
         debts.length === 0 ? (
-          <div className="card">
-            <div className="empty">
-              <h3>No debts yet</h3>
-              <p>Add your first debt to start tracking the snowball.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '48px 24px', background: 'var(--bg-paper)', border: '1px solid var(--border)', borderRadius: 16 }}>
+            <div style={{ width: 60, height: 60, borderRadius: 'var(--r-md)', background: 'color-mix(in srgb, var(--app-accent) 10%, var(--bg-elevated))', border: '1px solid color-mix(in srgb, var(--app-accent) 22%, var(--border))', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 4v16M4 8l8-4 8 4" stroke="var(--app-accent)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </div>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-xl)', color: 'var(--text)', margin: '0 0 8px' }}>No debts yet</h3>
+            <p style={{ color: 'var(--text-soft)', fontSize: 'var(--fs-base)', lineHeight: 1.6, margin: '0 0 24px', maxWidth: '40ch' }}>Add your first debt to start the snowball — smallest balance first, payment cascades as each clears.</p>
+            <button onClick={openNew} style={{ background: 'var(--accent)', color: '#0B0F09', border: 'none', borderRadius: 12, padding: '13px 22px', fontFamily: 'inherit', fontWeight: 600, fontSize: 'var(--fs-base)', cursor: 'pointer' }}>Add a debt</button>
           </div>
         ) : isDesktop ? (
-          <div className="card" style={{ padding: 0 }}>
-            <table className="ledger">
-              <thead>
-                <tr>
-                  <th style={{ width: 50 }}>#</th>
-                  <th>Debt</th>
-                  <th style={{ textAlign: 'right' }}>Balance</th>
-                  <th style={{ textAlign: 'right' }}>APR</th>
-                  <th style={{ textAlign: 'right' }}>Payment</th>
-                  <th>Status</th>
-                  <th style={{ width: 60 }}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedDebts.map(d => (
-                  <tr key={d.id} style={{ opacity: d.paid_off ? 0.5 : 1 }}>
-                    <td className="mono">{d.payoff_order}</td>
-                    <td style={{ fontWeight: 500 }}>{d.name}</td>
-                    <td className="num">{fmt(d.current_balance, { showCents: false })}</td>
-                    <td className="num">{(Number(d.apr) * 100).toFixed(2)}%</td>
-                    <td className="num">{fmt(Number(d.snowball_payment) || Number(d.min_payment) || 0, { showCents: false })}</td>
-                    <td>{d.paid_off ? <span className="pill pill-paid">Paid off</span> : <span className="pill">Active</span>}</td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button className="icon-btn" onClick={() => openEdit(d)}>✎</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div style={{ background: 'var(--bg-paper)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '50px 1fr 120px 80px 120px 100px 60px', padding: '12px 18px', background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border)', fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xs)', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-soft)' }}>
+              <div>#</div><div>Debt</div><div style={{ textAlign: 'right' }}>Balance</div><div style={{ textAlign: 'right' }}>APR</div><div style={{ textAlign: 'right' }}>Payment</div><div>Status</div><div></div>
+            </div>
+            {sortedDebts.map(d => (
+              <div key={d.id} style={{ display: 'grid', gridTemplateColumns: '50px 1fr 120px 80px 120px 100px 60px', alignItems: 'center', padding: '14px 18px', borderBottom: '1px solid var(--border)', opacity: d.paid_off ? 0.5 : 1 }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-sm)', color: 'var(--text-soft)' }}>{d.payoff_order}</span>
+                <span style={{ fontWeight: 500, fontSize: 'var(--fs-base)' }}>{d.name}</span>
+                <span style={{ fontFamily: 'var(--font-mono)', textAlign: 'right' }}>{fmt(d.current_balance, { showCents: false })}</span>
+                <span style={{ fontFamily: 'var(--font-mono)', textAlign: 'right', color: 'var(--text-soft)' }}>{(Number(d.apr) * 100).toFixed(2)}%</span>
+                <span style={{ fontFamily: 'var(--font-mono)', textAlign: 'right', color: 'var(--app-accent)' }}>{fmt(Number(d.snowball_payment) || Number(d.min_payment) || 0, { showCents: false })}</span>
+                <span style={{ fontSize: 'var(--fs-xs)', color: d.paid_off ? 'var(--ok)' : 'var(--text-soft)' }}>{d.paid_off ? '✓ Paid off' : 'Active'}</span>
+                <div style={{ textAlign: 'right' }}>
+                  <button className="icon-btn" onClick={() => openEdit(d)}>&#9998;</button>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {sortedDebts.map(d => (
-              <div key={d.id} className="card" style={{ opacity: d.paid_off ? 0.55 : 1 }}>
+              <div key={d.id} style={{ background: 'var(--bg-paper)', border: '1px solid var(--border)', borderRadius: 16, padding: '16px 18px', opacity: d.paid_off ? 0.55 : 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
                     <div style={{ fontWeight: 'var(--fw-title)', fontSize: 'var(--fs-base)' }}>{d.name}</div>
