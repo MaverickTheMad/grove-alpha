@@ -21,8 +21,6 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  /* dark-first: keep the green-black even before tokens resolve */
-  background-color: #10140e;
 }
 
 h1,
