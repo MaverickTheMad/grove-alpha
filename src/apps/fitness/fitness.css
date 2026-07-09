@@ -157,6 +157,37 @@
 @keyframes rise { from { transform:translateY(100%); } }
 @keyframes pop { from { transform:scale(.92); opacity:0; } }
 
+/* ── e1RM estimate in exercise card ────────────────────────────────── */
+[data-app="fitness"] .e1rm-line { margin-top:8px; font-size:var(--fs-xs); font-family:var(--font-mono); color:var(--text-soft); }
+[data-app="fitness"] .e1rm-label { font-style:italic; }
+
+/* ── Rest timer (Sheet content) ────────────────────────────────────── */
+[data-app="fitness"] .rest-open-btn { justify-content:center; }
+[data-app="fitness"] .rest-open-btn.rest-running { color:var(--accent); border-color:var(--accent); }
+[data-app="fitness"] .rest-content { display:flex; flex-direction:column; align-items:center; gap:var(--sp-5); padding:var(--sp-4) 0 var(--sp-2); }
+[data-app="fitness"] .rest-clock-big { font-family:var(--font-mono); font-size:72px; font-weight:var(--fw-med); color:var(--text-soft); line-height:1; letter-spacing:-3px; transition:color .3s; }
+[data-app="fitness"] .rest-clock-big.on { color:var(--accent); }
+[data-app="fitness"] .rest-presets-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:var(--sp-2); width:100%; }
+
+/* ── Resume last workout card ───────────────────────────────────────── */
+[data-app="fitness"] .resume-card { display:flex; align-items:center; gap:var(--sp-3); padding:var(--sp-3) var(--sp-4); text-align:left; width:100%; cursor:pointer; }
+[data-app="fitness"] .resume-card:hover { border-color:var(--accent); }
+[data-app="fitness"] .resume-card:active { transform:scale(.98); border-color:var(--accent); }
+
+/* ── Progress bar chart ─────────────────────────────────────────────── */
+[data-app="fitness"] .metric-row { display:flex; gap:var(--sp-2); flex-wrap:wrap; margin-top:var(--sp-3); }
+[data-app="fitness"] .bar-wrap { margin-top:var(--sp-3); }
+[data-app="fitness"] .bar-chart { width:100%; height:120px; display:block; }
+[data-app="fitness"] .bar-fill { fill:var(--accent); opacity:.88; }
+[data-app="fitness"] .bar-est-fill { fill:var(--accent); opacity:.45; }
+[data-app="fitness"] .bar-meta { display:flex; justify-content:space-between; align-items:center; margin-top:6px; font-size:var(--fs-sm); }
+[data-app="fitness"] .bar-last { color:var(--text); }
+[data-app="fitness"] .bar-est-label { color:var(--text-soft); font-style:italic; }
+
+/* ── Redeem confirm preview ─────────────────────────────────────────── */
+[data-app="fitness"] .redeem-preview { display:flex; align-items:center; gap:var(--sp-3); padding:var(--sp-2) 0 var(--sp-4); }
+[data-app="fitness"] .redeem-emoji { font-size:36px; }
+
 /* person switcher (in-content; AppShell owns the top bar) */
 [data-app="fitness"] .who-bar { display: flex; justify-content: flex-end; margin-bottom: var(--sp-3); }
 [data-app="fitness"] .who-pill { display: inline-flex; align-items: center; gap: var(--sp-2);

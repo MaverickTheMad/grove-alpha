@@ -1,28 +1,35 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import * as store from '../lib/store.js'
 import {
-  CATEGORIES, CATEGORY_LABEL, FALLBACK_EXERCISES, MODES,
+  CATEGORIES, CATEGORY_EMOJI, CATEGORY_LABEL, FALLBACK_EXERCISES, MODES,
   BASE_XP, BASE_TOKENS, STREAK_TOKEN_MILESTONES,
+  fmtRelative, isoToLocalDateStr,
   levelForXp, levelTitle, nextStreakState, streakXp, summarizeExercise,
   todayStr, unlocksAtLevel,
 } from '../constants.js'
+import { byKey } from '../../../lib/sort.js'
 import Sheet from '../../../components/Sheet'
-import RestTimer from '../components/RestTimer.jsx'
+
+const SORTED_CATEGORIES = [...CATEGORIES].sort(byKey('label'))
+const REST_PRESETS = [30, 45, 60, 90]
 
 let keySeq = 0
 const newKey = () => `row_${++keySeq}`
 
 export default function WorkoutTab({ person, profile, onProfileChange }) {
-  const [library, setLibrary] = useState(null)   // null = not loaded yet
+  const [library, setLibrary] = useState(null)
   const [category, setCategory] = useState(null)
-  const [session, setSession] = useState([])      // editable rows
+  const [session, setSession] = useState([])
   const [startedAt, setStartedAt] = useState(null)
   const [saving, setSaving] = useState(false)
   const [summary, setSummary] = useState(null)
   const [addOpen, setAddOpen] = useState(false)
   const [confirmRest, setConfirmRest] = useState(false)
+  const [restOpen, setRestOpen] = useState(false)
+  const [restSeconds, setRestSeconds] = useState(0)
+  const [restRunning, setRestRunning] = useState(false)
+  const [lastWorkout, setLastWorkout] = useState(undefined)
 
-  // Load the exercise library (presets + this person's custom rows).
   useEffect(() => {
     let alive = true
     ;(async () => {
@@ -30,7 +37,6 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
       try { data = await store.listExercises(person) } catch { data = null }
       if (!alive) return
       if (!data || data.length === 0) {
-        // Fall back to the bundled catalogue so the app still works.
         setLibrary(FALLBACK_EXERCISES.map((e, i) => ({
           id: null, sort_order: i, unlock_level: e.unlock, tier: e.tier,
           default_sets: e.sets, default_reps: e.reps, default_seconds: e.seconds,
@@ -42,6 +48,32 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
     })()
     return () => { alive = false }
   }, [person])
+
+  useEffect(() => {
+    store.listWorkouts(person, { limit: 1 })
+      .then(data => setLastWorkout(data?.[0] ?? null))
+      .catch(() => setLastWorkout(null))
+  }, [person])
+
+  // Lifted rest timer — survives sheet open/close
+  useEffect(() => {
+    if (!restRunning) return
+    if (restSeconds <= 0) {
+      setRestRunning(false)
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)()
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.connect(gain); gain.connect(ctx.destination)
+        osc.frequency.value = 660; gain.gain.value = 0.08
+        osc.start(); osc.stop(ctx.currentTime + 0.18)
+      } catch {}
+      if (navigator.vibrate) navigator.vibrate(120)
+      return
+    }
+    const t = setTimeout(() => setRestSeconds(s => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [restRunning, restSeconds])
 
   const level = profile.level
 
@@ -67,20 +99,47 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
     setStartedAt(Date.now())
   }
 
+  const resumeLast = () => {
+    if (!lastWorkout || lastWorkout.category === 'rest') return
+    const exercises = lastWorkout.workout_exercises || []
+    if (!exercises.length) return
+    const rows = exercises.map(e => ({
+      key: newKey(),
+      exercise_id: e.exercise_id,
+      name: e.name,
+      machine: e.machine || null,
+      muscle_group: e.muscle_group || null,
+      mode: e.mode || 'reps',
+      sets: e.sets ?? null,
+      reps: e.reps ?? null,
+      seconds: e.seconds ?? null,
+      weight: e.weight ?? null,
+      notes: e.notes || '',
+      done: true,
+    }))
+    setCategory(lastWorkout.category)
+    setSession(rows)
+    setStartedAt(Date.now())
+  }
+
   const patchRow = (key, field, value) =>
     setSession((prev) => prev.map((r) => (r.key === key ? { ...r, [field]: value } : r)))
   const removeRow = (key) => setSession((prev) => prev.filter((r) => r.key !== key))
 
-  const cancelSession = () => { setCategory(null); setSession([]); setStartedAt(null) }
+  const cancelSession = () => {
+    setCategory(null); setSession([]); setStartedAt(null)
+    setRestRunning(false); setRestSeconds(0); setRestOpen(false)
+  }
 
   const doneCount = session.filter((r) => r.done).length
 
-  // ── Award XP / tokens / streak and write the session ──────────────
+  const restMm = String(Math.floor(restSeconds / 60)).padStart(1, '0')
+  const restSs = String(restSeconds % 60).padStart(2, '0')
+
   async function award({ rest }) {
     if (saving) return
     setSaving(true)
     try {
-      // Re-read the profile so concurrent device edits don't clobber state.
       const fresh = await store.getProfile(person)
       const p = fresh || profile
       const today = todayStr()
@@ -103,7 +162,6 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
       const newLevel = levelForXp(newXp)
       const leveledUp = newLevel > p.level
 
-      // 1) write the workout header
       const rows = rest ? [] : session.filter((r) => r.done)
       const minutes = startedAt ? Math.max(1, Math.round((Date.now() - startedAt) / 60000)) : null
       const w = await store.addWorkout(person, {
@@ -113,7 +171,6 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
         tokens_awarded: tokenGain,
       })
 
-      // 2) write the per-exercise rows
       if (rows.length) {
         const exRows = rows.map((r, i) => ({
           workout_id: w.id,
@@ -129,7 +186,6 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
         await store.addWorkoutExercises(exRows)
       }
 
-      // 3) update the profile
       await store.updateProfile(person, {
         xp: newXp,
         level: newLevel,
@@ -143,8 +199,7 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
         rest,
         xpGain, tokenGain, milestone,
         streak: streak.current,
-        leveledUp,
-        newLevel,
+        leveledUp, newLevel,
         unlocked: leveledUp ? unlocksAtLevel(newLevel) : [],
       })
       cancelSession()
@@ -152,11 +207,11 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
     } catch (e) {
       alert('Could not save the workout: ' + (e.message || e))
     } finally {
-      setSaving(false)   // after onDone-equivalent to avoid double-submit re-enable
+      setSaving(false)
     }
   }
 
-  // ─────────────────────────── RENDER ───────────────────────────
+  // ─── RENDER ───
   if (library === null) {
     return <div className="empty"><div className="big">⏳</div><p>Loading exercises…</p></div>
   }
@@ -171,45 +226,60 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
           <span className="muted sm">{doneCount}/{session.length} done</span>
         </div>
 
-        <RestTimer />
+        <button
+          className={`btn ghost block rest-open-btn${restRunning ? ' rest-running' : ''}`}
+          onClick={() => setRestOpen(true)}
+        >
+          ⏱ {restRunning ? `${restMm}:${restSs}` : 'Start rest timer'}
+        </button>
 
         <div className="ex-list">
-          {session.map((r) => (
-            <div key={r.key} className={`ex-card ${r.done ? '' : 'skipped'}`}>
-              <div className="ex-top">
-                <button
-                  className={`check ${r.done ? 'on' : ''}`}
-                  onClick={() => patchRow(r.key, 'done', !r.done)}
-                  aria-label="Toggle done"
-                >{r.done ? '✓' : ''}</button>
-                <div className="grow">
-                  <div className="ex-name">{r.name}</div>
-                  {r.machine && <div className="sub">{r.machine}</div>}
+          {session.map((r) => {
+            const e1rm = r.mode === 'reps' && r.weight > 0 && r.reps > 1
+              ? Math.round(r.weight * (1 + r.reps / 30))
+              : null
+            return (
+              <div key={r.key} className={`ex-card ${r.done ? '' : 'skipped'}`}>
+                <div className="ex-top">
+                  <button
+                    className={`check ${r.done ? 'on' : ''}`}
+                    onClick={() => patchRow(r.key, 'done', !r.done)}
+                    aria-label="Toggle done"
+                  >{r.done ? '✓' : ''}</button>
+                  <div className="grow">
+                    <div className="ex-name">{r.name}</div>
+                    {r.machine && <div className="sub">{r.machine}</div>}
+                  </div>
+                  <button className="ex-remove" onClick={() => removeRow(r.key)} aria-label="Remove">✕</button>
                 </div>
-                <button className="ex-remove" onClick={() => removeRow(r.key)} aria-label="Remove">✕</button>
-              </div>
 
-              <div className="ex-fields">
-                {r.mode === 'cardio' ? (
-                  <Stepper label="Minutes" step={1} min={1}
-                    value={r.seconds == null ? null : Math.round(r.seconds / 60)}
-                    onChange={(v) => patchRow(r.key, 'seconds', v == null ? null : v * 60)} />
-                ) : r.mode === 'time' ? (
-                  <>
-                    <Stepper label="Sets" step={1} min={1} value={r.sets} onChange={(v) => patchRow(r.key, 'sets', v)} />
-                    <Stepper label="Seconds" step={5} min={5} value={r.seconds} onChange={(v) => patchRow(r.key, 'seconds', v)} />
-                  </>
-                ) : (
-                  <>
-                    <Stepper label="Sets" step={1} min={1} value={r.sets} onChange={(v) => patchRow(r.key, 'sets', v)} />
-                    <Stepper label="Reps" step={1} min={1} value={r.reps} onChange={(v) => patchRow(r.key, 'reps', v)} />
-                    <Stepper label="Weight" unit="lbs" step={5} min={0} value={r.weight} onChange={(v) => patchRow(r.key, 'weight', v)} />
-                  </>
+                <div className="ex-fields">
+                  {r.mode === 'cardio' ? (
+                    <Stepper label="Minutes" step={1} min={1}
+                      value={r.seconds == null ? null : Math.round(r.seconds / 60)}
+                      onChange={(v) => patchRow(r.key, 'seconds', v == null ? null : v * 60)} />
+                  ) : r.mode === 'time' ? (
+                    <>
+                      <Stepper label="Sets" step={1} min={1} value={r.sets} onChange={(v) => patchRow(r.key, 'sets', v)} />
+                      <Stepper label="Seconds" step={5} min={5} value={r.seconds} onChange={(v) => patchRow(r.key, 'seconds', v)} />
+                    </>
+                  ) : (
+                    <>
+                      <Stepper label="Sets" step={1} min={1} value={r.sets} onChange={(v) => patchRow(r.key, 'sets', v)} />
+                      <Stepper label="Reps" step={1} min={1} value={r.reps} onChange={(v) => patchRow(r.key, 'reps', v)} />
+                      <Stepper label="Weight" unit="lbs" step={5} min={0} value={r.weight} onChange={(v) => patchRow(r.key, 'weight', v)} />
+                    </>
+                  )}
+                </div>
+                {e1rm && (
+                  <div className="e1rm-line">
+                    ~{e1rm} lbs <span className="e1rm-label">estimated 1RM</span>
+                  </div>
                 )}
+                {r.notes && <div className="ex-note">{r.notes}</div>}
               </div>
-              {r.notes && <div className="ex-note">{r.notes}</div>}
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         <button className="btn ghost block" onClick={() => setAddOpen(true)}>+ Add exercise</button>
@@ -218,6 +288,30 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
           onClick={() => award({ rest: false })}>
           {saving ? 'Saving…' : `Finish workout · ${doneCount} exercise${doneCount === 1 ? '' : 's'}`}
         </button>
+
+        {/* Rest timer — bottom sheet on mobile, centered dialog on desktop */}
+        <Sheet open={restOpen} onClose={() => setRestOpen(false)} title="Rest timer">
+          <div className="rest-content">
+            <div className={`rest-clock-big${restRunning ? ' on' : ''}`}>
+              {restMm}:{restSs}
+            </div>
+            {restRunning ? (
+              <button className="btn ghost block"
+                onClick={() => { setRestRunning(false); setRestSeconds(0) }}>
+                Stop timer
+              </button>
+            ) : (
+              <div className="rest-presets-grid">
+                {REST_PRESETS.map(s => (
+                  <button key={s} className="btn ghost"
+                    onClick={() => { setRestSeconds(s); setRestRunning(true) }}>
+                    {s < 60 ? `${s}s` : `${s / 60}m`}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </Sheet>
 
         <AddExerciseSheet
           open={addOpen}
@@ -229,14 +323,28 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
     )
   }
 
-  // Category picker (home)
+  // Home: category picker
+  const canResume = lastWorkout && lastWorkout.category !== 'rest' && (lastWorkout.workout_exercises || []).length > 0
   return (
     <div className="tab-pad">
       <LevelStrip profile={profile} />
 
+      {canResume && (
+        <button className="card resume-card" onClick={resumeLast}>
+          <span className="cat-emoji">{CATEGORY_EMOJI[lastWorkout.category] || '🏋️'}</span>
+          <div className="grow">
+            <div className="ex-name">Resume last workout</div>
+            <div className="sub">
+              {CATEGORY_LABEL[lastWorkout.category]} · {fmtRelative(isoToLocalDateStr(lastWorkout.performed_at))}
+            </div>
+          </div>
+          <span className="caret">›</span>
+        </button>
+      )}
+
       <h2 className="section-h">Start a workout</h2>
       <div className="cat-grid">
-        {CATEGORIES.map((c) => {
+        {SORTED_CATEGORIES.map((c) => {
           const locked = level < c.unlock
           return (
             <button
@@ -281,7 +389,8 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
   )
 }
 
-// ─────────────────────────── Sub-components ───────────────────────────
+// ─── Sub-components ───
+
 function Stepper({ label, value, onChange, step = 1, min = 0, unit }) {
   const v = value == null ? min : value
   const set = (n) => onChange(Math.max(min, n))
@@ -328,6 +437,10 @@ function AddExerciseSheet({ open, onClose, onAdd }) {
     onAdd(base)
   }
 
+  // Alphabetical: cardio → reps → time
+  const SORTED_MODES = ['cardio', 'reps', 'time']
+  const MODE_LABEL = { reps: 'Reps + weight', time: 'Timed hold', cardio: 'Cardio' }
+
   return (
     <Sheet open={open} onClose={onClose} title="Add an exercise"
       footer={
@@ -337,16 +450,16 @@ function AddExerciseSheet({ open, onClose, onAdd }) {
         </div>
       }>
       <label className="field block"><span>Name</span>
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Cable Fly" />
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Cable fly" />
       </label>
       <label className="field block"><span>Machine (optional)</span>
         <input value={machine} onChange={(e) => setMachine(e.target.value)} placeholder="e.g. Cable" />
       </label>
       <div className="field block"><span>Type</span>
         <div className="chip-row">
-          {MODES.map((m) => (
+          {SORTED_MODES.map((m) => (
             <button key={m} className={`chip ${mode === m ? 'on' : ''}`} onClick={() => setMode(m)}>
-              {m === 'reps' ? 'Reps + weight' : m === 'time' ? 'Timed hold' : 'Cardio'}
+              {MODE_LABEL[m]}
             </button>
           ))}
         </div>

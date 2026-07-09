@@ -4,11 +4,15 @@ import {
   CATEGORY_EMOJI, CATEGORY_LABEL, addDays, fmtRelative, isoToLocalDateStr,
   levelProgress, levelTitle, summarizeExercise, todayStr,
 } from '../constants.js'
+import { cmpText } from '../../../lib/sort.js'
+import Sheet from '../../../components/Sheet'
 
 export default function ProgressTab({ person, profile, onProfileChange }) {
   const [workouts, setWorkouts] = useState(null)
   const [openId, setOpenId] = useState(null)
   const [pickEx, setPickEx] = useState('')
+  const [metric, setMetric] = useState('topSet')
+  const [deleteTarget, setDeleteTarget] = useState(null)
 
   const load = async () => {
     const data = await store.listWorkouts(person, { limit: 80 })
@@ -22,35 +26,55 @@ export default function ProgressTab({ person, profile, onProfileChange }) {
     return workouts.filter((w) => isoToLocalDateStr(w.performed_at) >= cutoff).length
   }, [workouts])
 
-  // Build weight-over-time series keyed by exercise name.
-  const weightSeries = useMemo(() => {
-    if (!workouts) return {}
-    const map = {}
-    const ordered = [...workouts].sort((a, b) => new Date(a.performed_at) - new Date(b.performed_at))
-    for (const w of ordered) {
+  // Exercise names that have reps data, sorted alphabetically
+  const exNames = useMemo(() => {
+    if (!workouts) return []
+    const names = new Set()
+    for (const w of workouts) {
       for (const e of w.workout_exercises || []) {
-        if (e.mode === 'reps' && e.weight != null && e.weight > 0) {
-          ;(map[e.name] ||= []).push({ date: isoToLocalDateStr(w.performed_at), weight: Number(e.weight) })
-        }
+        if (e.mode === 'reps' && e.weight > 0 && e.reps > 0) names.add(e.name)
       }
     }
-    return Object.fromEntries(Object.entries(map).filter(([, v]) => v.length >= 2))
+    return [...names].sort(cmpText)
   }, [workouts])
 
-  const exNames = Object.keys(weightSeries)
-  const activeEx = pickEx && weightSeries[pickEx] ? pickEx : exNames[0]
+  const activeEx = pickEx && exNames.includes(pickEx) ? pickEx : exNames[0]
+
+  // Per-session data for the selected exercise (last 12 sessions)
+  const sessionData = useMemo(() => {
+    if (!workouts || !activeEx) return []
+    const ordered = [...workouts].sort((a, b) => new Date(a.performed_at) - new Date(b.performed_at))
+    return ordered.flatMap(w => {
+      const exes = (w.workout_exercises || []).filter(
+        e => e.name === activeEx && e.mode === 'reps' && e.weight > 0 && e.reps > 0
+      )
+      if (!exes.length) return []
+      const topSet = Math.max(...exes.map(e => e.weight))
+      const volume = exes.reduce((s, e) => s + (e.sets || 1) * e.reps * e.weight, 0)
+      const e1rm = Math.round(Math.max(...exes.map(e => e.weight * (1 + e.reps / 30))))
+      return [{ date: isoToLocalDateStr(w.performed_at), topSet, volume, e1rm }]
+    }).slice(-12)
+  }, [workouts, activeEx])
 
   const prog = levelProgress(profile.xp)
 
-  const deleteWorkout = async (id) => {
-    if (!confirm('Delete this workout? (XP and tokens already earned are kept.)')) return
-    await store.deleteWorkout(id)
+  const performDelete = async () => {
+    if (!deleteTarget) return
+    await store.deleteWorkout(deleteTarget)
+    setDeleteTarget(null)
+    setOpenId(null)
     load()
   }
 
   if (workouts === null) {
     return <div className="empty"><div className="big">⏳</div><p>Loading progress…</p></div>
   }
+
+  const METRICS = [
+    { key: 'topSet', label: 'Top set' },
+    { key: 'volume', label: 'Volume' },
+    { key: 'e1rm', label: 'e1RM (est.)', estimate: true },
+  ]
 
   return (
     <div className="tab-pad">
@@ -74,16 +98,23 @@ export default function ProgressTab({ person, profile, onProfileChange }) {
         <div className="card mini"><div className="mini-num">{profile.longest_streak}</div><div className="mini-lbl">best streak</div></div>
       </div>
 
-      {/* Weight over time */}
+      {/* Progress bars */}
       {exNames.length > 0 && (
         <div className="card">
           <div className="card-head">
-            <h3 className="section-h flush">Weight over time</h3>
+            <h3 className="section-h flush">Progress over time</h3>
             <select className="select" value={activeEx} onChange={(e) => setPickEx(e.target.value)}>
               {exNames.map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
-          <Sparkline data={weightSeries[activeEx]} />
+          <div className="metric-row">
+            {METRICS.map(m => (
+              <button key={m.key} className={`chip ${metric === m.key ? 'on' : ''}`} onClick={() => setMetric(m.key)}>
+                {m.label}
+              </button>
+            ))}
+          </div>
+          <BarChart data={sessionData} metric={metric} />
         </div>
       )}
 
@@ -118,40 +149,70 @@ export default function ProgressTab({ person, profile, onProfileChange }) {
                       <span className="mono">{summarizeExercise(e)}</span>
                     </div>
                   ))}
-                  <button className="btn ghost sm" onClick={() => deleteWorkout(w.id)}>Delete workout</button>
+                  <button className="btn ghost sm" onClick={() => setDeleteTarget(w.id)}>Delete workout</button>
                 </div>
               )}
             </div>
           )
         })}
       </div>
+
+      <Sheet
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete workout?"
+        footer={
+          <div className="row-btns">
+            <button className="btn ghost" onClick={() => setDeleteTarget(null)}>Keep it</button>
+            <button className="btn ghost danger" onClick={performDelete}>Delete workout</button>
+          </div>
+        }
+      >
+        <p className="muted">XP and tokens already earned are kept.</p>
+      </Sheet>
     </div>
   )
 }
 
-function Sparkline({ data }) {
-  const W = 300, H = 90, pad = 10
-  const weights = data.map((d) => d.weight)
-  const min = Math.min(...weights), max = Math.max(...weights)
-  const span = max - min || 1
-  const stepX = data.length > 1 ? (W - pad * 2) / (data.length - 1) : 0
-  const pts = data.map((d, i) => {
-    const x = pad + i * stepX
-    const y = pad + (H - pad * 2) * (1 - (d.weight - min) / span)
-    return [x, y]
-  })
-  const path = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ')
-  const first = data[0].weight, last = data[data.length - 1].weight
-  const delta = last - first
+const METRIC_UNIT = { topSet: 'lbs', volume: 'lbs·vol', e1rm: 'lbs' }
+
+function BarChart({ data, metric }) {
+  if (!data.length) {
+    return <div className="empty"><div className="big">📊</div><p>Log more workouts to see your progress here.</p></div>
+  }
+
+  const W = 300, H = 120, padX = 10, padY = 14
+  const isEst = metric === 'e1rm'
+  const values = data.map(d => d[metric])
+  const max = Math.max(...values, 1)
+  const count = data.length
+  const totalW = W - padX * 2
+  const step = totalW / count
+  const barW = Math.max(6, step - 4)
+
   return (
-    <div className="spark-wrap">
-      <svg viewBox={`0 0 ${W} ${H}`} className="spark" preserveAspectRatio="none">
-        <path d={path} fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-        {pts.map((p, i) => <circle key={i} cx={p[0]} cy={p[1]} r="3" fill="var(--accent)" />)}
+    <div className="bar-wrap">
+      <svg viewBox={`0 0 ${W} ${H}`} className="bar-chart" aria-hidden="true">
+        {data.map((d, i) => {
+          const x = padX + i * step + (step - barW) / 2
+          const barH = Math.max(3, (H - padY * 2) * (d[metric] / max))
+          const y = H - padY - barH
+          return (
+            <rect
+              key={i}
+              x={x.toFixed(1)} y={y.toFixed(1)}
+              width={barW.toFixed(1)} height={barH.toFixed(1)}
+              rx="2"
+              className={isEst ? 'bar-est-fill' : 'bar-fill'}
+            />
+          )
+        })}
       </svg>
-      <div className="spark-meta">
-        <span className="mono">{first} → {last} lbs</span>
-        <span className={`delta ${delta >= 0 ? 'up' : 'down'}`}>{delta >= 0 ? '▲' : '▼'} {Math.abs(delta)} lbs</span>
+      <div className="bar-meta">
+        <span className="mono muted">{data[0]?.date?.slice(5)} – {data[data.length - 1]?.date?.slice(5)}</span>
+        <span className={`mono bar-last${isEst ? ' bar-est-label' : ''}`}>
+          {values[values.length - 1]} {METRIC_UNIT[metric]}{isEst ? ' est.' : ''}
+        </span>
       </div>
     </div>
   )

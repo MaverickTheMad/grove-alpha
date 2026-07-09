@@ -6,7 +6,8 @@ import Sheet from '../../../components/Sheet'
 export default function RewardsTab({ person, profile, onProfileChange }) {
   const [rewards, setRewards] = useState(null)
   const [history, setHistory] = useState([])
-  const [edit, setEdit] = useState(null) // null | {} (new) | reward (existing)
+  const [edit, setEdit] = useState(null)
+  const [redeemTarget, setRedeemTarget] = useState(null)
   const [busy, setBusy] = useState(false)
 
   const load = async () => {
@@ -21,10 +22,9 @@ export default function RewardsTab({ person, profile, onProfileChange }) {
 
   const prog = levelProgress(profile.xp)
 
-  const redeem = async (reward) => {
-    if (busy) return
-    if (profile.tokens < reward.cost_tokens) return
-    if (!confirm(`Redeem "${reward.name}" for ${reward.cost_tokens} tokens?`)) return
+  const performRedeem = async (reward) => {
+    if (busy || !reward) return
+    setRedeemTarget(null)
     setBusy(true)
     try {
       const fresh = await store.getProfile(person)
@@ -53,7 +53,6 @@ export default function RewardsTab({ person, profile, onProfileChange }) {
   }
 
   const removeItem = async (id) => {
-    if (!confirm('Remove this reward from your shop?')) return
     await store.deleteReward(id)
     setEdit(null)
     load()
@@ -92,7 +91,8 @@ export default function RewardsTab({ person, profile, onProfileChange }) {
               <div className="reward-emoji">{r.emoji || '🎁'}</div>
               <div className="reward-name">{r.name}</div>
               <div className="reward-cost mono">🪙 {r.cost_tokens}</div>
-              <button className="btn primary sm block" disabled={!afford || busy} onClick={() => redeem(r)}>
+              <button className="btn primary sm block" disabled={!afford || busy}
+                onClick={() => setRedeemTarget(r)}>
                 {afford ? 'Redeem' : 'Need more'}
               </button>
             </div>
@@ -120,6 +120,30 @@ export default function RewardsTab({ person, profile, onProfileChange }) {
           </div>
         </>
       )}
+
+      {/* Redeem confirm — Sheet instead of browser confirm() */}
+      <Sheet
+        open={!!redeemTarget}
+        onClose={() => setRedeemTarget(null)}
+        title="Redeem reward?"
+        footer={
+          <div className="row-btns">
+            <button className="btn ghost" onClick={() => setRedeemTarget(null)}>Cancel</button>
+            <button className="btn primary" disabled={busy}
+              onClick={() => performRedeem(redeemTarget)}>
+              Spend {redeemTarget?.cost_tokens} tokens
+            </button>
+          </div>
+        }
+      >
+        <div className="redeem-preview">
+          <span className="redeem-emoji">{redeemTarget?.emoji || '🎁'}</span>
+          <div>
+            <div className="ex-name">{redeemTarget?.name}</div>
+            <div className="muted sm">{profile.tokens} tokens available</div>
+          </div>
+        </div>
+      </Sheet>
 
       <RewardEditor item={edit} onClose={() => setEdit(null)} onSave={saveItem} onDelete={removeItem} />
     </div>
