@@ -88,6 +88,8 @@ export default function App() {
             onOpen={open}
             user={currentUser()}
             onSignOut={signOut}
+            theme={resolved}
+            onCycleTheme={cycleTheme}
           />
         )}
       </AuthGate>
