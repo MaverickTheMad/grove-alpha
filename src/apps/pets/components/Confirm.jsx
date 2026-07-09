@@ -1,4 +1,4 @@
-import Sheet from './Sheet.jsx'
+import Sheet from '../../../components/Sheet'
 
 // Confirm sheet with consequence copy. The destructive button is small/ghost-danger
 // (de-emphasized), the keep-current path is the visually dominant default.

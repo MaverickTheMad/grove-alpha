@@ -6,7 +6,7 @@ import {
   levelForXp, levelTitle, nextStreakState, streakXp, summarizeExercise,
   todayStr, unlocksAtLevel,
 } from '../constants.js'
-import Sheet from '../components/Sheet.jsx'
+import Sheet from '../../../components/Sheet'
 import RestTimer from '../components/RestTimer.jsx'
 
 let keySeq = 0

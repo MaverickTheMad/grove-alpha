@@ -14,7 +14,7 @@ import {
   PHASES, computeCyclePhase, todayLocalISO, formatTimeLocal, formatDateLong,
   localDayBounds, MEAL_PICKER, categorizeIngredient,
 } from '../constants.js'
-import TimePicker from '../components/TimePicker.jsx'
+import TimePicker from '../../../components/TimePicker'
 
 export default function IntakeTab({ periodStarts, onChange, refreshKey }) {
   const [date, setDate] = useState(todayLocalISO())

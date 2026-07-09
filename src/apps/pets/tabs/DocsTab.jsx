@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import * as store from '../lib/store.js'
-import Sheet from '../components/Sheet.jsx'
+import Sheet from '../../../components/Sheet'
 import Toast from '../components/Toast.jsx'
-import { IconPlus, IconDoc, IconCamera } from '../components/Icons.jsx'
+import { IconPlus, IconDoc, IconCamera } from '../../../components/Icon'
 import { DOC_TYPES, speciesMeta, fmtDate, fmtMoney, todayStr } from '../constants.js'
 
 export default function DocsTab({ pets }) {

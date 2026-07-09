@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import * as store from '../lib/store.js'
-import Sheet from '../components/Sheet.jsx'
+import Sheet from '../../../components/Sheet'
 import Toast from '../components/Toast.jsx'
 import {
   IconSyringe, IconPill, IconBell, IconAlert, IconClock, IconPlus, IconPaw,
-} from '../components/Icons.jsx'
+} from '../../../components/Icon'
 import {
   daysUntil, relativeDays, fmtDate, todayStr, speciesMeta, UPCOMING_WINDOW_DAYS,
 } from '../constants.js'

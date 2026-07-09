@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useTimeline } from '../useTimeline'
 import EventRow from '../components/EventRow'
-import Sheet from '../components/Sheet'
+import Sheet from '../../../components/Sheet'
 import Icon from '../../../components/Icon'
 import {
   monthBounds, dateRange, parseLocalDate, todayStr, addDays,

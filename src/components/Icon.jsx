@@ -1,6 +1,8 @@
 // One outline icon set for the whole suite (BRAND-GUIDE §6): ~1.75px stroke,
 // rounded caps, currentColor. Icons always pair with a label (§8).
 const PATHS = {
+  plus: 'M12 5v14M5 12h14',
+  alert: 'M12 9v5M12 17.5v.01M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z',
   // apps
   journal: 'M12 3a4 4 0 0 0-4 4c0 4 4 7 4 14 0-7 4-10 4-14a4 4 0 0 0-4-4Z',
   pantry: 'M4 8h16M6 8v11a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8M9 5h6l1 3H8l1-3Z',
@@ -65,7 +67,7 @@ const OPTICAL = {
   cart: 0.93,
 }
 
-export default function Icon({ name, size = 22, className, filled = false }) {
+function Icon({ name, size = 22, className, filled = false }) {
   const d = PATHS[name] || PATHS.info
   const k = OPTICAL[name] || 1
   const path = <path d={d} />
@@ -85,6 +87,36 @@ export default function Icon({ name, size = 22, className, filled = false }) {
       {k === 1 ? path : (
         <g transform={`translate(12 12) scale(${k}) translate(-12 -12)`}>{path}</g>
       )}
+    </svg>
+  )
+}
+export default Icon
+
+// Named exports — backward compat for apps migrating off their local Icons.jsx forks.
+// Each wraps the canonical PATHS entry so they stay consistent with the shared set.
+export const IconPlus        = ({ size = 18 }) => <Icon name="plus" size={size} />
+export const IconEdit        = ({ size = 16 }) => <Icon name="edit" size={size} />
+export const IconCamera      = ({ size = 18 }) => <Icon name="camera" size={size} />
+export const IconSyringe     = ({ size = 18 }) => <Icon name="syringe" size={size} />
+export const IconPill        = ({ size = 18 }) => <Icon name="pill" size={size} />
+export const IconStethoscope = ({ size = 18 }) => <Icon name="stethoscope" size={size} />
+export const IconScale       = ({ size = 18 }) => <Icon name="scale" size={size} />
+export const IconClock       = ({ size = 12 }) => <Icon name="clock" size={size} />
+export const IconCheck       = ({ size = 16 }) => <Icon name="check" size={size} />
+export const IconBell        = ({ size = 22 }) => <Icon name="bell" size={size} />
+export const IconDoc         = ({ size = 22 }) => <Icon name="doc" size={size} />
+export const IconAlert       = ({ size = 12 }) => <Icon name="alert" size={size} />
+
+// Paw icon — filled toe-bean style (distinct from the outline 'paw' path in PATHS).
+export function IconPaw({ size = 22 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
+      <ellipse cx="8"  cy="7.5" rx="2"   ry="2.4" />
+      <ellipse cx="12" cy="5.5" rx="2"   ry="2.4" />
+      <ellipse cx="16" cy="7.5" rx="2"   ry="2.4" />
+      <ellipse cx="4.5" cy="12" rx="1.8" ry="2.2" />
+      <ellipse cx="19.5" cy="12" rx="1.8" ry="2.2" />
+      <path d="M12 11c-3 0-5.5 2-6 4.5-.4 2 1 3.5 3 3.5 1.2 0 2-.7 3-.7s1.8.7 3 .7c2 0 3.4-1.5 3-3.5-.5-2.5-3-4.5-6-4.5z" />
     </svg>
   )
 }

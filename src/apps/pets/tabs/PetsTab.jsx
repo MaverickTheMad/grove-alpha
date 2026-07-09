@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import * as store from '../lib/store.js'
-import Sheet from '../components/Sheet.jsx'
+import Sheet from '../../../components/Sheet'
 import Confirm from '../components/Confirm.jsx'
 import Toast from '../components/Toast.jsx'
 import {
   IconPlus, IconEdit, IconCamera, IconSyringe, IconPill, IconStethoscope, IconScale,
   IconPaw, IconAlert, IconClock, IconCheck,
-} from '../components/Icons.jsx'
+} from '../../../components/Icon'
 import {
   SPECIES, COMMON_VACCINES, speciesMeta, ageFromBirthday, fmtDate, fmtMoney,
   relativeDays, daysUntil, todayStr,

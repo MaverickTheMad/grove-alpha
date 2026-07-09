@@ -13,7 +13,7 @@ import {
   todayStr, localDayBounds, isoToLocalDateStr, prettyDate, addDays,
   MEAL_PICKER, categorizeIngredient,
 } from '../constants'
-import TimePicker from '../components/TimePicker'
+import TimePicker from '../../../components/TimePicker'
 
 export default function LogTab({ ctx }) {
   const { habitStreaks, completions, toggleHabit, awardXp } = ctx

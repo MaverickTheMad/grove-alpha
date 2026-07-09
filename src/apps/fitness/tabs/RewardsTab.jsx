@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import * as store from '../lib/store.js'
 import { levelProgress, levelTitle, REWARD_EMOJIS, fmtRelative, isoToLocalDateStr } from '../constants.js'
-import Sheet from '../components/Sheet.jsx'
+import Sheet from '../../../components/Sheet'
 
 export default function RewardsTab({ person, profile, onProfileChange }) {
   const [rewards, setRewards] = useState(null)
