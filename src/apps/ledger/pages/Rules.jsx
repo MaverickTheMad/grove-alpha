@@ -4,8 +4,8 @@ import { applyRules } from '../lib/rulesEngine'
 
 export default function Rules() {
   const { data: rules, insert, update, remove } = useRecords('rule', { orderBy: 'priority' })
-  const { data: categories } = useRecords('category', { orderBy: 'sort_order' })
-  const { data: accounts } = useRecords('account')
+  const { data: categories } = useRecords('category', { orderBy: 'name' })
+  const { data: accounts } = useRecords('account', { orderBy: 'name' })
   const { data: transactions } = useRecords('transaction', { orderBy: 'date', ascending: false })
 
   const [modalOpen, setModalOpen] = useState(false)

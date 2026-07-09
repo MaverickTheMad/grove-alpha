@@ -82,20 +82,20 @@ export function categorizeIngredient(name) {
 
 // ---------- SYMPTOMS ----------
 export const SYMPTOMS = [
-  'Cramps', 'Headache', 'Migraine', 'Bloating', 'Nausea', 'Fatigue',
-  'Breast tenderness', 'Back pain', 'Joint pain', 'Acne', 'Hot flashes',
-  'Dizziness', 'Constipation', 'Diarrhea', 'Gas', 'Stomach Ache',
+  'Acne', 'Back pain', 'Bloating', 'Breast tenderness', 'Constipation',
+  'Cramps', 'Diarrhea', 'Dizziness', 'Fatigue', 'Gas',
+  'Headache', 'Hot flashes', 'Joint pain', 'Migraine', 'Nausea', 'Stomach Ache',
 ]
 
 // ---------- MOODS ----------
 export const MOODS = [
-  'Anxious', 'Irritable', 'Sad', 'Happy', 'Energetic',
-  'Foggy', 'Sensitive', 'Angry', 'Calm',
+  'Angry', 'Anxious', 'Calm', 'Energetic', 'Foggy',
+  'Happy', 'Irritable', 'Sad', 'Sensitive',
 ]
 
 // ---------- EXERCISE TYPES ----------
 export const EXERCISE_TYPES = [
-  'Walk', 'Run', 'Yoga', 'Strength', 'Cycling', 'Swim', 'Pilates', 'Other'
+  'Cycling', 'Other', 'Pilates', 'Run', 'Strength', 'Swim', 'Walk', 'Yoga',
 ]
 
 // ---------- FLOW ----------

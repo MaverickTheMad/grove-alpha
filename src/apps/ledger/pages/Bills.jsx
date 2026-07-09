@@ -5,7 +5,7 @@ import { fmt, ordinal, currentMonth, monthName } from '../lib/format'
 export default function Bills() {
   const { year, month } = currentMonth()
   const { data: bills, insert, update, remove } = useRecords('bill', { orderBy: 'due_day' })
-  const { data: categories } = useRecords('category', { orderBy: 'sort_order' })
+  const { data: categories } = useRecords('category', { orderBy: 'name' })
   const { data: payments, insert: insertPayment, update: updatePayment, refetch: refetchPayments } = useRecords('bill_payment')
 
   const [modalOpen, setModalOpen] = useState(false)

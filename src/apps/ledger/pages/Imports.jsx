@@ -28,8 +28,8 @@ export default function Imports() {
   const [pdfPageItems, setPdfPageItems] = useState(null)
   const [batchSummary, setBatchSummary] = useState(null)
 
-  const { data: categories } = useRecords('category', { orderBy: 'sort_order' })
-  const { data: accounts } = useRecords('account')
+  const { data: categories } = useRecords('category', { orderBy: 'name' })
+  const { data: accounts } = useRecords('account', { orderBy: 'name' })
   const { data: rules } = useRecords('rule', { orderBy: 'priority' })
   const { data: imports, refetch: refetchImports } = useRecords('statement_import', { orderBy: 'created_at', ascending: false })
   const { data: allTransactions } = useRecords('transaction')

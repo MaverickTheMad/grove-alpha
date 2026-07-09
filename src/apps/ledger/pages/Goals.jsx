@@ -5,7 +5,7 @@ import { fmt, todayISO } from '../lib/format'
 export default function Goals() {
   const { data: goals, insert, update, remove } = useRecords('goal', { orderBy: 'sort_order', filter: (g) => !g.archived })
   const { data: contributions, insert: insertContribution, refetch: refetchContributions } = useRecords('goal_contribution', { orderBy: 'date', ascending: false })
-  const { data: accounts } = useRecords('account')
+  const { data: accounts } = useRecords('account', { orderBy: 'name' })
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState(null)

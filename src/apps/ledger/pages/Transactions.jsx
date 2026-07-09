@@ -15,8 +15,8 @@ const SORTS = [
 
 export default function Transactions() {
   const { data: transactions, insert, update, remove } = useRecords('transaction', { orderBy: 'date', ascending: false })
-  const { data: categories } = useRecords('category', { orderBy: 'sort_order' })
-  const { data: accounts } = useRecords('account')
+  const { data: categories } = useRecords('category', { orderBy: 'name' })
+  const { data: accounts } = useRecords('account', { orderBy: 'name' })
   const toast = useToast()
   const [pendingTx, setPendingTx] = useState(new Set()) // ids optimistically hidden
 

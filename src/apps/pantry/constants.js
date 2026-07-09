@@ -10,7 +10,7 @@ export const SECTION_ORDER = [
 ]
 
 export const RECIPE_CATEGORIES = [
-  "Soup","Pasta","Sandwich","Steak","Chicken","Pork","Seafood","Salad","Breakfast","Other",
+  "Breakfast","Chicken","Other","Pasta","Pork","Salad","Sandwich","Seafood","Soup","Steak",
 ]
 
 // Auto-category detection. Spices FIRST — before produce — so "black pepper",

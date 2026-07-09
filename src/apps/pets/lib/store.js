@@ -4,6 +4,7 @@
 
 import * as db from '../../../lib/data'
 import { supabase } from '../../../supabase'
+import { sortByName } from '../../../lib/sort'
 
 const APP = 'pets'
 export const DOCS_BUCKET = 'pet-docs'
@@ -33,7 +34,7 @@ export async function listPets() {
   return rowsByName(rows.map(rowFrom).filter((p) => !p.archived))
 }
 function rowsByName(arr) {
-  return arr.sort((a, b) => (a.created_at || a.name || '').localeCompare(b.created_at || b.name || ''))
+  return sortByName(arr)
 }
 export async function addPet(payload) {
   const rec = await db.create({ app: APP, type: 'pet', data: payload })

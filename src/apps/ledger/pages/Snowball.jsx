@@ -17,7 +17,7 @@ const blankDebt = (nextOrder) => ({
 
 export default function Snowball() {
   const { data: debts, insert, update, remove } = useRecords('debt', { orderBy: 'payoff_order' })
-  const { data: accounts } = useRecords('account')
+  const { data: accounts } = useRecords('account', { orderBy: 'name' })
   const [view, setView] = useState('summary')
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState(null)

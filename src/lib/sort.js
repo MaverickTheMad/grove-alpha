@@ -1,0 +1,5 @@
+const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true })
+export const cmpText = (a, b) => collator.compare(String(a ?? ''), String(b ?? ''))
+export const byKey = (key) => (a, b) => cmpText(a?.[key], b?.[key])
+export const byName = byKey('name')
+export const sortByName = (arr) => [...arr].sort(byName)
