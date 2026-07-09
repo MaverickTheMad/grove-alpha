@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useTimeline } from '../useTimeline'
+import { useIsDesktop } from '../../../lib/viewport'
 import EventRow from '../components/EventRow'
 import Sheet from '../../../components/Sheet'
 import Icon from '../../../components/Icon'
@@ -13,6 +14,7 @@ const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 export default function MonthTab() {
   const [anchor, setAnchor] = useState(todayStr())
   const [selected, setSelected] = useState(null)
+  const isDesktop = useIsDesktop(720)
   const { start, end } = monthBounds(anchor)
   const { rows, loading, error } = useTimeline(start, end)
   const today = todayStr()
@@ -74,11 +76,27 @@ export default function MonthTab() {
               disabled={events.length === 0}
             >
               <span className="mnum">{parseLocalDate(d).getDate()}</span>
-              <span className="mdots">
-                {kinds.map((k) => (
-                  <span key={k} className="mdot" style={{ background: kindMeta(k).color }} />
-                ))}
-              </span>
+              {isDesktop ? (
+                <span className="mchips">
+                  {sortDayEvents(events).slice(0, 3).map((ev, i) => {
+                    const meta = kindMeta(ev.kind)
+                    return (
+                      <span key={i} className="mchip" style={{ '--dot': meta.color }}>
+                        <span className="mchip-label">{ev.title || meta.label}</span>
+                      </span>
+                    )
+                  })}
+                  {events.length > 3 && (
+                    <span className="mmore">+{events.length - 3} more</span>
+                  )}
+                </span>
+              ) : (
+                <span className="mdots">
+                  {kinds.map((k) => (
+                    <span key={k} className="mdot" style={{ background: kindMeta(k).color }} />
+                  ))}
+                </span>
+              )}
             </button>
           )
         })}

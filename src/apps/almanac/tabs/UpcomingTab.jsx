@@ -1,7 +1,16 @@
 import { useState, useMemo } from 'react'
 import { useTimeline } from '../useTimeline'
 import EventRow from '../components/EventRow'
-import { todayStr, addDays, dateRange, relativeDay, sortDayEvents } from '../constants'
+import { todayStr, addDays, dateRange, parseLocalDate, sortDayEvents } from '../constants'
+
+function upcomingDayLabel(dateStr, today) {
+  const d = parseLocalDate(dateStr)
+  const dateLabel = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()
+  if (dateStr === today) return `TODAY · ${dateLabel}`
+  if (dateStr === addDays(today, 1)) return `TOMORROW · ${dateLabel}`
+  const dow = d.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase()
+  return `${dow} · ${dateLabel}`
+}
 
 const FILTERS = [
   { id: 'all', label: 'All' },
@@ -55,7 +64,7 @@ export default function UpcomingTab() {
       {!loading && days.length === 0 && (
         <div className="empty">
           <div className="big">🌾</div>
-          <p>Nothing on the horizon.</p>
+          <p>Events you add to Week or Month will show here as they approach.</p>
         </div>
       )}
 
@@ -64,11 +73,10 @@ export default function UpcomingTab() {
           <div style={{
             font: 'var(--fw-title) var(--fs-sm)/1.2 var(--font-body)',
             color: 'var(--text-soft)',
-            textTransform: 'uppercase',
             letterSpacing: '.06em',
             marginBottom: 'var(--sp-2)',
           }}>
-            {relativeDay(d)}
+            {upcomingDayLabel(d, today)}
           </div>
           {sortDayEvents(byDay[d]).map((r, i) => (
             <EventRow key={`${r.source}-${r.ref_id}-${i}`} row={r} />
