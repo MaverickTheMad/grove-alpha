@@ -8,6 +8,7 @@
   --wedge-period:#2a0e18; --wedge-future:#0d1009; --wedge-divider:#10140E;
   --app-weak: color-mix(in srgb, var(--app-accent) 14%, var(--bg-paper));
   --app-soft: color-mix(in srgb, var(--app-accent) 28%, var(--bg-paper));
+  --tag-water: #5a90b8;
 }
 @media (prefers-color-scheme: light) { :root:not(.theme-dark) [data-app="journal"] {
   --app-accent:#B24E66; --app-accent-lt:#8C3650;
@@ -17,6 +18,7 @@
   --wedge-period:#fce0e8; --wedge-future:#eeeee8; --wedge-divider:#F3F5EE;
   --app-weak: color-mix(in srgb, var(--app-accent) 16%, var(--bg-paper));
   --app-soft: color-mix(in srgb, var(--app-accent) 30%, var(--bg-paper));
+  --tag-water: #3d5e72;
 } }
 :root.theme-light [data-app="journal"] {
   --app-accent:#B24E66; --app-accent-lt:#8C3650;
@@ -26,6 +28,7 @@
   --wedge-period:#fce0e8; --wedge-future:#eeeee8; --wedge-divider:#F3F5EE;
   --app-weak: color-mix(in srgb, var(--app-accent) 16%, var(--bg-paper));
   --app-soft: color-mix(in srgb, var(--app-accent) 30%, var(--bg-paper));
+  --tag-water: #3d5e72;
 }
 :root.theme-dark [data-app="journal"] {
   --app-accent:#D06A82; --app-accent-lt:#B24E66;
@@ -266,6 +269,17 @@
 [data-app="journal"] .stat-input:focus:not(:focus-visible) { outline: none; }
 [data-app="journal"] .stat-input:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; }
 [data-app="journal"] .stat-label { font-size: var(--fs-xs); color: var(--text-soft); margin-top: 4px; letter-spacing: .05em; text-transform: uppercase; }
+[data-app="journal"] .sleep-stepper {
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+[data-app="journal"] .sleep-step {
+  width: 28px; height: 28px; border-radius: var(--r-full);
+  background: var(--bg-paper); border: 1px solid var(--border);
+  color: var(--text-soft); font-size: 18px; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center; transition: 120ms;
+}
+[data-app="journal"] .sleep-step:hover { border-color: var(--app-accent); color: var(--app-accent); }
+[data-app="journal"] .sleep-ph { color: var(--text-soft); opacity: 0.4; }
 [data-app="journal"] .ring-wrap { display: grid; place-items: center; padding: 8px 0 4px; }
 [data-app="journal"] .cycle-ring { width: 100%; max-width: 380px; height: auto; display: block; }
 [data-app="journal"] .cycle-ring path { transition: opacity .15s; }

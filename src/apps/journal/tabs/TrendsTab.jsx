@@ -234,6 +234,7 @@ function SymptomFrequency({ symptoms }) {
 // within 0–24h AFTER eating that food. Then compare to baseline rate.
 function FoodFlareCorrelations({ foods, symptoms }) {
   const [windowHours, setWindowHours] = useState(24)
+  const [showExplain, setShowExplain] = useState(false)
 
   // Group symptoms by occurrence
   const symptomTimes = {} // symptom -> [timestamps]
@@ -292,8 +293,23 @@ function FoodFlareCorrelations({ foods, symptoms }) {
     <div className="card">
       <div className="card-head">
         <h3 className="card-title section-h">Food → flare-up patterns</h3>
-        <span className="card-sub">within {windowHours}h</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span className="card-sub">within {windowHours}h</span>
+          <button
+            className="chip chip-sm"
+            onClick={() => setShowExplain(v => !v)}
+            aria-expanded={showExplain}
+            aria-label="Explain lift metric"
+          >?</button>
+        </div>
       </div>
+      {showExplain && (
+        <p className="lift-explain">
+          <strong>Lift</strong> measures how much more likely you are to have a symptom after eating a food
+          compared to your usual rate. 2× means twice as likely. Patterns need at least 2 occurrences
+          and more data to be reliable — treat them as clues, not conclusions.
+        </p>
+      )}
 
       <div className="chip-row" style={{ marginBottom: 12 }}>
         {[6, 12, 24, 48].map(h => (
@@ -337,51 +353,16 @@ function FoodFlareCorrelations({ foods, symptoms }) {
       </p>
 
       <style>{`
-        .corr-list { display: flex; flex-direction: column; gap: 10px; }
-        .corr-row {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 10px 0;
-          border-bottom: 1px solid var(--border);
-        }
-        .corr-row:last-child { border-bottom: none; }
-        .corr-main { flex: 1; min-width: 0; }
-        .corr-pair {
-          font-size: 15px;
-          color: var(--text);
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-        .corr-food { color: var(--text); font-weight: 500; }
-        .corr-arrow { color: var(--text-soft); }
-        .corr-symptom { color: var(--app-accent); font-weight: 500; }
-        .corr-meta {
-          font-size: 12px;
+        .lift-explain {
+          font-size: 13px;
           color: var(--text-soft);
-          margin-top: 3px;
+          line-height: 1.6;
+          padding: 10px 12px;
+          background: var(--bg-sunken);
+          border-radius: var(--r-sm);
+          margin-bottom: 4px;
         }
-        .lift-badge {
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
-          padding: 4px 9px;
-          border-radius: var(--r-full);
-          white-space: nowrap;
-        }
-        .lift-low    { background: var(--bg-sunken); color: var(--text-soft); }
-        .lift-mild   { background: #ede4d0; color: #806527; }
-        .lift-strong { background: #f4dcd3; color: #8e3d31; }
-        .corr-footnote {
-          margin: 14px 0 0;
-          font-size: 12px;
-          color: var(--text-soft);
-          font-style: italic;
-          line-height: 1.5;
-        }
+        .lift-explain strong { color: var(--text); font-weight: 600; }
       `}</style>
     </div>
   )
@@ -432,7 +413,7 @@ function PhaseBreakdown({ symptoms, periodStarts }) {
                 className="phase-fill"
                 style={{
                   width: `${(count / total) * 100}%`,
-                  background: PHASES[phase].color,
+                  background: `var(--phase-${phase})`,
                 }}
               />
             </div>
@@ -441,33 +422,8 @@ function PhaseBreakdown({ symptoms, periodStarts }) {
         ))}
       </div>
       <style>{`
-        .phase-bars { display: flex; flex-direction: column; gap: 10px; }
-        .phase-row {
-          display: grid;
-          grid-template-columns: 90px 1fr 36px;
-          gap: 10px;
-          align-items: center;
-        }
-        .phase-name {
-          font-size: 13px;
-          color: var(--text-soft);
-        }
-        .phase-track {
-          height: 10px;
-          background: var(--bg-sunken);
-          border-radius: var(--r-full);
-          overflow: hidden;
-        }
-        .phase-fill {
-          height: 100%;
-          border-radius: var(--r-full);
-        }
-        .phase-count {
-          font-size: 13px;
-          color: var(--text-soft);
-          text-align: right;
-          font-variant-numeric: tabular-nums;
-        }
+        .phase-name { font-size: 13px; color: var(--text-soft); }
+        .phase-count { font-size: 13px; color: var(--text-soft); text-align: right; font-variant-numeric: tabular-nums; }
       `}</style>
     </div>
   )

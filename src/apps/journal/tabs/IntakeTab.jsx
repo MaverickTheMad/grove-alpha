@@ -15,6 +15,7 @@ import {
   localDayBounds, MEAL_PICKER, categorizeIngredient,
 } from '../constants.js'
 import TimePicker from '../../../components/TimePicker'
+import { cmpText, sortByName } from '../../../lib/sort.js'
 
 export default function IntakeTab({ periodStarts, onChange, refreshKey }) {
   const [date, setDate] = useState(todayLocalISO())
@@ -441,6 +442,23 @@ function CycleSummaryHeader({ date, setDate, periodStarts, activePhase, dayOverr
     </div>
   )
 }
+// Size + fill cue per flow level (not color alone).
+const FLOW_DOT = {
+  none:     { size: 7,  filled: false },
+  spotting: { size: 8,  filled: false },
+  light:    { size: 10, filled: true  },
+  medium:   { size: 13, filled: true  },
+  heavy:    { size: 16, filled: true  },
+}
+function flowDotStyle(f) {
+  const { size, filled } = FLOW_DOT[f.value] ?? { size: 10, filled: true }
+  return {
+    width: `${size}px`, height: `${size}px`,
+    background: filled ? f.color : 'transparent',
+    borderColor: f.value === 'none' ? 'var(--border)' : f.color,
+  }
+}
+
 function FlowCard({ day, updateDay }) {
   const current = day?.flow || 'none'
   return (
@@ -455,35 +473,11 @@ function FlowCard({ day, updateDay }) {
             className={`flow-chip ${current === f.value ? 'flow-on' : ''}`}
             onClick={() => updateDay({ flow: f.value })}
           >
-            <span className="flow-dot" style={{ background: f.color }} />
+            <span className="flow-dot" style={flowDotStyle(f)} />
             {f.label}
           </button>
         ))}
       </div>
-      <style>{`
-        .flow-chip {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 14px;
-          border-radius: var(--r-full);
-          background: var(--bg-sunken);
-          color: var(--text-soft);
-          font-size: 14px;
-          border: 1px solid transparent;
-          font-weight: 500;
-        }
-        .flow-on {
-          background: var(--app-weak);
-          color: var(--app-accent);
-          border-color: color-mix(in srgb, var(--app-accent) 60%, transparent);
-        }
-        .flow-dot {
-          width: 12px; height: 12px;
-          border-radius: 50%;
-          border: 1px solid rgba(0,0,0,0.05);
-        }
-      `}</style>
     </div>
   )
 }
@@ -520,7 +514,7 @@ function AddSymptom({ date, onDone }) {
 
       <label className="field-label">What <span className="muted" style={{ textTransform: 'none', fontWeight: 400 }}>(tap all that apply)</span></label>
       <div className="chip-row">
-        {SYMPTOMS.map(s => (
+        {[...SYMPTOMS].sort(cmpText).map(s => (
           <button key={s} className={`chip ${selected.includes(s) ? 'on' : ''}`} onClick={() => toggle(s)}>
             {s}
           </button>
@@ -543,17 +537,7 @@ function AddSymptom({ date, onDone }) {
         </button>
       </div>
 
-      <style>{`
-        .required { color: var(--app-accent); }
-        .selected-count {
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--app-accent);
-          background: var(--app-weak);
-          padding: 3px 10px;
-          border-radius: var(--r-full);
-        }
-      `}</style>
+      <style>{`.required { color: var(--app-accent); }`}</style>
     </div>
   )
 }
@@ -710,7 +694,7 @@ function AddFood({ date, onDone }) {
         >
           🍲 {MEAL_PICKER}{mealNames.length ? ` ·${mealNames.length}` : ''}
         </button>
-        {FOOD_CATEGORIES.map(c => {
+        {sortByName([...FOOD_CATEGORIES]).map(c => {
           const hasSelected = basket.some(b => b.category === c.name)
           return (
             <button
@@ -907,7 +891,7 @@ function AddMood({ date, onDone }) {
       </div>
       <label className="field-label">How are you feeling? <span className="muted" style={{ textTransform: 'none', fontWeight: 400 }}>(tap all that apply)</span></label>
       <div className="chip-row">
-        {MOODS.map(m => (
+        {[...MOODS].sort(cmpText).map(m => (
           <button key={m} className={`chip ${selected.includes(m) ? 'on' : ''}`} onClick={() => toggle(m)}>
             {m}
           </button>
@@ -984,7 +968,7 @@ function AddExercise({ date, onDone }) {
       <div className="card-head"><h3 className="card-title section-h">Log exercise</h3></div>
       <label className="field-label">Type</label>
       <div className="chip-row">
-        {EXERCISE_TYPES.map(t => (
+        {[...EXERCISE_TYPES].sort(cmpText).map(t => (
           <button key={t} className={`chip ${type === t ? 'on' : ''}`} onClick={() => setType(t)}>
             {t}
           </button>
@@ -1072,7 +1056,7 @@ function Timeline({ symptoms, foods, moods, waters, exercises, workouts = [], on
   if (items.length === 0) {
     return (
       <div className="card">
-        <div className="empty">Nothing logged yet today — tap a button above to add your first entry.</div>
+        <div className="empty">Nothing logged yet — tap + to add your first symptom.</div>
       </div>
     )
   }
@@ -1160,7 +1144,7 @@ function FoodGroupBody({ group }) {
     return (
       <>
         <div className="event-label">
-          <span className="event-tag tag-food">Food</span>
+          <span className="event-tag tag-food">◆ Food</span>
           {ev.item} <span className="muted">· {ev.category}</span>
         </div>
         {ev.notes && <div className="event-meta">{ev.notes}</div>}
@@ -1275,7 +1259,7 @@ function EventBody({ ev }) {
     return (
       <>
         <div className="event-label">
-          <span className="event-tag tag-symptom">Symptom</span>
+          <span className="event-tag tag-symptom">● Symptom</span>
           {ev.symptom}
         </div>
         <div className="event-meta">
@@ -1290,7 +1274,7 @@ function EventBody({ ev }) {
     return (
       <>
         <div className="event-label">
-          <span className="event-tag tag-food">Food</span>
+          <span className="event-tag tag-food">◆ Food</span>
           {ev.item} <span className="muted">· {ev.category}</span>
         </div>
         {ev.notes && <div className="event-meta">{ev.notes}</div>}
@@ -1302,7 +1286,7 @@ function EventBody({ ev }) {
     return (
       <>
         <div className="event-label">
-          <span className="event-tag tag-mood">Mood</span>
+          <span className="event-tag tag-mood">◯ Mood</span>
           {ev.mood}
         </div>
         {ev.notes && <div className="event-meta">{ev.notes}</div>}
@@ -1314,7 +1298,7 @@ function EventBody({ ev }) {
     return (
       <>
         <div className="event-label">
-          <span className="event-tag tag-water">Water</span>
+          <span className="event-tag tag-water">▽ Water</span>
           {ev.amount_oz} oz
         </div>
         <style>{eventTagStyle}</style>
@@ -1325,7 +1309,7 @@ function EventBody({ ev }) {
     return (
       <>
         <div className="event-label">
-          <span className="event-tag tag-exercise">Exercise</span>
+          <span className="event-tag tag-exercise">△ Exercise</span>
           {ev.exercise_type} · {ev.duration_minutes} min
         </div>
         {ev.notes && <div className="event-meta">{ev.notes}</div>}
@@ -1338,7 +1322,7 @@ function EventBody({ ev }) {
     return (
       <>
         <div className="event-label">
-          <span className="event-tag tag-workout">Workout</span>
+          <span className="event-tag tag-workout">▲ Workout</span>
           {label}{ev.duration_minutes ? ` · ${ev.duration_minutes} min` : ''}
         </div>
         {ev.notes && <div className="event-meta">{ev.notes}</div>}
@@ -1358,23 +1342,23 @@ const eventTagStyle = `
     text-transform: uppercase;
     padding: 2px 7px;
     border-radius: var(--r-full);
-    margin-right: 8px;
+    margin-right: 6px;
     vertical-align: 2px;
   }
-  .tag-symptom  { background: #f4dcd3; color: #8e3d31; }
-  .tag-food     { background: #ede4d0; color: #806527; }
-  .tag-mood     { background: #e4dae6; color: #6b4a55; }
-  .tag-water    { background: #d9e6ee; color: #3d5e72; }
-  .tag-exercise { background: #dfe5d6; color: #4f6238; }
-  .tag-workout  { background: #d3e3d6; color: #3c6047; }
+  .tag-symptom  { background: color-mix(in srgb, var(--phase-menstrual) 20%, var(--bg-paper)); color: var(--phase-menstrual); }
+  .tag-food     { background: color-mix(in srgb, var(--phase-follicular) 18%, var(--bg-paper)); color: var(--phase-follicular); }
+  .tag-mood     { background: color-mix(in srgb, var(--phase-luteal) 18%, var(--bg-paper)); color: var(--phase-luteal); }
+  .tag-water    { background: color-mix(in srgb, var(--tag-water) 18%, var(--bg-paper)); color: var(--tag-water); }
+  .tag-exercise { background: color-mix(in srgb, var(--phase-ovulation) 18%, var(--bg-paper)); color: var(--phase-ovulation); }
+  .tag-workout  { background: color-mix(in srgb, var(--phase-ovulation) 12%, var(--bg-paper)); color: var(--phase-ovulation); }
   .event-src {
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--text-soft, #6b5d48);
+    color: var(--text-soft);
     padding: 2px 7px;
-    border: 1px solid var(--border, #d8cdb4);
+    border: 1px solid var(--border);
     border-radius: var(--r-full);
     white-space: nowrap;
   }
@@ -1426,7 +1410,7 @@ function EditEvent({ ev, onDone, onCancel }) {
         <>
           <label className="field-label">Symptom</label>
           <div className="chip-row" style={{ marginBottom: 12 }}>
-            {SYMPTOMS.map(s => (
+            {[...SYMPTOMS].sort(cmpText).map(s => (
               <button key={s} className={`chip chip-sm ${symptom === s ? 'on' : ''}`} onClick={() => setSymptom(s)}>{s}</button>
             ))}
           </div>
@@ -1439,7 +1423,7 @@ function EditEvent({ ev, onDone, onCancel }) {
         <>
           <label className="field-label">Category</label>
           <div className="chip-row" style={{ marginBottom: 12 }}>
-            {FOOD_CATEGORIES.map(c => (
+            {sortByName([...FOOD_CATEGORIES]).map(c => (
               <button key={c.name} className={`chip chip-sm ${category === c.name ? 'on' : ''}`} onClick={() => { setCategory(c.name); setItem(null) }}>{c.name}</button>
             ))}
           </div>
@@ -1460,7 +1444,7 @@ function EditEvent({ ev, onDone, onCancel }) {
         <>
           <label className="field-label">Mood</label>
           <div className="chip-row" style={{ marginBottom: 12 }}>
-            {MOODS.map(m => (
+            {[...MOODS].sort(cmpText).map(m => (
               <button key={m} className={`chip chip-sm ${mood === m ? 'on' : ''}`} onClick={() => setMood(m)}>{m}</button>
             ))}
           </div>
@@ -1482,7 +1466,7 @@ function EditEvent({ ev, onDone, onCancel }) {
         <>
           <label className="field-label">Type</label>
           <div className="chip-row" style={{ marginBottom: 12 }}>
-            {EXERCISE_TYPES.map(t => (
+            {[...EXERCISE_TYPES].sort(cmpText).map(t => (
               <button key={t} className={`chip chip-sm ${exerciseType === t ? 'on' : ''}`} onClick={() => setExerciseType(t)}>{t}</button>
             ))}
           </div>
@@ -1514,28 +1498,6 @@ function EditEvent({ ev, onDone, onCancel }) {
         {saving ? 'Saving…' : 'Save changes'}
       </button>
 
-      <style>{`
-        .edit-panel {
-          margin: 0 0 4px;
-          padding: 14px 16px 16px;
-          background: color-mix(in srgb, var(--warn) 14%, var(--bg-paper));
-          border: 1.5px solid color-mix(in srgb, var(--warn) 55%, transparent);
-          border-radius: var(--r-sm);
-        }
-        .edit-panel-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 14px;
-        }
-        .edit-panel-title {
-          font-size: 13px;
-          font-weight: 600;
-          letter-spacing: 0.05em;
-          text-transform: uppercase;
-          color: var(--warn);
-        }
-      `}</style>
     </div>
   )
 }
@@ -1577,16 +1539,23 @@ function DaySummary({ day, updateDay, totalWater, totalExercise }) {
           <div className="stat-label">Exercise</div>
         </div>
         <div className="summary-stat">
-          <input
-            type="number"
-            step="0.5"
-            min="0"
-            max="14"
-            placeholder="—"
-            className="stat-input"
-            value={day?.sleep_hours ?? ''}
-            onChange={e => updateDay({ sleep_hours: e.target.value === '' ? null : Number(e.target.value) })}
-          />
+          <div className="sleep-stepper">
+            <button
+              className="sleep-step"
+              onClick={() => updateDay({ sleep_hours: Math.max(0, (day?.sleep_hours ?? 7.5) - 0.5) })}
+              aria-label="Decrease sleep"
+            >−</button>
+            <span className="stat-value">
+              {day?.sleep_hours != null
+                ? day.sleep_hours
+                : <span className="sleep-ph">7.5</span>}
+            </span>
+            <button
+              className="sleep-step"
+              onClick={() => updateDay({ sleep_hours: Math.min(14, (day?.sleep_hours ?? 7.5) + 0.5) })}
+              aria-label="Increase sleep"
+            >+</button>
+          </div>
           <div className="stat-label">Sleep (hrs)</div>
         </div>
       </div>
@@ -1600,49 +1569,6 @@ function DaySummary({ day, updateDay, totalWater, totalExercise }) {
         onChange={e => setNotes(e.target.value)}
         onBlur={saveNotes}
       />
-
-      <style>{`
-        .summary-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
-          gap: 10px;
-        }
-        .summary-stat {
-          padding: 14px 10px;
-          background: var(--bg-sunken);
-          border-radius: var(--r-sm);
-          text-align: center;
-        }
-        .stat-value {
-          font-family: var(--font-display);
-          font-size: 26px;
-          color: var(--text);
-          line-height: 1;
-        }
-        .stat-unit {
-          font-size: 14px;
-          color: var(--text-soft);
-          margin-left: 3px;
-        }
-        .stat-input {
-          font-family: var(--font-display);
-          font-size: 22px;
-          color: var(--text);
-          background: transparent;
-          border: none;
-          width: 100%;
-          text-align: center;
-          padding: 2px 0;
-        }
-        .stat-input:focus { outline: none; }
-        .stat-label {
-          font-size: 11px;
-          color: var(--text-soft);
-          margin-top: 4px;
-          letter-spacing: 0.05em;
-          text-transform: uppercase;
-        }
-      `}</style>
     </div>
   )
 }

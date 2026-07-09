@@ -201,7 +201,7 @@ function CycleRing({ cycle, periodStarts, days, symptomCounts, selected, onSelec
         {/* Faint background ring under wedges */}
         <circle cx={CX} cy={CY} r={(R_OUTER + R_INNER) / 2} fill="none" stroke="var(--border)" strokeWidth={R_OUTER - R_INNER} />
 
-        {/* Day wedges */}
+        {/* Day wedges (visual) */}
         {wedges.map(w => (
           <path
             key={`w-${w.day}`}
@@ -209,6 +209,17 @@ function CycleRing({ cycle, periodStarts, days, symptomCounts, selected, onSelec
             fill={wedgeFill(w)}
             stroke="var(--wedge-divider)"
             strokeWidth={0.8}
+            style={{ pointerEvents: 'none' }}
+          />
+        ))}
+
+        {/* Hit areas — extend inward + outward for ≥44px effective tap target */}
+        {wedges.map(w => (
+          <path
+            key={`hit-${w.day}`}
+            d={arcBand(CX, CY, R_INNER - 22, R_PHASE_ARC_OUT, w.a0, w.a1)}
+            fill="transparent"
+            stroke="none"
             style={{ cursor: 'pointer' }}
             onClick={() => handleSelect(w.dateStr)}
           />
