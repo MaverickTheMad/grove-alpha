@@ -2,7 +2,10 @@ import { useState } from 'react'
 import Icon from '../../../components/Icon'
 import { normIng, timeAgo } from '../lib/shopping'
 import { RECIPE_CATEGORIES } from '../constants'
+import { sortByName } from '../../../lib/sort'
 import { SectionHeader, Empty } from '../ui'
+
+const SORTED_CATEGORIES = sortByName(RECIPE_CATEGORIES.map((c) => ({ name: c }))).map((c) => c.name)
 
 export default function RecipesTab({ recipes, selected, lastCooked, onView, onToggleFavorite, onAddRecipe }) {
   const [search, setSearch] = useState('')
@@ -42,7 +45,7 @@ export default function RecipesTab({ recipes, selected, lastCooked, onView, onTo
       </div>
 
       <div className="row" style={{ gap: 'var(--sp-2)', overflowX: 'auto', marginBottom: 'var(--sp-4)', paddingBottom: 4 }}>
-        {['All', 'Favorites', ...RECIPE_CATEGORIES].map((c) => (
+        {['All', 'Favorites', ...SORTED_CATEGORIES].map((c) => (
           <button key={c} className={`chip ${filterCat === c ? 'on' : ''}`} style={{ whiteSpace: 'nowrap' }} onClick={() => setFilterCat(c)}>
             {c === 'Favorites' ? '♥ Favorites' : c}
           </button>
@@ -50,8 +53,17 @@ export default function RecipesTab({ recipes, selected, lastCooked, onView, onTo
         <button className="btn sm" style={{ whiteSpace: 'nowrap' }} onClick={onAddRecipe}><Icon name="log" size={16} /> New</button>
       </div>
 
-      {filtered.length === 0 ? (
-        <Empty icon="recipes" message="No recipes match — import one from a URL or PDF, or add your own." />
+      {recipes.length === 0 ? (
+        <div className="empty">
+          <span className="big"><Icon name="recipes" size={34} /></span>
+          <p className="line">No recipes yet — import from a URL or PDF to start planning meals.</p>
+          <div className="row" style={{ gap: 'var(--sp-2)', justifyContent: 'center', marginTop: 'var(--sp-3)' }}>
+            <button className="btn primary sm" onClick={onAddRecipe}><Icon name="external" size={14} /> Import from URL</button>
+            <button className="btn sm" onClick={onAddRecipe}><Icon name="log" size={14} /> Import from PDF</button>
+          </div>
+        </div>
+      ) : filtered.length === 0 ? (
+        <Empty icon="recipes" message="No recipes match — try a different filter." />
       ) : (
         <div className="grid2">
           {filtered.map((r) => {
@@ -80,11 +92,12 @@ export default function RecipesTab({ recipes, selected, lastCooked, onView, onTo
                 </div>
                 {r.notes && <div className="p-sub" style={{ fontStyle: 'italic', marginBottom: 'var(--sp-2)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{r.notes}</div>}
                 {ings.length > 0 && (
-                  <div className="row" style={{ flexWrap: 'wrap', gap: 4 }}>
+                  <div className="row" style={{ flexWrap: 'wrap', gap: 4, marginBottom: 'var(--sp-2)' }}>
                     {ings.slice(0, 4).map((ing, i) => <span key={i} className="ingchip">{ing.name}</span>)}
                     {ings.length > 4 && <span style={{ fontSize: 10, color: 'var(--text-soft)' }}>+{ings.length - 4} more</span>}
                   </div>
                 )}
+                <div className="view-cta">View <span aria-hidden>›</span></div>
               </button>
             )
           })}

@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import Sheet from '../../../components/Sheet'
-import { getSection, sectionOrder, subtractQuantity } from '../lib/shopping'
-import { SectionHeader, SectionLabel, Empty, Checkbox } from '../ui'
+import { subtractQuantity } from '../lib/shopping'
+import { SectionHeader, Empty, Checkbox } from '../ui'
 
-export default function PantryTab({ ingredients, agg, pantryMap, onToggle, skipCount, sections }) {
+export default function PantryTab({ ingredients, agg, pantryMap, onToggle, skipCount }) {
   const [qtyPopup, setQtyPopup] = useState(null) // { name, needed }
   const [qtyInput, setQtyInput] = useState('')
 
@@ -16,9 +16,6 @@ export default function PantryTab({ ingredients, agg, pantryMap, onToggle, skipC
     )
   }
 
-  const grouped = {}
-  ingredients.forEach((name) => { const sec = getSection(name, sections); if (!grouped[sec]) grouped[sec] = []; grouped[sec].push(name) })
-
   const tap = (name, needed) => {
     if (name in pantryMap) { onToggle(name); return }
     setQtyPopup({ name, needed }); setQtyInput('')
@@ -27,32 +24,25 @@ export default function PantryTab({ ingredients, agg, pantryMap, onToggle, skipC
   return (
     <main className="screen">
       <SectionHeader eyebrow="step two" title="Check your pantry" subtitle={`Tap items you already have. ${skipCount} of ${ingredients.length} marked.`} />
-      <div className="stack" style={{ gap: 'var(--sp-5)' }}>
-        {Object.keys(grouped).sort((a, b) => sectionOrder(a) - sectionOrder(b)).map((sec) => (
-          <div key={sec}>
-            <SectionLabel name={sec} />
-            <div className="grid2">
-              {grouped[sec].sort().map((name) => {
-                const have = name in pantryMap
-                const haveQty = pantryMap[name]
-                const info = agg[name]
-                const neededQty = info?.quantities?.[0] || ''
-                const isPartial = have && haveQty
-                return (
-                  <button key={name} className={`item ${isPartial ? 'partial' : have ? 'have' : ''}`} onClick={() => tap(name, neededQty)}>
-                    <Checkbox checked={have} variant={isPartial ? 'warn' : 'ok'} />
-                    <span className="grow" style={{ minWidth: 0 }}>
-                      <span className={have ? 'strike' : ''} style={{ color: have ? 'var(--text-soft)' : 'var(--text)' }}>{name}</span>
-                      {have && haveQty ? <span style={{ display: 'block', fontSize: 11, color: 'var(--app-accent)' }}>have {haveQty} · need {subtractQuantity(neededQty, haveQty) || 'none'}</span>
-                        : neededQty && !have ? <span style={{ display: 'block', fontSize: 11, color: 'var(--text-soft)' }}>{neededQty}</span> : null}
-                    </span>
-                    {info?.count > 1 && <span className="tag" style={{ background: 'var(--app-soft)', color: 'var(--app-accent)' }}>×{info.count}</span>}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        ))}
+      <div className="stack" style={{ gap: 'var(--sp-2)' }}>
+        {ingredients.map((name) => {
+          const have = name in pantryMap
+          const haveQty = pantryMap[name]
+          const info = agg[name]
+          const neededQty = info?.quantities?.[0] || ''
+          const isPartial = have && haveQty
+          return (
+            <button key={name} className={`item ${isPartial ? 'partial' : have ? 'have' : ''}`} onClick={() => tap(name, neededQty)}>
+              <Checkbox checked={have} variant={isPartial ? 'warn' : 'ok'} />
+              <span className="grow" style={{ minWidth: 0 }}>
+                <span className={have ? 'strike' : ''} style={{ color: have ? 'var(--text-soft)' : 'var(--text)' }}>{name}</span>
+                {have && haveQty ? <span style={{ display: 'block', fontSize: 11, color: 'var(--app-accent)' }}>have {haveQty} · need {subtractQuantity(neededQty, haveQty) || 'none'}</span>
+                  : neededQty && !have ? <span style={{ display: 'block', fontSize: 11, color: 'var(--text-soft)' }}>{neededQty}</span> : null}
+              </span>
+              {info?.count > 1 && <span className="tag" style={{ background: 'var(--app-soft)', color: 'var(--app-accent)' }}>×{info.count}</span>}
+            </button>
+          )
+        })}
       </div>
 
       <Sheet

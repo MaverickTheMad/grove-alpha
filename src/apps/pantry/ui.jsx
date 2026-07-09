@@ -2,8 +2,10 @@ import Icon from '../../components/Icon'
 
 export function Checkbox({ checked, variant }) {
   // variant: undefined (accent) | 'ok' | 'warn'
+  // warn = partial: circle shape + warn hue; ok = full: square + green
   const cls = checked ? `pcheck ${variant === 'ok' ? 'ok' : variant === 'warn' ? 'warn' : 'on'}` : 'pcheck'
-  return <span className={cls}>{checked ? '✓' : ''}</span>
+  const symbol = checked ? (variant === 'warn' ? '◐' : '✓') : ''
+  return <span className={cls}>{symbol}</span>
 }
 
 export function SectionHeader({ eyebrow, title, subtitle }) {

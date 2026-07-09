@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Icon from '../../../components/Icon'
+import Sheet from '../../../components/Sheet'
 import { normIng } from '../lib/shopping'
 import { SectionHeader, SectionLabel, Empty, Checkbox } from '../ui'
 
@@ -50,10 +51,11 @@ export default function MealsTab({ recipes, selected, multipliers, mealPlan, onT
                 const picking = assigningDay === off
                 const isDragTarget = dragOver === off && dragFrom !== off
                 const cls = ['cal-cell',
+                  isToday ? 'today' : '',
                   picking ? 'picking' : '',
                   isDragTarget ? 'drag-target' : '',
                   dragFrom === off ? 'dragging' : '',
-                  assignedRecipe ? 'has-meal' : isPast ? 'past' : ''].join(' ')
+                  assignedRecipe ? 'has-meal' : isPast ? 'past' : ''].join(' ').replace(/\s+/g, ' ').trim()
                 return (
                   <div
                     key={off}
@@ -86,38 +88,32 @@ export default function MealsTab({ recipes, selected, multipliers, mealPlan, onT
         ))}
       </div>
 
-      {assigningDay !== null && (
-        <div className="card" style={{ borderColor: 'var(--app-accent)', marginBottom: 'var(--sp-4)' }}>
-          <div className="spread" style={{ marginBottom: 'var(--sp-3)' }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-lg)' }}>
-              {getDate(assigningDay).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-            </span>
-            <div className="row" style={{ gap: 'var(--sp-2)' }}>
-              {mealPlan[String(assigningDay)] && (
-                <button className="btn danger sm" onClick={() => { onAssignDay(assigningDay, null); setAssigningDay(null) }}>Clear</button>
-              )}
-              <button className="icon-btn" aria-label="Close" onClick={() => setAssigningDay(null)}><Icon name="close" size={18} /></button>
-            </div>
-          </div>
-          <input className="input" placeholder="Search recipes…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ marginBottom: 'var(--sp-2)' }} />
-          <div className="stack" style={{ gap: 2, maxHeight: 230, overflowY: 'auto' }}>
-            {filteredForPicker.map((r) => {
-              const isAssigned = mealPlan[String(assigningDay)] === r.id
-              const elsewhere = Object.entries(mealPlan).find(([k, v]) => v === r.id && Number(k) !== assigningDay)
-              const elsewhereLabel = elsewhere ? getDate(Number(elsewhere[0])).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : null
-              return (
-                <button key={r.id} className="item" style={isAssigned ? { background: 'var(--app-accent)', color: '#0B0F09', borderColor: 'var(--app-accent)' } : {}}
-                  onClick={() => { onAssignDay(assigningDay, r.id); setAssigningDay(null); setSearch('') }}>
-                  <span className="grow">{r.name}</span>
-                  {r.category && r.category !== 'Other' && <span style={{ fontSize: 10, textTransform: 'uppercase', color: isAssigned ? 'inherit' : 'var(--text-soft)' }}>{r.category}</span>}
-                  {elsewhereLabel && !isAssigned && <span style={{ fontSize: 10, color: 'var(--text-soft)' }}>{elsewhereLabel}</span>}
-                  {selected.includes(r.id) && !isAssigned && !elsewhereLabel && <span style={{ fontSize: 10, color: 'var(--ok)' }}>✓</span>}
-                </button>
-              )
-            })}
-          </div>
+      <Sheet
+        open={assigningDay !== null}
+        onClose={() => { setAssigningDay(null); setSearch('') }}
+        title={assigningDay !== null ? getDate(assigningDay).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : ''}
+        footer={mealPlan[String(assigningDay)] ? (
+          <button className="btn ghost grow" onClick={() => { onAssignDay(assigningDay, null); setAssigningDay(null) }}>Clear meal</button>
+        ) : null}
+      >
+        <input className="input" placeholder="Search recipes…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ marginBottom: 'var(--sp-2)' }} autoFocus />
+        <div className="stack" style={{ gap: 2 }}>
+          {filteredForPicker.map((r) => {
+            const isAssigned = mealPlan[String(assigningDay)] === r.id
+            const elsewhere = Object.entries(mealPlan).find(([k, v]) => v === r.id && Number(k) !== assigningDay)
+            const elsewhereLabel = elsewhere ? getDate(Number(elsewhere[0])).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : null
+            return (
+              <button key={r.id} className="item" style={isAssigned ? { background: 'var(--app-accent)', color: '#0B0F09', borderColor: 'var(--app-accent)' } : {}}
+                onClick={() => { onAssignDay(assigningDay, r.id); setAssigningDay(null); setSearch('') }}>
+                <span className="grow">{r.name}</span>
+                {r.category && r.category !== 'Other' && <span style={{ fontSize: 10, textTransform: 'uppercase', color: isAssigned ? 'inherit' : 'var(--text-soft)' }}>{r.category}</span>}
+                {elsewhereLabel && !isAssigned && <span style={{ fontSize: 10, color: 'var(--text-soft)' }}>{elsewhereLabel}</span>}
+                {selected.includes(r.id) && !isAssigned && !elsewhereLabel && <span style={{ fontSize: 10, color: 'var(--ok)' }}>✓</span>}
+              </button>
+            )
+          })}
         </div>
-      )}
+      </Sheet>
 
       {unplanned.length > 0 && (
         <div style={{ marginBottom: 'var(--sp-4)' }}>

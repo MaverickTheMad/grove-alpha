@@ -217,7 +217,7 @@ export default function Pantry() {
           onView={setViewingRecipe} onToggleFavorite={toggleFavorite} onAddRecipe={() => setEditingRecipe(NEW_RECIPE)} />
       )}
       {tab === 'pantry' && (
-        <PantryTab ingredients={allIngredients} agg={agg} pantryMap={pantryMap} onToggle={togglePantry} skipCount={pantrySkipCount} sections={sectionsMap} />
+        <PantryTab ingredients={allIngredients} agg={agg} pantryMap={pantryMap} onToggle={togglePantry} skipCount={pantrySkipCount} />
       )}
       {tab === 'extras' && (
         <ExtrasTab extras={extras} onToggle={toggleExtra} onAdd={addExtra} onDelete={deleteExtra} onUpdateQty={updateExtraQty} />
@@ -239,14 +239,13 @@ export default function Pantry() {
           onClose={() => setViewingRecipe(null)} onToggleFavorite={toggleFavorite} lastCooked={lastCooked} />
       )}
 
-      {/* New trip confirm — consequence copy (UI-POLISH §4) */}
       <Sheet open={!!newTrip} onClose={() => setNewTrip(null)} title="Start a new trip?"
         footer={<>
           <button className="btn ghost grow" onClick={() => setNewTrip(null)}>Keep current</button>
           <button className="btn primary grow" onClick={confirmNewTrip}>Start new trip</button>
         </>}>
         <p style={{ maxWidth: 'var(--measure)' }}>
-          This logs your selected meals to history, shifts the planner forward 14 days, and clears the pantry checks and shopping check-offs. Your running-low staples stay.
+          This logs your meals to history and clears the meal plan, pantry, and shopping list. Running-low staples stay.
         </p>
         <label className="field-label">Shopping date</label>
         <input className="input" type="date" value={newTrip || todayStr()} max={todayStr()} onChange={(e) => setNewTrip(e.target.value)} />

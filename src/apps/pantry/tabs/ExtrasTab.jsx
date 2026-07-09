@@ -1,6 +1,17 @@
 import { useState } from 'react'
 import Icon from '../../../components/Icon'
-import { SectionHeader, SectionLabel, Checkbox } from '../ui'
+import { SectionHeader, Checkbox } from '../ui'
+
+function QtyStep({ value, onChange }) {
+  const n = parseInt(value) || 1
+  return (
+    <span className="qstep">
+      <button disabled={n <= 1} onClick={() => onChange(String(n - 1))}>−</button>
+      <span className="v">{n}</span>
+      <button disabled={n >= 99} onClick={() => onChange(String(n + 1))}>+</button>
+    </span>
+  )
+}
 
 function ExtraItem({ item, onToggle, onDelete, onUpdateQty }) {
   return (
@@ -9,7 +20,7 @@ function ExtraItem({ item, onToggle, onDelete, onUpdateQty }) {
         <Checkbox checked={item.active} />
         <span className="grow" style={{ color: item.active ? 'var(--text)' : 'var(--text-soft)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</span>
       </button>
-      <input className="input" style={{ width: 64, padding: '6px 8px', fontSize: 12 }} placeholder="qty" value={item.quantity || ''} onChange={(e) => onUpdateQty(item, e.target.value)} />
+      <QtyStep value={item.quantity || '1'} onChange={(v) => onUpdateQty(item, v)} />
       <button className="icon-btn" style={{ width: 32, height: 32 }} aria-label="Delete" onClick={() => onDelete(item.id)}><Icon name="trash" size={16} /></button>
     </div>
   )
@@ -17,10 +28,9 @@ function ExtraItem({ item, onToggle, onDelete, onUpdateQty }) {
 
 export default function ExtrasTab({ extras, onToggle, onAdd, onDelete, onUpdateQty }) {
   const [input, setInput] = useState('')
-  const [inputQty, setInputQty] = useState('')
   const [isStaple, setIsStaple] = useState(false)
 
-  const add = () => { if (input.trim()) { onAdd(input, inputQty, isStaple); setInput(''); setInputQty('') } }
+  const add = () => { if (input.trim()) { onAdd(input, '1', isStaple); setInput('') } }
   const bySort = (a, b) => (a.active !== b.active ? (a.active ? -1 : 1) : a.name.localeCompare(b.name))
   const staples = extras.filter((e) => e.is_staple).sort(bySort)
   const oneTime = extras.filter((e) => !e.is_staple).sort(bySort)
@@ -31,29 +41,38 @@ export default function ExtrasTab({ extras, onToggle, onAdd, onDelete, onUpdateQ
 
       <div className="stack" style={{ gap: 'var(--sp-2)', marginBottom: 'var(--sp-5)' }}>
         <div className="row" style={{ gap: 'var(--sp-2)' }}>
-          <input className="input" style={{ width: 72 }} placeholder="qty" value={inputQty} onChange={(e) => setInputQty(e.target.value)} />
           <input className="input grow" placeholder="add an item…" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && add()} />
           <button className="btn" onClick={add}><Icon name="log" size={16} /> Add</button>
         </div>
         <div className="btn-row">
-          <button className={`chip ${!isStaple ? 'on' : ''}`} onClick={() => setIsStaple(false)}>One-time extra</button>
-          <button className={`chip ${isStaple ? 'on' : ''}`} style={isStaple ? { color: 'var(--danger)', borderColor: 'var(--danger)', background: 'color-mix(in srgb,var(--danger) 14%,var(--bg-paper))' } : {}} onClick={() => setIsStaple(true)}>🔴 Running low</button>
+          <button className={`chip ${!isStaple ? 'on' : ''}`} onClick={() => setIsStaple(false)}>One-time</button>
+          <button className={`chip ${isStaple ? 'on' : ''}`} onClick={() => setIsStaple(true)}>Running low</button>
         </div>
       </div>
 
-      <div style={{ marginBottom: 'var(--sp-5)' }}>
-        <SectionLabel name="Running Low" count={`${staples.filter((e) => e.active).length} / ${staples.length}`} />
-        <p className="p-sub" style={{ marginBottom: 'var(--sp-3)' }}>These always appear on your shopping list until you remove them.</p>
-        {staples.length === 0 ? <p className="p-sub" style={{ fontStyle: 'italic' }}>Nothing flagged as running low yet.</p>
-          : <div className="grid2">{staples.map((it) => <ExtraItem key={it.id} item={it} onToggle={onToggle} onDelete={onDelete} onUpdateQty={onUpdateQty} />)}</div>}
-      </div>
+      {extras.length === 0 ? (
+        <p className="p-sub" style={{ textAlign: 'center', marginTop: 'var(--sp-6)' }}>Add an item when something's almost out, or a one-time item for this trip.</p>
+      ) : (
+        <>
+          <div style={{ marginBottom: 'var(--sp-5)' }}>
+            <div className="p-seclabel"><span>Running low</span>{staples.length > 0 && <span className="count">{staples.length}</span>}</div>
+            {staples.length === 0
+              ? <p className="p-sub" style={{ fontStyle: 'italic', marginTop: 4 }}>Nothing flagged as running low yet.</p>
+              : <div className="stack" style={{ gap: 'var(--sp-2)', marginTop: 'var(--sp-2)' }}>{staples.map((it) => <ExtraItem key={it.id} item={it} onToggle={onToggle} onDelete={onDelete} onUpdateQty={onUpdateQty} />)}</div>}
+          </div>
 
-      <div>
-        <SectionLabel name="One-Time Extras" count={`${oneTime.filter((e) => e.active).length} / ${oneTime.length}`} />
-        <p className="p-sub" style={{ marginBottom: 'var(--sp-3)' }}>Tap to add to this trip's list.</p>
-        {oneTime.length === 0 ? <p className="p-sub" style={{ fontStyle: 'italic' }}>No extras added yet.</p>
-          : <div className="grid2">{oneTime.map((it) => <ExtraItem key={it.id} item={it} onToggle={onToggle} onDelete={onDelete} onUpdateQty={onUpdateQty} />)}</div>}
-      </div>
+          <div>
+            <div className="p-seclabel" style={{ marginBottom: 8 }}>
+              <span>One-time</span>
+              {oneTime.length > 0 && <span className="count">{oneTime.length}</span>}
+              <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 'var(--fw-reg)', textTransform: 'none', letterSpacing: 0, color: 'var(--text-soft)' }}>Clears after this trip</span>
+            </div>
+            {oneTime.length === 0
+              ? <p className="p-sub" style={{ fontStyle: 'italic' }}>No one-time extras yet.</p>
+              : <div className="stack" style={{ gap: 'var(--sp-2)' }}>{oneTime.map((it) => <ExtraItem key={it.id} item={it} onToggle={onToggle} onDelete={onDelete} onUpdateQty={onUpdateQty} />)}</div>}
+          </div>
+        </>
+      )}
     </main>
   )
 }
