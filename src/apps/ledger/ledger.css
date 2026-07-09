@@ -340,34 +340,57 @@
   [data-app="ledger"] .page-header h1 { font-size: var(--fs-xl); }
   [data-app="ledger"] .stat-value { font-size: var(--fs-2xl); }
 }
+/* SubTabs — mobile: pill row; desktop: underline tabs */
 [data-app="ledger"] .subtabs {
   display: flex;
-  gap: 4px;
-  padding: 4px;
-  margin-bottom: var(--sp-5);
-  background: var(--bg-paper);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  gap: 6px;
+  padding: var(--sp-3) var(--sp-4) 0;
+  margin-bottom: var(--sp-4);
   overflow-x: auto;
   scrollbar-width: none;
+  background: none;
+  border: none;
+  border-radius: 0;
 }
 [data-app="ledger"] .subtabs::-webkit-scrollbar { display: none; }
 [data-app="ledger"] .subtab {
-  flex: 1 0 auto;
+  flex: 0 0 auto;
   white-space: nowrap;
-  padding: 8px 16px;
-  border-radius: var(--r-sm);
+  padding: 6px 12px;
+  border-radius: 6px;
   font-size: var(--fs-sm);
   font-weight: var(--fw-med);
   color: var(--text-soft);
   transition: 160ms cubic-bezier(.2,.8,.2,1);
-  display: inline-flex; align-items: center; gap: 6px; justify-content: center;
+  display: inline-flex; align-items: center; gap: 6px;
 }
 [data-app="ledger"] .subtab:hover { color: var(--text); }
 [data-app="ledger"] .subtab.active {
-  background: var(--accent);
-  color: #fff;
+  background: var(--app-weak);
+  color: var(--app-accent);
   font-weight: var(--fw-title);
+}
+@media (min-width: 1080px) {
+  [data-app="ledger"] .subtabs {
+    gap: 26px;
+    padding: 0 var(--sp-6);
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  [data-app="ledger"] .subtab {
+    padding: 16px 2px;
+    border-radius: 0;
+    font-size: var(--fs-base);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    min-height: 44px;
+  }
+  [data-app="ledger"] .subtab.active {
+    background: none;
+    color: var(--text);
+    font-weight: var(--fw-title);
+    border-bottom-color: var(--app-accent);
+  }
 }
 [data-app="ledger"] .seg {
   display: inline-flex;
@@ -516,8 +539,6 @@
 [data-app="ledger"] .ledger-page { padding: var(--sp-4); padding-bottom: calc(var(--sp-8) + 64px); max-width: var(--content-wide); margin: 0 auto; }
 @media (min-width: 720px) {
   [data-app="ledger"] .ledger-page { padding-left: var(--sp-6); padding-right: var(--sp-6); padding-bottom: var(--sp-8); }
-  /* Sticky subtabs clear the fixed top-bar (min-height 56px) */
-  [data-app="ledger"] .subtabs { top: 56px; }
 }
 
 /* ── Transactions: card-row layout on mobile (< 720px) ─────────────────────
@@ -565,23 +586,13 @@
   [data-app="ledger"] table.ledger tr:hover td { background: transparent; }
 }
 [data-app="ledger"] .page-header h1 { font-family: var(--font-display); font-size: var(--fs-2xl); font-weight: var(--fw-title); line-height: 1.1; }
-[data-app="ledger"] .subtabs { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: var(--sp-3) var(--sp-4) 0; }
 
-/* ── Build 03: Overview ─────────────────────────────────────────── */
+/* ── Build 03: Overview (legacy classes kept for compatibility) ─── */
 [data-app="ledger"] .ov-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); align-items: start; }
-[data-app="ledger"] .ov-person-col { display: flex; flex-direction: column; gap: var(--sp-3); }
-[data-app="ledger"] .ov-person-card { padding: var(--sp-4); }
-[data-app="ledger"] .ov-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: var(--fw-title); font-size: var(--fs-sm); color: #fff; flex-shrink: 0; }
-[data-app="ledger"] .ov-hero-net { font-family: var(--font-mono); font-size: var(--fs-3xl); font-weight: 600; line-height: 1; }
-[data-app="ledger"] .ov-hero-label { font-size: var(--fs-xs); color: var(--text-soft); margin-top: var(--sp-1); }
-[data-app="ledger"] .ov-kpi-row { display: flex; gap: var(--sp-4); margin-top: var(--sp-3); }
-[data-app="ledger"] .ov-kpi-label { font-size: var(--fs-xs); color: var(--text-soft); }
-[data-app="ledger"] .ov-kpi-val { font-family: var(--font-mono); font-size: var(--fs-base); font-weight: 500; margin-top: 2px; }
-[data-app="ledger"] .ov-days-left { font-size: var(--fs-xs); color: var(--text-soft); margin-top: var(--sp-2); }
-[data-app="ledger"] .ov-member-row { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) 0; border-top: 1px solid var(--border); }
-[data-app="ledger"] .ov-member-name { font-weight: 500; font-size: var(--fs-sm); flex: 1; }
-[data-app="ledger"] .ov-cycle-label { font-size: var(--fs-xs); color: var(--text-soft); }
 [data-app="ledger"] .ov-right-col { display: flex; flex-direction: column; gap: var(--sp-3); }
+/* Filter select (Money / Transactions desktop filter row) */
+[data-app="ledger"] .ov-filter-sel { display: flex; align-items: center; gap: 6px; background: var(--bg-paper); border: 1px solid var(--border); border-radius: 12px; height: 40px; padding: 0 12px; font-size: var(--fs-sm); color: var(--text); font-family: inherit; cursor: pointer; appearance: none; }
+[data-app="ledger"] .ov-filter-sel:focus { outline: 1.5px solid var(--app-accent); }
 
 /* ── Build 04: Transactions ─────────────────────────────────────── */
 [data-app="ledger"] .tx-mobile-cat { display: none; margin-top: 2px; }

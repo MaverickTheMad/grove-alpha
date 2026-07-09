@@ -15,13 +15,32 @@ const SORTS = [
   { id: 'amount_asc',  label: 'Smallest first' },
 ]
 
+const IconSearch = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+    <circle cx="11" cy="11" r="7" stroke="var(--text-soft)" strokeWidth="1.8"/>
+    <path d="m20 20-3.5-3.5" stroke="var(--text-soft)" strokeWidth="1.8" strokeLinecap="round"/>
+  </svg>
+)
+
+const IconFilter = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+    <path d="M3 5h18M6 12h12M10 19h4" stroke="var(--text)" strokeWidth="1.8" strokeLinecap="round"/>
+  </svg>
+)
+
+const IconPlus = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+  </svg>
+)
+
 export default function Transactions() {
   const { data: transactions, insert, update, remove } = useRecords('transaction', { orderBy: 'date', ascending: false })
   const { data: categories } = useRecords('category', { orderBy: 'name' })
   const { data: accounts } = useRecords('account', { orderBy: 'name' })
   const { data: people } = usePeople()
   const toast = useToast()
-  const isDesktop = useIsDesktop(720)
+  const isDesktop = useIsDesktop(1080)
   const [pendingTx, setPendingTx] = useState(new Set())
 
   const [search, setSearch] = useState('')
@@ -104,134 +123,204 @@ export default function Transactions() {
     })
   }
 
-  const FilterControls = ({ inSheet = false }) => (
-    <div style={inSheet ? { display: 'flex', flexDirection: 'column', gap: '0.75rem' } : {}}>
-      <input className="input" placeholder="Search description…" value={search} onChange={(e) => setSearch(e.target.value)} />
-      <select className="select" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} aria-label="Category">
-        <option value="">All categories</option>
-        {sortedCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-      </select>
-      <select className="select" value={filterAccount} onChange={(e) => setFilterAccount(e.target.value)} aria-label="Account">
-        <option value="">All accounts</option>
-        {sortedAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-      </select>
-      <select className="select" value={filterPerson} onChange={(e) => setFilterPerson(e.target.value)} aria-label="Person">
-        <option value="">All people</option>
-        {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-        <option value="__untagged">Untagged</option>
-      </select>
-      <select className="select" value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort">
-        {SORTS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
-      </select>
-      {hasFilters && <button className="btn btn-ghost btn-sm" onClick={clearFilters}>Clear filters</button>}
-    </div>
-  )
-
-  const Row = ({ t }) => {
-    const cat = categories.find(c => c.id === t.category_id)
-    const acct = accounts.find(a => a.id === t.account_id)
-    const person = people.find(p => p.id === t.person_id)
-    const isExpense = Number(t.amount) < 0
+  const CategoryChip = ({ catId, small }) => {
+    const cat = categories.find(c => c.id === catId)
+    if (!cat) return <span style={{ color: 'var(--text-soft)' }}>—</span>
     return (
-      <tr>
-        <td className="mono col-date">{t.date}</td>
-        <td className="col-desc">
-          <span className="tx-desc">{t.description}</span>
-          {t.notes && <span className="tx-note">{t.notes}</span>}
-          {cat && (
-            <span className="tx-mobile-cat cat-chip">
-              <span className="dot" style={{ background: cat.color }}></span>{cat.name}
-            </span>
-          )}
-        </td>
-        <td className="col-cat">
-          {cat ? (
-            <span className="cat-chip">
-              <span className="dot" style={{ background: cat.color }}></span>{cat.name}
-            </span>
-          ) : <span style={{ color: 'var(--ink-faint)' }}>—</span>}
-        </td>
-        <td className="col-acct">{acct?.name || <span style={{ color: 'var(--ink-faint)' }}>—</span>}</td>
-        <td className="col-person">
-          {person ? (
-            <span className="cat-chip">
-              <span className="dot" style={{ background: person.color }}></span>{person.name}
-            </span>
-          ) : <span style={{ color: 'var(--ink-faint)' }}>—</span>}
-        </td>
-        <td className={'num amount col-amt ' + (isExpense ? 'amount-neg' : 'amount-pos')}>
-          {fmt(t.amount, { signed: true })}
-        </td>
-        <td className="col-act">
-          <button className="icon-btn" onClick={() => openEdit(t)} title="Edit">&#9998;</button>
-          <button className="icon-btn" onClick={() => handleDelete(t)} title="Delete" aria-label="Delete transaction">&times;</button>
-        </td>
-      </tr>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--bg-sunken)', border: '1px solid var(--border)', borderRadius: 6, padding: small ? '3px 9px' : '4px 9px', fontSize: small ? 'var(--fs-xs)' : '0.76rem' }}>
+        <span style={{ width: small ? 8 : 9, height: small ? 8 : 9, borderRadius: 2, background: cat.color, flexShrink: 0 }} />
+        {cat.name}
+      </span>
     )
   }
 
-  return (
-    <div className="ledger-page">
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">Ledger</p>
-          <h1>Transactions</h1>
-        </div>
-        <button className="btn" onClick={openNew}>Add transaction</button>
-      </div>
+  const PersonChip = ({ personId }) => {
+    const person = people.find(p => p.id === personId)
+    if (!person) return <span style={{ color: 'var(--text-soft)' }}>—</span>
+    const color = person.color || 'var(--app-accent)'
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.8rem' }}>
+        <span style={{ width: 16, height: 16, borderRadius: '50%', background: color, color: '#0B0F09', fontSize: '0.6rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          {person.name?.[0]?.toUpperCase()}
+        </span>
+        {person.name}
+      </span>
+    )
+  }
 
+  const emptyState = transactions.length === 0 ? (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '48px 36px' }}>
+      <div style={{ width: 64, height: 64, borderRadius: 18, background: 'var(--bg-elevated)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="6" width="18" height="12" rx="2.5" stroke="var(--app-accent)" strokeWidth="1.8"/>
+          <circle cx="12" cy="12" r="2.4" fill="var(--app-accent)"/>
+        </svg>
+      </div>
+      <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-xl)', color: 'var(--text)', margin: '0 0 8px' }}>No transactions yet</h3>
+      <p style={{ color: 'var(--text-soft)', fontSize: 'var(--fs-base)', lineHeight: 1.6, margin: '0 0 24px', maxWidth: '36ch' }}>Add your first transaction, or import a bank statement to fill this log automatically.</p>
+      <button style={{ background: 'var(--accent)', color: '#0B0F09', border: 'none', borderRadius: 12, padding: '13px 22px', fontFamily: 'inherit', fontWeight: 600, fontSize: 'var(--fs-base)', cursor: 'pointer', marginBottom: 12 }} onClick={openNew}>
+        Add a transaction
+      </button>
+    </div>
+  ) : (
+    <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--text-soft)', fontSize: 'var(--fs-sm)' }}>
+      No transactions match your filters. <button style={{ background: 'none', border: 'none', color: 'var(--app-accent)', cursor: 'pointer', fontWeight: 600 }} onClick={clearFilters}>Clear filters</button>
+    </div>
+  )
+
+  return (
+    <div className="ledger-page" style={{ paddingTop: isDesktop ? 'var(--sp-5)' : undefined }}>
+
+      {/* Filter bar */}
       {isDesktop ? (
-        <div className="card" style={{ marginBottom: '1rem' }}>
-          <div className="tx-filters-desktop">
-            <FilterControls />
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+          <label style={{ flex: 1, maxWidth: 280, display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-sunken)', border: '1px solid var(--border)', borderRadius: 12, padding: '0 12px', height: 40 }}>
+            <IconSearch />
+            <input
+              style={{ background: 'none', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 'var(--fs-sm)', flex: 1, width: '100%' }}
+              placeholder="Search description"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </label>
+          <select className="ov-filter-sel" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} aria-label="Category">
+            <option value="">Category</option>
+            {sortedCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+          <select className="ov-filter-sel" value={filterAccount} onChange={(e) => setFilterAccount(e.target.value)} aria-label="Account">
+            <option value="">Account</option>
+            {sortedAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+          </select>
+          <select className="ov-filter-sel" value={filterPerson} onChange={(e) => setFilterPerson(e.target.value)} aria-label="Person">
+            <option value="">Person</option>
+            {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            <option value="__untagged">Untagged</option>
+          </select>
+          <button style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, background: 'var(--accent)', color: '#0B0F09', border: 'none', borderRadius: 12, height: 40, padding: '0 16px', fontFamily: 'inherit', fontWeight: 600, fontSize: 'var(--fs-sm)', cursor: 'pointer' }} onClick={openNew}>
+            <IconPlus />
+            Add a transaction
+          </button>
         </div>
       ) : (
-        <div style={{ display: 'flex', gap: 'var(--sp-2)', marginBottom: 'var(--sp-3)', alignItems: 'center' }}>
-          <button className="btn btn-ghost btn-sm" onClick={() => setFilterSheetOpen(true)} style={{ flex: 1 }}>
-            Filters{hasFilters ? ' ·' : ''}{hasFilters ? ` ${[search && 'search', filterCategory && 'category', filterAccount && 'account', filterPerson && 'person'].filter(Boolean).length} active` : ''}
+        <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+          <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-sunken)', border: '1px solid var(--border)', borderRadius: 12, padding: '0 12px', height: 40 }}>
+            <IconSearch />
+            <input
+              style={{ background: 'none', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 'var(--fs-sm)', flex: 1, width: '100%' }}
+              placeholder="Search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </label>
+          <button onClick={() => setFilterSheetOpen(true)} style={{ width: 44, height: 40, borderRadius: 12, background: 'var(--bg-paper)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+            <IconFilter />
           </button>
-          {hasFilters && <button className="btn btn-ghost btn-sm" onClick={clearFilters}>Clear</button>}
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', marginBottom: 'var(--sp-2)', fontSize: 'var(--fs-xs)', color: 'var(--text-soft)' }}>
-        <span className="tx-count">{sorted.length} of {transactions.length}</span>
-      </div>
-
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <table className="ledger ledger-tight">
-          <thead>
-            <tr>
-              <th className="col-date">Date</th>
-              <th className="col-desc">Description</th>
-              <th className="col-cat">Category</th>
-              <th className="col-acct">Account</th>
-              <th className="col-person">Person</th>
-              <th className="col-amt" style={{ textAlign: 'right' }}>Amount</th>
-              <th className="col-act"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map(t => <Row key={t.id} t={t} />)}
-          </tbody>
-        </table>
-        {sorted.length === 0 && (
-          <div className="empty">
-            <h3>{transactions.length === 0 ? 'No transactions yet' : 'No transactions match'}</h3>
-            <p>{transactions.length === 0 ? 'Add your first transaction to start tracking.' : 'Try clearing your filters.'}</p>
+      {/* Desktop table */}
+      {isDesktop ? (
+        <div style={{ border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', background: 'var(--bg-paper)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr 150px 130px 130px 130px 72px', alignItems: 'center', padding: '12px 18px', background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border)', fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xs)', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-soft)' }}>
+            <div style={{ color: 'var(--text)' }}>Date</div>
+            <div>Description</div>
+            <div>Category</div>
+            <div>Account</div>
+            <div>Person</div>
+            <div style={{ textAlign: 'right' }}>Amount</div>
+            <div></div>
           </div>
-        )}
-      </div>
+          {sorted.length === 0 ? emptyState : sorted.map(t => {
+            const acct = accounts.find(a => a.id === t.account_id)
+            const isIncome = Number(t.amount) > 0
+            return (
+              <div key={t.id} style={{ display: 'grid', gridTemplateColumns: '110px 1fr 150px 130px 130px 130px 72px', alignItems: 'center', padding: '14px 18px', borderBottom: '1px solid var(--border)' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'color-mix(in srgb, var(--bg-elevated) 60%, transparent)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-sm)', color: 'var(--text-soft)' }}>{t.date}</div>
+                <div style={{ fontSize: 'var(--fs-base)', minWidth: 0 }}>
+                  <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.description}</div>
+                  {t.notes && <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-soft)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.notes}</div>}
+                </div>
+                <div><CategoryChip catId={t.category_id} /></div>
+                <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-soft)' }}>{acct?.name || <span style={{ color: 'var(--text-soft)', opacity: .5 }}>—</span>}</div>
+                <div><PersonChip personId={t.person_id} /></div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-base)', textAlign: 'right', color: isIncome ? 'var(--ok)' : 'var(--text)' }}>
+                  {fmt(t.amount, { signed: true })}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                  <button className="icon-btn" onClick={() => openEdit(t)} title="Edit">&#9998;</button>
+                  <button className="icon-btn" onClick={() => handleDelete(t)} title="Delete">&times;</button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        /* Mobile card list */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, position: 'relative' }}>
+          {sorted.length === 0 ? emptyState : sorted.map(t => {
+            const isIncome = Number(t.amount) > 0
+            return (
+              <div key={t.id} style={{ background: 'var(--bg-paper)', border: '1px solid var(--border)', borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--text-soft)', flexShrink: 0 }}>{t.date}</span>
+                    <span style={{ fontSize: 'var(--fs-base)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.description}</span>
+                  </div>
+                  <CategoryChip catId={t.category_id} small />
+                </div>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem', color: isIncome ? 'var(--ok)' : 'var(--text)', flexShrink: 0 }}>
+                  {fmt(t.amount, { signed: true })}
+                </span>
+              </div>
+            )
+          })}
+          {/* Mobile FAB */}
+          <button
+            onClick={openNew}
+            style={{ position: 'fixed', right: 20, bottom: 84, width: 52, height: 52, borderRadius: '50%', background: 'var(--accent)', color: '#0B0F09', border: 'none', fontSize: '1.6rem', lineHeight: 1, boxShadow: '0 8px 20px rgba(0,0,0,.4)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}
+            aria-label="Add transaction"
+          >
+            +
+          </button>
+        </div>
+      )}
 
-      <Sheet open={filterSheetOpen} onClose={() => setFilterSheetOpen(false)} title="Filters" footer={
-        <button className="btn" style={{ width: '100%' }} onClick={() => setFilterSheetOpen(false)}>Done</button>
+      {/* Mobile filter sheet */}
+      <Sheet open={filterSheetOpen} onClose={() => setFilterSheetOpen(false)} title="Filter transactions" footer={
+        <button className="btn" style={{ width: '100%' }} onClick={() => setFilterSheetOpen(false)}>Show results</button>
       }>
         <div style={{ padding: 'var(--sp-4)', display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
-          <FilterControls inSheet />
+          <div className="field"><label>Category</label>
+            <select className="select" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
+              <option value="">All categories</option>
+              {sortedCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+          <div className="field"><label>Account</label>
+            <select className="select" value={filterAccount} onChange={(e) => setFilterAccount(e.target.value)}>
+              <option value="">All accounts</option>
+              {sortedAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+          </div>
+          <div className="field"><label>Person</label>
+            <select className="select" value={filterPerson} onChange={(e) => setFilterPerson(e.target.value)}>
+              <option value="">Anyone</option>
+              {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              <option value="__untagged">Untagged</option>
+            </select>
+          </div>
+          <div className="field"><label>Sort</label>
+            <select className="select" value={sort} onChange={(e) => setSort(e.target.value)}>
+              {SORTS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+            </select>
+          </div>
+          {hasFilters && <button className="btn btn-ghost btn-sm" onClick={() => { clearFilters(); setFilterSheetOpen(false) }}>Clear all filters</button>}
         </div>
       </Sheet>
 
+      {/* Add/Edit modal */}
       {modalOpen && editing && (
         <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setModalOpen(false)}>
           <div className="modal">
