@@ -84,32 +84,64 @@ export default function IntakeTab({ periodStarts, onChange, refreshKey }) {
   const computedPhase = computeCyclePhase(date, periodStarts)
   const activePhase = day?.cycle_phase || computedPhase
 
+  const today = todayLocalISO()
+  const viewCycleDay = (() => {
+    const sorted = [...periodStarts].sort()
+    if (sorted.length === 0) return null
+    const dateObj = new Date(date + 'T00:00:00')
+    let lastStart = null
+    for (const s of sorted) {
+      if (new Date(s + 'T00:00:00') <= dateObj) lastStart = s
+      else break
+    }
+    if (!lastStart) return null
+    return Math.floor((dateObj - new Date(lastStart + 'T00:00:00')) / 86400_000) + 1
+  })()
+  const shortDate = new Date(date + 'T00:00:00').toLocaleDateString([], { month: 'short', day: 'numeric' })
+  const dateLabel = date === today ? `Today, ${shortDate}` : shortDate
+
   return (
     <div className="intake-tab stack">
 
-      {/* CYCLE SUMMARY HEADER — mini wheel + countdown + date nav */}
-      <CycleSummaryHeader
-        date={date}
-        setDate={setDate}
-        periodStarts={periodStarts}
-        activePhase={activePhase}
-        dayOverride={day?.cycle_phase_override}
-      />
+      {/* DATE NAV */}
+      <div className="j-date-bar">
+        <div className="j-date-nav">
+          <button className="j-date-btn" onClick={() => setDate(shiftDate(date, -1))} aria-label="Previous day">‹</button>
+          <div className="j-date-center">
+            <div className="j-date-label">{dateLabel}</div>
+            {viewCycleDay != null && activePhase && (
+              <div className="j-cycle-label">Day {viewCycleDay} · {PHASES[activePhase]?.label ?? activePhase}</div>
+            )}
+          </div>
+          <button className="j-date-btn" onClick={() => { const n = shiftDate(date, 1); if (n <= today) setDate(n) }}
+            disabled={date >= today} aria-label="Next day">›</button>
+        </div>
+      </div>
 
       {loading ? (
         <div className="empty">Loading…</div>
       ) : (
         <>
           {/* FLOW */}
-          <FlowCard day={day} updateDay={updateDay} />
+          <div className="j-flow-section">
+            <div className="j-flow-label">Flow</div>
+            <div className="j-flow-chips">
+              {FLOW_LEVELS.map(f => (
+                <button key={f.value}
+                  className={`j-flow-chip ${(day?.flow || 'none') === f.value ? 'on' : ''}`}
+                  onClick={() => updateDay({ flow: f.value })}
+                >{f.label}</button>
+              ))}
+            </div>
+          </div>
 
           {/* QUICK ADD ROW */}
-          <div className="quick-add-row">
-            <QuickAddBtn label="Symptom"  onClick={() => setAdding(adding === 'symptom'  ? null : 'symptom')}  active={adding === 'symptom'} />
-            <QuickAddBtn label="Food"     onClick={() => setAdding(adding === 'food'     ? null : 'food')}     active={adding === 'food'} />
-            <QuickAddBtn label="Mood"     onClick={() => setAdding(adding === 'mood'     ? null : 'mood')}     active={adding === 'mood'} />
-            <QuickAddBtn label="Water"    onClick={() => setAdding(adding === 'water'    ? null : 'water')}    active={adding === 'water'} />
-            <QuickAddBtn label="Exercise" onClick={() => setAdding(adding === 'exercise' ? null : 'exercise')} active={adding === 'exercise'} />
+          <div className="j-qa-row">
+            <QuickAddTile kind="symptom"  label="Symptom"  onClick={() => setAdding(adding === 'symptom'  ? null : 'symptom')}  active={adding === 'symptom'} />
+            <QuickAddTile kind="food"     label="Food"     onClick={() => setAdding(adding === 'food'     ? null : 'food')}     active={adding === 'food'} />
+            <QuickAddTile kind="mood"     label="Mood"     onClick={() => setAdding(adding === 'mood'     ? null : 'mood')}     active={adding === 'mood'} />
+            <QuickAddTile kind="water"    label="Water"    onClick={() => setAdding(adding === 'water'    ? null : 'water')}    active={adding === 'water'} />
+            <QuickAddTile kind="exercise" label="Exercise" onClick={() => setAdding(adding === 'exercise' ? null : 'exercise')} active={adding === 'exercise'} />
           </div>
 
           {/* ADD PANELS */}
@@ -144,58 +176,24 @@ export default function IntakeTab({ periodStarts, onChange, refreshKey }) {
         </>
       )}
 
-      <style>{`
-        .date-nav {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 12px 14px;
-        }
-        .date-nav-center { text-align: center; flex: 1; }
-        .date-input {
-          font-family: var(--font-display);
-          font-size: 16px;
-          background: transparent;
-          border: none;
-          color: var(--text-soft);
-          text-align: center;
-          width: 100%;
-          padding: 2px;
-        }
-        .date-input::-webkit-calendar-picker-indicator { opacity: 0.4; }
-        .quick-add-row {
-          display: grid;
-          grid-template-columns: repeat(5, 1fr);
-          gap: 6px;
-        }
-        .quick-add-btn {
-          padding: 14px 4px;
-          border-radius: var(--r-md);
-          background: var(--bg-paper);
-          border: 1px solid var(--border);
-          color: var(--text-soft);
-          font-size: 12px;
-          font-weight: 600;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
-          transition: all 0.15s;
-          box-shadow: 0 1px 3px rgba(0,0,0,.15);
-        }
-        .quick-add-btn:active { transform: scale(0.97); }
-        .quick-add-btn-active {
-          background: var(--app-accent);
-          color: white;
-          border-color: var(--app-accent);
-        }
-      `}</style>
     </div>
   )
 }
 
-function QuickAddBtn({ label, onClick, active }) {
+function QuickAddTile({ kind, label, onClick, active }) {
+  const icons = {
+    symptom:  <div style={{ width:20, height:20, borderRadius:'50%', background:'var(--j-c-symptom)', display:'flex', alignItems:'center', justifyContent:'center' }}><div style={{ width:2, height:8, background:'var(--bg)', borderRadius:1 }} /></div>,
+    food:     <div style={{ width:20, height:20, borderRadius:6, background:'var(--j-c-food)' }} />,
+    mood:     <div style={{ width:16, height:16, background:'var(--j-c-mood)', transform:'rotate(45deg)', borderRadius:3 }} />,
+    water:    <div style={{ width:14, height:14, background:'var(--ok)', borderRadius:'50% 50% 50% 0', transform:'rotate(45deg)' }} />,
+    exercise: <div style={{ width:0, height:0, borderLeft:'7px solid transparent', borderRight:'7px solid transparent', borderBottom:'12px solid var(--ok)' }} />,
+  }
   return (
-    <button className={`quick-add-btn ${active ? 'quick-add-btn-active' : ''}`} onClick={onClick}>
-      {active ? '✕' : '+'} {label}
+    <button className={`j-qa-tile ${active ? 'on' : ''}`} onClick={onClick}>
+      {active
+        ? <div style={{ color:'var(--app-accent)', fontSize:14, fontWeight:600 }}>✕</div>
+        : icons[kind]}
+      <span className="j-qa-label">{label}</span>
     </button>
   )
 }
@@ -1055,8 +1053,8 @@ function Timeline({ symptoms, foods, moods, waters, exercises, workouts = [], on
 
   if (items.length === 0) {
     return (
-      <div className="card">
-        <div className="empty">Nothing logged yet — tap + to add your first symptom.</div>
+      <div className="empty" style={{ border: '1px dashed var(--border)', borderRadius: 'var(--r-lg)', padding: '40px 24px', marginTop: 8 }}>
+        Nothing logged yet — tap to add your first entry.
       </div>
     )
   }
@@ -1064,28 +1062,24 @@ function Timeline({ symptoms, foods, moods, waters, exercises, workouts = [], on
   return (
     <div className="card">
       <div className="card-head">
-        <h3 className="card-title section-h">Today's log</h3>
+        <h3 className="card-title section-h">Today's timeline</h3>
         <span className="card-sub">{entryCount} {entryCount === 1 ? 'entry' : 'entries'}</span>
       </div>
       <div>
         {items.map(it => it.kind === 'food-group' ? (
           <div key={it.id}>
-            <div className="event-item">
-              <span className="event-time">{formatTimeLocal(it.occurred_at)}</span>
-              <div className="event-body">
-                <FoodGroupBody group={it} />
+            <div className="j-ev-row">
+              <div className="j-ev-circle j-ev-c-food" />
+              <div className="j-ev-body">
+                <div className="j-ev-name"><FoodGroupBody group={it} /></div>
+                <div className="j-ev-time">{formatTimeLocal(it.occurred_at)}</div>
               </div>
-              <div className="event-actions">
-                <button
-                  className="event-edit"
+              <div style={{ display: 'flex', gap: 2 }}>
+                <button className="event-edit"
                   onClick={() => setEditing(isEditing('food-group', it.id) ? null : { kind: 'food-group', id: it.id })}
-                  aria-label="Edit food block"
-                >✎</button>
-                <button
-                  className="event-delete"
-                  onClick={() => deleteGroup(it)}
-                  aria-label={it.items.length > 1 ? 'Delete all foods at this time' : 'Delete'}
-                >×</button>
+                  aria-label="Edit food block">✎</button>
+                <button className="j-ev-del" onClick={() => deleteGroup(it)}
+                  aria-label={it.items.length > 1 ? 'Delete all foods at this time' : 'Delete'}>✕</button>
               </div>
             </div>
             {isEditing('food-group', it.id) && (
@@ -1098,29 +1092,22 @@ function Timeline({ symptoms, foods, moods, waters, exercises, workouts = [], on
           </div>
         ) : (
           <div key={it.kind + it.id}>
-            <div className="event-item">
-              <span className="event-time">{formatTimeLocal(it.occurred_at)}</span>
-              <div className="event-body">
-                <EventBody ev={it} />
+            <div className="j-ev-row">
+              <div className={`j-ev-circle j-ev-c-${it.kind}`} />
+              <div className="j-ev-body">
+                <div className="j-ev-name"><EventBody ev={it} /></div>
+                <div className="j-ev-time">{formatTimeLocal(it.occurred_at)}</div>
               </div>
-              <div className="event-actions">
-                {it.kind === 'workout' ? (
-                  <span className="event-src" title="Logged in the Fitness app">Reps</span>
-                ) : (
-                  <>
-                    <button
-                      className="event-edit"
-                      onClick={() => setEditing(isEditing(it.kind, it.id) ? null : { kind: it.kind, id: it.id })}
-                      aria-label="Edit"
-                    >✎</button>
-                    <button
-                      className="event-delete"
-                      onClick={() => deleteEvent(it.kind, it.id)}
-                      aria-label="Delete"
-                    >×</button>
-                  </>
-                )}
-              </div>
+              {it.kind === 'workout' ? (
+                <span className="event-src" title="Logged in the Fitness app">Reps</span>
+              ) : (
+                <div style={{ display: 'flex', gap: 2 }}>
+                  <button className="event-edit"
+                    onClick={() => setEditing(isEditing(it.kind, it.id) ? null : { kind: it.kind, id: it.id })}
+                    aria-label="Edit">✎</button>
+                  <button className="j-ev-del" onClick={() => deleteEvent(it.kind, it.id)} aria-label="Delete">✕</button>
+                </div>
+              )}
             </div>
             {isEditing(it.kind, it.id) && it.kind !== 'workout' && (
               <EditEvent

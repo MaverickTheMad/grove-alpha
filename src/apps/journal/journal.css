@@ -308,6 +308,146 @@
 [data-app="journal"] .setup-error { color: var(--danger); font-size: var(--fs-sm); margin: 12px 0 0; }
 [data-app="journal"] .setup-footer { font-size: var(--fs-xs); color: var(--text-soft); text-align: center; margin: 18px 0 0; font-style: italic; }
 
+/* ── Build 14: page header + inline pill tabs ──────────────────────────── */
+[data-app="journal"] .j-page-header {
+  display: flex; flex-direction: column; gap: 18px; margin-bottom: 18px;
+}
+@media (min-width: 1080px) {
+  [data-app="journal"] .j-page-header {
+    flex-direction: row; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+}
+[data-app="journal"] .j-title {
+  font-family: var(--font-display); font-size: 1.95rem; font-weight: 500;
+  color: var(--text); margin: 0; line-height: 1.1;
+}
+[data-app="journal"] .j-tabs {
+  display: flex; background: var(--bg-elevated);
+  border-radius: var(--r-md); padding: 3px; gap: 3px;
+}
+[data-app="journal"] .j-tab {
+  flex: 1; text-align: center; padding: 8px 0; border-radius: 8px;
+  color: var(--text-soft); font-size: 0.85rem; transition: 160ms;
+  background: transparent;
+}
+@media (min-width: 1080px) {
+  [data-app="journal"] .j-tab { flex: none; padding: 8px 22px; font-size: 0.9rem; }
+}
+[data-app="journal"] .j-tab.on {
+  background: rgba(208, 106, 130, 0.16);
+  color: var(--app-accent); font-weight: 600;
+}
+
+/* ── Build 14: date nav bar ─────────────────────────────────────────────── */
+[data-app="journal"] .j-date-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+@media (min-width: 1080px) {
+  [data-app="journal"] .j-date-bar {
+    background: var(--bg-paper); border: 1px solid var(--border);
+    border-radius: var(--r-lg); padding: 14px 20px;
+  }
+}
+[data-app="journal"] .j-date-nav { display: flex; align-items: center; gap: 16px; }
+[data-app="journal"] .j-date-btn {
+  width: 40px; height: 40px; border-radius: var(--r-md);
+  background: var(--bg-elevated); color: var(--text-soft);
+  font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: 120ms;
+}
+[data-app="journal"] .j-date-btn:disabled { background: var(--bg-sunken); color: var(--border); }
+[data-app="journal"] .j-date-center { text-align: center; }
+[data-app="journal"] .j-date-label { font-size: 0.98rem; font-weight: 600; color: var(--text); }
+[data-app="journal"] .j-cycle-label {
+  font-family: var(--font-mono); font-size: 0.72rem; color: var(--ok); margin-top: 2px;
+}
+
+/* ── Build 14: flow chips (flat br-6, not pill) ─────────────────────────── */
+[data-app="journal"] .j-flow-section { display: flex; flex-direction: column; gap: 8px; }
+[data-app="journal"] .j-flow-label { font-size: 0.8rem; color: var(--text-soft); }
+[data-app="journal"] .j-flow-chips { display: flex; gap: 8px; }
+[data-app="journal"] .j-flow-chip {
+  flex: 1; text-align: center; padding: 8px 0;
+  border-radius: 6px; background: var(--bg-elevated);
+  color: var(--text-soft); font-size: 0.8rem; border: 1px solid transparent; transition: 160ms;
+}
+[data-app="journal"] .j-flow-chip.on {
+  background: var(--app-accent); color: var(--bg); font-weight: 600; border-color: var(--app-accent);
+}
+@media (min-width: 1080px) {
+  [data-app="journal"] .j-flow-section { flex-direction: row; align-items: center; gap: 8px; }
+  [data-app="journal"] .j-flow-chips { gap: 8px; }
+  [data-app="journal"] .j-flow-chip { flex: none; padding: 8px 16px; }
+}
+
+/* ── Build 14: quick-add tiles ──────────────────────────────────────────── */
+[data-app="journal"] .j-qa-row {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+}
+[data-app="journal"] .j-qa-tile {
+  background: var(--bg-elevated); border-radius: var(--r-md);
+  padding: 10px 2px; display: flex; flex-direction: column;
+  align-items: center; gap: 6px; min-height: 64px;
+  border: 1px solid transparent; transition: 160ms;
+}
+@media (min-width: 1080px) {
+  [data-app="journal"] .j-qa-tile { padding: 14px 4px; }
+}
+[data-app="journal"] .j-qa-tile.on {
+  border-color: var(--app-accent);
+  background: color-mix(in srgb, var(--app-accent) 12%, var(--bg-elevated));
+}
+[data-app="journal"] .j-qa-label {
+  font-size: 0.62rem; color: var(--text-soft); letter-spacing: 0.02em;
+}
+@media (min-width: 1080px) {
+  [data-app="journal"] .j-qa-label { font-size: 0.78rem; }
+}
+
+/* ── Build 14: timeline event circles ──────────────────────────────────── */
+[data-app="journal"] .j-ev-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--bg-elevated);
+}
+[data-app="journal"] .j-ev-row:last-child { border-bottom: none; }
+[data-app="journal"] .j-ev-circle {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+[data-app="journal"] .j-ev-body { flex: 1; min-width: 0; }
+[data-app="journal"] .j-ev-name { font-size: 0.88rem; color: var(--text); }
+[data-app="journal"] .j-ev-time {
+  font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-soft);
+  margin-top: 1px;
+}
+[data-app="journal"] .j-ev-del {
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  color: var(--text-soft); opacity: 0.6; font-size: 1rem; flex-shrink: 0; transition: 120ms;
+  border-radius: var(--r-sm);
+}
+[data-app="journal"] .j-ev-del:hover { opacity: 1; color: var(--app-accent); }
+
+/* ── Build 14: icon colors for event circles ────────────────────────────── */
+[data-app="journal"] { --j-c-symptom: #CE6B62; --j-c-food: #D8A24F; --j-c-mood: #6F86C2; }
+/* ── Build 14: window-picker chip active = solid berry ─────────────────── */
+[data-app="journal"] .window-picker .chip.on {
+  background: var(--app-accent); color: var(--bg);
+  border-color: var(--app-accent); font-weight: 600;
+}
+[data-app="journal"] .window-picker .chip {
+  border-radius: 6px; background: var(--bg-elevated);
+  border: 1px solid transparent;
+}
+
+[data-app="journal"] .j-ev-c-flow     { background: var(--app-accent); }
+[data-app="journal"] .j-ev-c-symptom  { background: var(--j-c-symptom); }
+[data-app="journal"] .j-ev-c-food     { background: var(--j-c-food); }
+[data-app="journal"] .j-ev-c-mood     { background: var(--j-c-mood); }
+[data-app="journal"] .j-ev-c-water    { background: var(--ok); }
+[data-app="journal"] .j-ev-c-exercise { background: var(--ok); }
+[data-app="journal"] .j-ev-c-workout  { background: var(--ok); }
+
 /* ── Desktop Log tab: 2-col layout at ≥1080px ─────────────────────────────
    Timeline (left, grows) beside DaySummary + PhaseOverride (right, sticky).
    Below 1080px everything stacks as before. */

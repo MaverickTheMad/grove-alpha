@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import './journal.css'
-import BottomNav from '../../components/BottomNav'
 import * as store from './lib/store'
 import IntakeTab from './tabs/IntakeTab'
 import SetupScreen from './components/SetupScreen'
@@ -10,11 +9,10 @@ import CalendarTab from './tabs/CalendarTab'
 export const meta = { id: 'journal', name: "Ren's Journal", tagline: 'Cycle & symptoms' }
 
 const TABS = [
-  { id: 'intake', label: 'Log', icon: 'log' },
-  { id: 'trends', label: 'Trends', icon: 'trends' },
-  { id: 'calendar', label: 'Cycle', icon: 'calendar' },
+  { id: 'intake', label: 'Log' },
+  { id: 'trends', label: 'Trends' },
+  { id: 'calendar', label: 'Cycle' },
 ]
-
 
 export default function Journal() {
   const [tab, setTab] = useState('intake')
@@ -41,19 +39,26 @@ export default function Journal() {
   }
 
   return (
-    <>
-      <div className="journal-page page">
-        {tab === 'intake' && <IntakeTab periodStarts={periodStarts} onChange={bump} refreshKey={refreshKey} />}
-        {tab === 'trends' && <TrendsTab periodStarts={periodStarts} refreshKey={refreshKey} />}
-        {tab === 'calendar' && (
-          <CalendarTab
-            periodStarts={periodStarts}
-            onPeriodStartsChange={async () => { await reload(); bump() }}
-            refreshKey={refreshKey}
-          />
-        )}
+    <div className="journal-page page">
+      <div className="j-page-header">
+        <h1 className="j-title">Journal</h1>
+        <div className="j-tabs">
+          {TABS.map(t => (
+            <button key={t.id} className={`j-tab ${tab === t.id ? 'on' : ''}`} onClick={() => setTab(t.id)}>
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
-      <BottomNav tabs={TABS} active={tab} onSelect={setTab} />
-    </>
+      {tab === 'intake' && <IntakeTab periodStarts={periodStarts} onChange={bump} refreshKey={refreshKey} />}
+      {tab === 'trends' && <TrendsTab periodStarts={periodStarts} refreshKey={refreshKey} />}
+      {tab === 'calendar' && (
+        <CalendarTab
+          periodStarts={periodStarts}
+          onPeriodStartsChange={async () => { await reload(); bump() }}
+          refreshKey={refreshKey}
+        />
+      )}
+    </div>
   )
 }
