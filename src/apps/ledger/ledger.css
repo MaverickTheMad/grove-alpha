@@ -56,8 +56,8 @@
   background: var(--bg-paper);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
-  padding: var(--sp-4) var(--sp-5);
-  margin-bottom: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-3);
 }
 [data-app="ledger"] .card-head {
   display: flex;

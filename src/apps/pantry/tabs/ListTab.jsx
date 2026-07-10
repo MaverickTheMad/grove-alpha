@@ -7,31 +7,10 @@ import { PageHeader, SectionLabel, Empty, Checkbox } from '../ui'
 
 export default function ListTab({ groups, checked, onToggle, total, sections, onSetSection, onNewTrip }) {
   const [reassigning, setReassigning] = useState(null)
+  const [showPrint, setShowPrint] = useState(false)
 
   function handlePrint() {
-    const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-    const sectionsHtml = groups.map((g) => {
-      const items = g.items.map((item) => {
-        const qty = sumQuantities(item.quantities)
-        return `<div class="item"><span class="item-name"><span class="checkbox"></span>${item.name}</span>${qty ? `<span class="item-qty">${qty}</span>` : ''}</div>`
-      }).join('')
-      return `<div class="section"><div class="section-title">${g.section}</div>${items}</div>`
-    }).join('')
-    const html = `<!DOCTYPE html><html><head><title>Shopping List — ${today}</title><style>
-      *{margin:0;padding:0;box-sizing:border-box}
-      body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#1c1917;background:#fff;padding:40px;max-width:600px;margin:0 auto}
-      h1{font-family:Georgia,serif;font-size:30px;font-weight:700;margin-bottom:4px}
-      .date{font-size:12px;color:#78716c;margin-bottom:28px;text-transform:uppercase;letter-spacing:.1em}
-      .section{margin-bottom:22px}
-      .section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:#3b5b3f;border-bottom:1px solid #d8decf;padding-bottom:4px;margin-bottom:8px}
-      .item{display:flex;align-items:baseline;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f1f1ee}
-      .item-name{font-size:15px;font-weight:500}
-      .item-qty{font-size:13px;color:#78716c;margin-left:12px;white-space:nowrap}
-      .checkbox{width:13px;height:13px;border:1.5px solid #c9cbc2;border-radius:3px;display:inline-block;margin-right:10px}
-      @media print{body{padding:20px}}
-    </style></head><body><h1>Shopping List</h1><div class="date">${today}</div>${sectionsHtml}</body></html>`
-    const w = window.open('', '_blank')
-    if (w) { w.document.write(html); w.document.close() }
+    window.print()
   }
 
   if (total === 0) {
@@ -47,7 +26,7 @@ export default function ListTab({ groups, checked, onToggle, total, sections, on
     <main className="screen">
       <PageHeader title="List" action={
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn sm" onClick={handlePrint}><Icon name="print" size={16} /> Print</button>
+          <button className="btn sm" onClick={() => setShowPrint(true)}><Icon name="print" size={16} /> Print / PDF</button>
           <button style={{ background: 'var(--accent)', color: '#0B0F09', border: 'none', borderRadius: 12, padding: '10px 14px', fontFamily: 'inherit', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', whiteSpace: 'nowrap', minHeight: 44 }} onClick={onNewTrip}>New trip</button>
         </div>
       } />
@@ -86,6 +65,37 @@ export default function ListTab({ groups, checked, onToggle, total, sections, on
               onClick={() => { onSetSection(reassigning, s); setReassigning(null) }}>{s}</button>
           ))}
         </div>
+      </Sheet>
+
+      {/* P4: In-app print/PDF — stays in the SPA on mobile */}
+      <Sheet
+        open={showPrint}
+        onClose={() => setShowPrint(false)}
+        title="Shopping list"
+        footer={
+          <div style={{ display: 'flex', gap: 'var(--sp-2)', width: '100%' }}>
+            <button className="btn ghost grow" onClick={() => setShowPrint(false)}>Back to Pantry</button>
+            <button className="btn primary grow" onClick={handlePrint}>Print / Save PDF</button>
+          </div>
+        }
+      >
+        <p style={{ color: 'var(--text-soft)', fontSize: 'var(--fs-sm)', marginBottom: 'var(--sp-4)' }}>
+          Tap "Print / Save PDF" to open your browser's print dialog. On iOS, choose "Save to PDF"; on Android, choose "Save as PDF".
+        </p>
+        {groups.map((g) => (
+          <div key={g.section} style={{ marginBottom: 'var(--sp-4)' }}>
+            <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-soft)', borderBottom: '1px solid var(--border)', paddingBottom: 4, marginBottom: 'var(--sp-2)' }}>{g.section}</div>
+            {g.items.map((item) => {
+              const qty = sumQuantities(item.quantities)
+              return (
+                <div key={item.name} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid var(--border)', fontSize: 'var(--fs-sm)' }}>
+                  <span>{item.name}</span>
+                  {qty && <span style={{ color: 'var(--text-soft)' }}>{qty}</span>}
+                </div>
+              )
+            })}
+          </div>
+        ))}
       </Sheet>
     </main>
   )

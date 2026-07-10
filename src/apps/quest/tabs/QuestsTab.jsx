@@ -31,12 +31,12 @@ function QuestRow({ quest, onComplete, onDelete }) {
         <span className="quest-row-title">{quest.title}</span>
         <div className="quest-row-meta">
           <DifficultyChip id={quest.difficulty} />
-          <span className="quest-xp-chip">+{quest.xp_reward ?? 10} XP</span>
+          <span className="quest-xp-chip">+{quest.xp_reward ?? 10} pts</span>
           {quest.category && <span className="quest-cat-chip">{quest.category}</span>}
           {quest.due && <span className="quest-due-chip">{quest.due}</span>}
         </div>
       </div>
-      <button className="quest-del" onClick={onDelete} aria-label={`Remove quest: ${quest.title}`}>×</button>
+      <button className="quest-del" onClick={onDelete} aria-label={`Remove task: ${quest.title}`}>×</button>
     </div>
   )
 }
@@ -71,7 +71,7 @@ function AddQuestForm({ onSave, onCancel }) {
   return (
     <div className="quest-add-form">
       <div className="field">
-        <span className="label">Quest name</span>
+        <span className="label">Task name</span>
         <input
           className="field-input"
           value={title}
@@ -87,7 +87,7 @@ function AddQuestForm({ onSave, onCancel }) {
         <div className="pill-wrap">
           {DIFFICULTIES.map(d => (
             <button key={d.id} className={'pill' + (difficulty === d.id ? ' sel' : '')} onClick={() => setDifficulty(d.id)}>
-              {d.label} · {d.xp} XP
+              {d.label} · {d.xp} pts
             </button>
           ))}
         </div>
@@ -116,7 +116,7 @@ function AddQuestForm({ onSave, onCancel }) {
 
       {title === '' && (
         <div className="quest-templates">
-          <div className="quest-templates-label">Or start with a common quest</div>
+          <div className="quest-templates-label">Or start with a common task</div>
           <div className="pill-wrap">
             {DEFAULT_HABITS.map(t => (
               <button key={t.title} className="pill" onClick={() => useTemplate(t)}>{t.title}</button>
@@ -128,7 +128,7 @@ function AddQuestForm({ onSave, onCancel }) {
       <div className="quest-add-footer">
         <button className="btn ghost" onClick={onCancel}>Cancel</button>
         <button className="btn primary" onClick={save} disabled={saving || !title.trim()}>
-          {saving ? 'Adding…' : 'Add quest'}
+          {saving ? 'Adding…' : 'Add task'}
         </button>
       </div>
     </div>
@@ -154,7 +154,7 @@ export default function QuestsTab({ ctx }) {
 
   function onDelete(quest) {
     handleDelete(quest.id)
-    showToast('Quest removed', {
+    showToast('Task removed', {
       actionLabel: 'Undo',
       onAction: () => handleRestore(quest.id),
     })
@@ -162,7 +162,7 @@ export default function QuestsTab({ ctx }) {
 
   async function onComplete(quest) {
     await handleComplete(quest)
-    showToast(`+${quest.xp_reward ?? 10} XP — ${quest.title}`, { duration: 2200 })
+    showToast(`+${quest.xp_reward ?? 10} pts — ${quest.title}`, { duration: 2200 })
   }
 
   async function onAdd(fields) {
@@ -192,7 +192,7 @@ export default function QuestsTab({ ctx }) {
   return (
     <>
       <div className="q-header">
-        <h1 className="q-title">Hero</h1>
+        <h1 className="q-title">Tasks</h1>
         {activeQuests.length > 0 && (
           <span className="q-count">{activeQuests.length} active</span>
         )}
@@ -200,8 +200,8 @@ export default function QuestsTab({ ctx }) {
 
       {sorted.length === 0 ? (
         <div className="card quest-empty-card">
-          <p className="quest-empty-line">No quests yet — add your first.</p>
-          <button className="btn primary" onClick={() => setAdding(true)}>Add a quest</button>
+          <p className="quest-empty-line">No tasks yet — add your first.</p>
+          <button className="btn primary" onClick={() => setAdding(true)}>Add a task</button>
         </div>
       ) : (
         <>
@@ -211,9 +211,9 @@ export default function QuestsTab({ ctx }) {
         </>
       )}
 
-      <button className="q-add-btn" onClick={() => setAdding(true)}>Add a quest</button>
+      <button className="q-add-btn" onClick={() => setAdding(true)}>Add a task</button>
 
-      <Sheet open={adding} onClose={() => setAdding(false)} title="New quest">
+      <Sheet open={adding} onClose={() => setAdding(false)} title="New task">
         <AddQuestForm onSave={onAdd} onCancel={() => setAdding(false)} />
       </Sheet>
     </>

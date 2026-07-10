@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import './settings.css'
 import * as db from '../../lib/data'
 import { currentUser, members } from '../../lib/identity'
@@ -8,6 +8,7 @@ import { getTheme, setTheme, subscribeTheme } from '../../lib/theme'
 import { useToast } from '../../components/Toast'
 import Sheet from '../../components/Sheet'
 import { sortByName } from '../../lib/sort'
+import { exposedApps } from '../../config'
 
 export const meta = { id: 'settings', name: 'Settings', tagline: 'Appearance, account & data' }
 
@@ -23,6 +24,21 @@ const DATA_APPS = [
   { id: 'pets',     name: 'Pets' },
   { id: 'quest',    name: 'Quest' },
 ]
+
+// All hideable apps — Settings is excluded (can never be hidden)
+const HIDEABLE_APPS = [
+  { id: 'almanac', name: 'Almanac' },
+  { id: 'fitness', name: 'Fitness' },
+  { id: 'journal', name: 'Journal' },
+  { id: 'ledger',  name: 'Ledger' },
+  { id: 'media',   name: 'Media' },
+  { id: 'pantry',  name: 'Pantry' },
+  { id: 'pets',    name: 'Pets' },
+  { id: 'quest',   name: 'Quest' },
+].filter((a) => exposedApps.includes(a.id)).sort((a, b) => a.name.localeCompare(b.name))
+
+const SETTINGS_APP = 'settings'
+const SETTING_TYPE = 'app_setting'
 
 const THEMES = [
   { id: 'auto',  label: 'Auto',  hint: 'Match system' },
@@ -175,11 +191,54 @@ export default function Settings() {
     setRemoveTarget(null)
   }
 
-  // App preferences (local state; no backend yet)
+  // ── Persisted settings (read from data.js on mount) ──────────────────────────
+  const settingRecords = useRef([])   // raw records, for upsert
   const [prefs, setPrefs] = useState(() =>
     Object.fromEntries(APP_PREFS.map((p) => [p.id, p.default]))
   )
-  const setPref = (id, val) => setPrefs((prev) => ({ ...prev, [id]: val }))
+  const [hiddenApps, setHiddenApps] = useState([])
+
+  useEffect(() => {
+    let alive = true
+    db.list({ app: SETTINGS_APP, type: SETTING_TYPE }).then((rows) => {
+      if (!alive) return
+      settingRecords.current = rows
+      // Restore prefs
+      const prefMap = {}
+      for (const r of rows) {
+        if (r.data?.key && r.data?.key !== 'hidden_apps') prefMap[r.data.key] = r.data.value
+      }
+      if (Object.keys(prefMap).length) setPrefs((p) => ({ ...p, ...prefMap }))
+      // Restore hidden apps
+      const hidRow = rows.find((r) => r.data?.key === 'hidden_apps')
+      if (hidRow && Array.isArray(hidRow.data.value)) setHiddenApps(hidRow.data.value)
+    })
+    return () => { alive = false }
+  }, [])
+
+  const saveSetting = useCallback(async (key, value) => {
+    const existing = settingRecords.current.find((r) => r.data?.key === key)
+    if (existing) {
+      const updated = await db.update(existing.id, { data: { key, value } })
+      settingRecords.current = settingRecords.current.map((r) => r.id === updated.id ? updated : r)
+    } else {
+      const created = await db.create({ app: SETTINGS_APP, type: SETTING_TYPE, data: { key, value } })
+      settingRecords.current = [...settingRecords.current, created]
+    }
+  }, [])
+
+  const setPref = (id, val) => {
+    setPrefs((prev) => ({ ...prev, [id]: val }))
+    saveSetting(id, val)
+  }
+
+  const toggleHideApp = (appId) => {
+    setHiddenApps((prev) => {
+      const next = prev.includes(appId) ? prev.filter((x) => x !== appId) : [...prev, appId]
+      saveSetting('hidden_apps', next)
+      return next
+    })
+  }
 
   // Your data
   const [counts, setCounts] = useState(null)
@@ -254,10 +313,6 @@ export default function Settings() {
               className={'seg-btn' + (theme === t.id ? ' on' : '')}
               onClick={() => setTheme(t.id)}
             >
-              <span className="seg-preview" aria-hidden>
-                <span className="seg-preview-bg" />
-                <span className="seg-preview-dot" />
-              </span>
               {t.label}
               {t.hint && <span className="seg-hint">{t.hint}</span>}
             </button>
@@ -338,6 +393,24 @@ export default function Settings() {
                   {p.options.map(o => <option key={o}>{o}</option>)}
                 </select>
               )}
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* ── Visible apps ── */}
+      <Section title="Visible apps" subtitle="Choose which apps appear on the launcher. Settings can't be hidden.">
+        <div className="card set-card">
+          {HIDEABLE_APPS.map((a) => (
+            <div key={a.id} className="set-row pref-row">
+              <span className="pref-label">{a.name}</span>
+              <button
+                role="switch"
+                aria-checked={!hiddenApps.includes(a.id)}
+                className={'toggle' + (!hiddenApps.includes(a.id) ? ' on' : '')}
+                onClick={() => toggleHideApp(a.id)}
+                aria-label={`Show ${a.name}`}
+              />
             </div>
           ))}
         </div>

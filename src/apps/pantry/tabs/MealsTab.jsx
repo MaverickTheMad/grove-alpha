@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Icon from '../../../components/Icon'
 import Sheet from '../../../components/Sheet'
+import { useToast } from '../../../components/Toast'
 import { normIng } from '../lib/shopping'
 import { PageHeader, SectionLabel, Empty, Checkbox } from '../ui'
 
@@ -11,6 +12,7 @@ export default function MealsTab({ recipes, selected, multipliers, mealPlan, onT
   const [search, setSearch] = useState('')
   const [dragFrom, setDragFrom] = useState(null)
   const [dragOver, setDragOver] = useState(null)
+  const toast = useToast()
 
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const startOfWeek = new Date(today); startOfWeek.setDate(today.getDate() - today.getDay())
@@ -98,9 +100,6 @@ export default function MealsTab({ recipes, selected, multipliers, mealPlan, onT
         open={assigningDay !== null}
         onClose={() => { setAssigningDay(null); setSearch('') }}
         title={assigningDay !== null ? getDate(assigningDay).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : ''}
-        footer={mealPlan[String(assigningDay)] ? (
-          <button className="btn ghost grow" onClick={() => { onAssignDay(assigningDay, null); setAssigningDay(null) }}>Clear meal</button>
-        ) : null}
       >
         <input className="input" placeholder="Search recipes…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ marginBottom: 'var(--sp-2)' }} autoFocus />
         <div className="stack" style={{ gap: 2 }}>
@@ -109,13 +108,35 @@ export default function MealsTab({ recipes, selected, multipliers, mealPlan, onT
             const elsewhere = Object.entries(mealPlan).find(([k, v]) => v === r.id && Number(k) !== assigningDay)
             const elsewhereLabel = elsewhere ? getDate(Number(elsewhere[0])).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : null
             return (
-              <button key={r.id} className="item" style={isAssigned ? { background: 'var(--app-accent)', color: '#0B0F09', borderColor: 'var(--app-accent)' } : {}}
-                onClick={() => { onAssignDay(assigningDay, r.id); setAssigningDay(null); setSearch('') }}>
-                <span className="grow">{r.name}</span>
-                {r.category && r.category !== 'Other' && <span style={{ fontSize: 10, textTransform: 'uppercase', color: isAssigned ? 'inherit' : 'var(--text-soft)' }}>{r.category}</span>}
-                {elsewhereLabel && !isAssigned && <span style={{ fontSize: 10, color: 'var(--text-soft)' }}>{elsewhereLabel}</span>}
-                {selected.includes(r.id) && !isAssigned && !elsewhereLabel && <span style={{ fontSize: 10, color: 'var(--ok)' }}>✓</span>}
-              </button>
+              <div key={r.id} className="row" style={{ gap: 0 }}>
+                <button className="item grow" style={isAssigned ? { background: 'var(--app-accent)', color: '#0B0F09', borderColor: 'var(--app-accent)' } : {}}
+                  onClick={() => { onAssignDay(assigningDay, r.id); setAssigningDay(null); setSearch('') }}>
+                  <span className="grow">{r.name}</span>
+                  {r.category && r.category !== 'Other' && <span style={{ fontSize: 10, textTransform: 'uppercase', color: isAssigned ? 'inherit' : 'var(--text-soft)' }}>{r.category}</span>}
+                  {elsewhereLabel && !isAssigned && <span style={{ fontSize: 10, color: 'var(--text-soft)' }}>{elsewhereLabel}</span>}
+                  {selected.includes(r.id) && !isAssigned && !elsewhereLabel && <span style={{ fontSize: 10, color: 'var(--ok)' }}>✓</span>}
+                </button>
+                {isAssigned && (
+                  <button
+                    className="icon-btn"
+                    aria-label="Remove meal from this day"
+                    style={{ minWidth: 44, color: 'var(--text-soft)', flexShrink: 0 }}
+                    onClick={() => {
+                      const removedId = r.id
+                      const removedDay = assigningDay
+                      onAssignDay(removedDay, null)
+                      setAssigningDay(null)
+                      setSearch('')
+                      toast.show('Meal removed', {
+                        actionLabel: 'Undo',
+                        onAction: () => onAssignDay(removedDay, removedId),
+                      })
+                    }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             )
           })}
         </div>

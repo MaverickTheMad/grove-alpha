@@ -11,9 +11,9 @@ import TrendsTab from './tabs/TrendsTab'
 export const meta = { id: 'quest', name: 'Quest', tagline: 'Goals worth the walk' }
 
 const TABS = [
-  { id: 'chronicle', label: 'Chronicle', icon: 'log' },
-  { id: 'hero',      label: 'Hero',      icon: 'goals' },
-  { id: 'annals',    label: 'Annals',    icon: 'trends' },
+  { id: 'chronicle', label: 'Completed', icon: 'log' },
+  { id: 'hero',      label: 'Tasks',     icon: 'goals' },
+  { id: 'annals',    label: 'Insight',   icon: 'trends' },
 ]
 
 function computeStreak(quests) {
@@ -79,7 +79,7 @@ export default function Quest() {
     return (
       <ToastProvider>
         <main className="screen">
-          <div className="quest-loading">Unfurling the scroll…</div>
+          <div className="quest-loading">Loading tasks…</div>
         </main>
       </ToastProvider>
     )

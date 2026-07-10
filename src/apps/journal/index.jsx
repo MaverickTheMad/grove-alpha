@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import './journal.css'
 import * as store from './lib/store'
+import BottomNav from '../../components/BottomNav'
 import IntakeTab from './tabs/IntakeTab'
 import SetupScreen from './components/SetupScreen'
 import TrendsTab from './tabs/TrendsTab'
@@ -9,9 +10,9 @@ import CalendarTab from './tabs/CalendarTab'
 export const meta = { id: 'journal', name: "Ren's Journal", tagline: 'Cycle & symptoms' }
 
 const TABS = [
-  { id: 'intake', label: 'Log' },
-  { id: 'trends', label: 'Trends' },
-  { id: 'calendar', label: 'Cycle' },
+  { id: 'intake', label: 'Log', icon: 'log' },
+  { id: 'trends', label: 'Trends', icon: 'trends' },
+  { id: 'calendar', label: 'Cycle', icon: 'calendar' },
 ]
 
 export default function Journal() {
@@ -40,16 +41,6 @@ export default function Journal() {
 
   return (
     <div className="journal-page page">
-      <div className="j-page-header">
-        <h1 className="j-title">Journal</h1>
-        <div className="j-tabs">
-          {TABS.map(t => (
-            <button key={t.id} className={`j-tab ${tab === t.id ? 'on' : ''}`} onClick={() => setTab(t.id)}>
-              {t.label}
-            </button>
-          ))}
-        </div>
-      </div>
       {tab === 'intake' && <IntakeTab periodStarts={periodStarts} onChange={bump} refreshKey={refreshKey} />}
       {tab === 'trends' && <TrendsTab periodStarts={periodStarts} refreshKey={refreshKey} />}
       {tab === 'calendar' && (
@@ -59,6 +50,7 @@ export default function Journal() {
           refreshKey={refreshKey}
         />
       )}
+      <BottomNav tabs={TABS} active={tab} onSelect={setTab} />
     </div>
   )
 }

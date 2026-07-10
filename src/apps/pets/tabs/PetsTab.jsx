@@ -84,6 +84,7 @@ function PetDetail({ pet, onClose, onEdit }) {
   const [data, setData] = useState({ weights: [], vax: [], meds: [], conds: [], visits: [] })
   const [loading, setLoading] = useState(true)
   const [sub, setSub] = useState(null)         // which add-sheet is open
+  const [editingVax, setEditingVax] = useState(null) // vax record | null
   const [toast, setToast] = useState(null)
 
   const load = useCallback(async () => {
@@ -248,6 +249,10 @@ function PetDetail({ pet, onClose, onEdit }) {
                       {relativeDays(v.next_due)}
                     </span>
                   )}
+                  <button className="icon-btn" aria-label="Edit vaccination"
+                    onClick={() => setEditingVax(v)} style={{ width: 36, height: 36 }}>
+                    <IconEdit size={15} />
+                  </button>
                   <button className="row-x" aria-label="Delete vaccination"
                     onClick={() => delWithUndo('vaccination', v.id, v.name)}>✕</button>
                 </div>
@@ -321,6 +326,12 @@ function PetDetail({ pet, onClose, onEdit }) {
         onSaved={() => { setSub(null); load() }}
       />
 
+      <EditVax
+        vax={editingVax} pet={pet}
+        onClose={() => setEditingVax(null)}
+        onSaved={() => { setEditingVax(null); load() }}
+      />
+
       <Toast
         toast={toast}
         onUndo={() => toast?.undo?.()}
@@ -332,6 +343,76 @@ function PetDetail({ pet, onClose, onEdit }) {
 
 function Empty({ text }) {
   return <div className="muted sm" style={{ padding: '10px 2px' }}>{text}</div>
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   EditVax — edit an existing vaccination record
+   ════════════════════════════════════════════════════════════════════ */
+function EditVax({ vax, pet, onClose, onSaved }) {
+  const [f, setF] = useState({})
+  const [saving, setSaving] = useState(false)
+  const set = (k, v) => setF((p) => ({ ...p, [k]: v }))
+
+  useEffect(() => {
+    if (vax) {
+      setF({ name: vax.name || '', date_given: vax.date_given || '', next_due: vax.next_due || '' })
+      setSaving(false)
+    }
+  }, [vax])
+
+  const valid = f.name?.trim()
+
+  const save = async () => {
+    if (!valid || saving) return
+    setSaving(true)
+    try {
+      await store.update(vax.id, {
+        name: f.name.trim(),
+        date_given: f.date_given || null,
+        next_due: f.next_due || null,
+      })
+      onSaved()
+    } catch (e) {
+      console.error(e); setSaving(false)
+    }
+  }
+
+  return (
+    <Sheet
+      open={!!vax}
+      onClose={onClose}
+      title="Edit vaccination"
+      footer={
+        <button className="btn primary block cta-big" disabled={!valid || saving} onClick={save}>
+          {saving ? 'Saving…' : 'Save vaccination'}
+        </button>
+      }
+    >
+      <div className="field">
+        <label>Vaccine</label>
+        <input className="input" value={f.name || ''} onChange={(e) => set('name', e.target.value)} placeholder="e.g. Rabies" />
+        {pet && (
+          <div className="chip-row" style={{ marginTop: 8 }}>
+            {(COMMON_VACCINES[pet.species] || []).map((v) => (
+              <button key={v} type="button"
+                className={`chip ${f.name === v ? 'on' : ''}`}
+                onClick={() => set('name', v)}>{v}</button>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="field-row">
+        <div className="field">
+          <label>Date given</label>
+          <input className="input" type="date" max={todayStr()} value={f.date_given || ''} onChange={(e) => set('date_given', e.target.value)} />
+        </div>
+        <div className="field">
+          <label>Next due</label>
+          <input className="input" type="date" value={f.next_due || ''} onChange={(e) => set('next_due', e.target.value)} />
+        </div>
+      </div>
+    </Sheet>
+  )
 }
 
 function SubSection({ title, Ic, onAdd, children }) {

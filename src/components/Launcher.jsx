@@ -5,6 +5,20 @@ import * as data from '../lib/data'
 import { members } from '../lib/identity'
 import { byName } from '../lib/sort'
 
+function useHiddenApps() {
+  const [hidden, setHidden] = useState([])
+  useEffect(() => {
+    let alive = true
+    data.list({ app: 'settings', type: 'app_setting' }).then((rows) => {
+      if (!alive) return
+      const r = rows.find((row) => row.data?.key === 'hidden_apps')
+      if (r && Array.isArray(r.data.value)) setHidden(r.data.value)
+    })
+    return () => { alive = false }
+  }, [])
+  return hidden
+}
+
 // ── App metadata ──────────────────────────────────────────────────────────────
 const APP_META = {
   almanac: { icon: 'calendar', tagline: 'Seasons, dates & the year ahead' },
@@ -138,8 +152,9 @@ function AppTile({ app, onOpen }) {
 // ── Launcher ──────────────────────────────────────────────────────────────────
 export default function Launcher({ apps, onOpen, user, onSignOut, theme, onCycleTheme }) {
   const household = members()
+  const hiddenApps = useHiddenApps()
   const settingsApp = apps.find(a => a.id === 'settings')
-  const mainApps = apps.filter(a => a.id !== 'settings').sort(byName)
+  const mainApps = apps.filter(a => a.id !== 'settings' && !hiddenApps.includes(a.id)).sort(byName)
   const tod = timeOfDay()
 
   return (

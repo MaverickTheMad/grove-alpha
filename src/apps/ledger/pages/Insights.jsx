@@ -4,6 +4,7 @@ import { fmt } from '../lib/format'
 import { currentMonthKey, monthKeyLabel, monthBounds, stepMonthKey, monthKeysFrom } from '../lib/period'
 import { BarChart, Bar, ResponsiveContainer, XAxis, Tooltip, Cell } from 'recharts'
 import { useIsDesktop } from '../../../lib/viewport'
+import Sheet from '../../../components/Sheet'
 
 const TOOLTIP_STYLE = { background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 12, color: 'var(--text)', fontFamily: 'var(--font-mono)' }
 
@@ -14,11 +15,26 @@ export default function Insights() {
   const isWide = useIsDesktop(1080)
 
   const nowKey = currentMonthKey()
+  const nowYear = parseInt(nowKey.split('-')[0], 10)
   const [selectedKey, setSelectedKey] = useState(nowKey)
   const [yearMode, setYearMode] = useState(false)
+  const [drillCat, setDrillCat] = useState(null) // { id, name, color } or null
 
   const monthsWithData = useMemo(() => monthKeysFrom(allTx), [allTx])
   const selectedYear = parseInt(selectedKey.split('-')[0], 10)
+
+  // In year mode, navigate by year (prev/next shift selectedKey by ±12 months anchored to Jan)
+  const stepYear = (delta) => setSelectedKey(`${selectedYear + delta}-01`)
+  const canGoNextYear = selectedYear < nowYear
+
+  // Year-mode aggregation window: all 12 months of selectedYear
+  const yearStart = `${selectedYear}-01-01`
+  const yearEnd = `${selectedYear + 1}-01-01`
+  const yearTx = useMemo(() => allTx.filter(t => t.date >= yearStart && t.date < yearEnd), [allTx, yearStart, yearEnd])
+  const prevYearTx = useMemo(() => {
+    const ps = `${selectedYear - 1}-01-01`, pe = `${selectedYear}-01-01`
+    return allTx.filter(t => t.date >= ps && t.date < pe)
+  }, [allTx, selectedYear])
 
   const cashflowYear = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
@@ -38,8 +54,12 @@ export default function Insights() {
   const prevKey = stepMonthKey(selectedKey, -1)
   const { startISO: prevStart, endISO: prevEnd } = monthBounds(prevKey)
 
-  const selTx = useMemo(() => allTx.filter(t => t.date >= selStart && t.date < selEnd), [allTx, selStart, selEnd])
-  const prevTx = useMemo(() => allTx.filter(t => t.date >= prevStart && t.date < prevEnd), [allTx, prevStart, prevEnd])
+  const selTxMonth = useMemo(() => allTx.filter(t => t.date >= selStart && t.date < selEnd), [allTx, selStart, selEnd])
+  const prevTxMonth = useMemo(() => allTx.filter(t => t.date >= prevStart && t.date < prevEnd), [allTx, prevStart, prevEnd])
+
+  // Branch on yearMode for downstream KPI / category derivation
+  const selTx = yearMode ? yearTx : selTxMonth
+  const prevTx = yearMode ? prevYearTx : prevTxMonth
 
   const kpi = useMemo(() => {
     const income = selTx.filter(t => Number(t.amount) > 0).reduce((s, t) => s + Number(t.amount), 0)
@@ -50,11 +70,13 @@ export default function Insights() {
     return { income, expense, net, momDelta }
   }, [selTx, prevTx])
 
+  const periodLabel = yearMode ? String(selectedYear) : monthKeyLabel(selectedKey)
+  const compLabel = yearMode ? `vs ${selectedYear - 1}` : 'vs last month'
   const kpis = [
-    { label: 'Income', value: fmt(kpi.income, { showCents: false }), valueColor: 'var(--ok)', subText: 'this period', subArrow: '', subColor: 'var(--text-soft)' },
-    { label: 'Spending', value: fmt(kpi.expense, { showCents: false }), valueColor: 'var(--text)', subText: kpi.momDelta !== null ? `${kpi.momDelta > 0 ? '▲' : '▼'} ${Math.abs(kpi.momDelta).toFixed(0)}% vs last month` : 'vs last month', subArrow: '', subColor: kpi.momDelta !== null ? (kpi.momDelta <= 0 ? 'var(--ok)' : 'var(--danger)') : 'var(--text-soft)' },
+    { label: 'Income', value: fmt(kpi.income, { showCents: false }), valueColor: 'var(--ok)', subText: periodLabel, subArrow: '', subColor: 'var(--text-soft)' },
+    { label: 'Spending', value: fmt(kpi.expense, { showCents: false }), valueColor: 'var(--text)', subText: kpi.momDelta !== null ? `${kpi.momDelta > 0 ? '▲' : '▼'} ${Math.abs(kpi.momDelta).toFixed(0)}% ${compLabel}` : compLabel, subArrow: '', subColor: kpi.momDelta !== null ? (kpi.momDelta <= 0 ? 'var(--ok)' : 'var(--danger)') : 'var(--text-soft)' },
     { label: 'Net', value: fmt(kpi.net, { showCents: false, signed: true }), valueColor: kpi.net >= 0 ? 'var(--ok)' : 'var(--danger)', subText: kpi.net >= 0 ? 'surplus' : 'deficit', subArrow: '', subColor: 'var(--text-soft)' },
-    { label: 'Transactions', value: selTx.length, valueColor: 'var(--text)', subText: monthKeyLabel(selectedKey), subArrow: '', subColor: 'var(--text-soft)' },
+    { label: 'Transactions', value: selTx.length, valueColor: 'var(--text)', subText: periodLabel, subArrow: '', subColor: 'var(--text-soft)' },
   ]
 
   const catSpend = useMemo(() => {
@@ -108,7 +130,7 @@ export default function Insights() {
     return `conic-gradient(${stops.join(', ')})`
   }, [catSpend, totalSpend])
 
-  const canGoNext = stepMonthKey(selectedKey, 1) <= nowKey
+  const canGoNext = yearMode ? canGoNextYear : stepMonthKey(selectedKey, 1) <= nowKey
   const availableMonths = [...monthsWithData].reverse()
 
   const cardStyle = { background: 'var(--bg-paper)', border: '1px solid var(--border)', borderRadius: 16 }
@@ -135,11 +157,11 @@ export default function Insights() {
         {/* Scrubber */}
         <div style={{ ...cardStyle, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <button onClick={() => setSelectedKey(stepMonthKey(selectedKey, -1))} style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--text)', fontSize: 18, cursor: 'pointer' }}>‹</button>
+            <button onClick={() => yearMode ? stepYear(-1) : setSelectedKey(stepMonthKey(selectedKey, -1))} style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--text)', fontSize: 18, cursor: 'pointer' }}>‹</button>
             <div style={{ minWidth: isWide ? 190 : 120, textAlign: 'center', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: isWide ? 'var(--fs-xl)' : 'var(--fs-lg)', color: 'var(--text)' }}>
-              {monthKeyLabel(selectedKey, { long: true })}
+              {yearMode ? selectedYear : monthKeyLabel(selectedKey, { long: true })}
             </div>
-            <button onClick={() => setSelectedKey(stepMonthKey(selectedKey, 1))} disabled={!canGoNext} style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--text)', fontSize: 18, cursor: 'pointer', opacity: canGoNext ? 1 : 0.4 }}>›</button>
+            <button onClick={() => yearMode ? stepYear(1) : setSelectedKey(stepMonthKey(selectedKey, 1))} disabled={!canGoNext} style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--text)', fontSize: 18, cursor: 'pointer', opacity: canGoNext ? 1 : 0.4 }}>›</button>
           </div>
           {isWide && availableMonths.length > 0 && (
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-soft)', fontSize: 'var(--fs-sm)' }}>
@@ -200,7 +222,7 @@ export default function Insights() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {catSpend.map(c => (
-                  <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '7px 0' }}>
+                  <button key={c.id} onClick={() => setDrillCat(c)} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '7px 0', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', borderRadius: 8 }}>
                     <span style={{ width: 10, height: 10, borderRadius: 3, background: c.color, flexShrink: 0 }} />
                     <span style={{ width: isWide ? 104 : 74, flexShrink: 0, color: 'var(--text)', fontSize: isWide ? 'var(--fs-sm)' : 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
                     <div style={{ flex: 1, height: 10, background: 'var(--bg-sunken)', borderRadius: 999, overflow: 'hidden' }}>
@@ -212,7 +234,7 @@ export default function Insights() {
                         {c.delta !== 0 ? `${c.delta > 0 ? '▲' : '▼'} ${fmt(Math.abs(c.delta), { showCents: false })}` : '—'}
                       </span>
                     )}
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
@@ -234,11 +256,11 @@ export default function Insights() {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 14px', alignSelf: 'stretch' }}>
                   {catSpend.map(c => (
-                    <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-soft)' }}>
+                    <button key={c.id} onClick={() => setDrillCat(c)} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-soft)', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '2px 0', borderRadius: 4 }}>
                       <span style={{ width: 8, height: 8, borderRadius: 2, background: c.color, flexShrink: 0 }} />
                       <span style={{ flex: 1, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
                       <span style={{ fontFamily: 'var(--font-mono)' }}>{Math.round((c.value / totalSpend) * 100)}%</span>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </>
@@ -283,6 +305,42 @@ export default function Insights() {
         )}
 
       </div>
+
+      {/* L3: Category drill-down sheet */}
+      {(() => {
+        if (!drillCat) return null
+        const drillTx = selTx
+          .filter(t => t.category_id === drillCat.id && Number(t.amount) < 0)
+          .sort((a, b) => (b.date > a.date ? 1 : -1))
+        const drillTotal = drillTx.reduce((s, t) => s + Math.abs(Number(t.amount)), 0)
+        return (
+          <Sheet
+            open={!!drillCat}
+            onClose={() => setDrillCat(null)}
+            title={drillCat.name}
+          >
+            <div style={{ marginBottom: 'var(--sp-3)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ color: 'var(--text-soft)', fontSize: 'var(--fs-sm)' }}>{periodLabel}</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-lg)', color: 'var(--text)' }}>{fmt(drillTotal, { showCents: false })}</span>
+            </div>
+            {drillTx.length === 0 ? (
+              <p style={{ color: 'var(--text-soft)', fontSize: 'var(--fs-sm)', textAlign: 'center', padding: 'var(--sp-6) 0' }}>No expenses in this category for the period.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                {drillTx.map((t) => (
+                  <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', padding: 'var(--sp-2) 0', borderBottom: '1px solid var(--border)' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.description || '—'}</div>
+                      <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-soft)', fontFamily: 'var(--font-mono)' }}>{t.date}</div>
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-sm)', color: 'var(--text)', flexShrink: 0 }}>{fmt(Math.abs(Number(t.amount)), { showCents: true })}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Sheet>
+        )
+      })()}
     </div>
   )
 }
