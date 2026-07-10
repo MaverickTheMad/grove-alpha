@@ -52,29 +52,3 @@ export async function deleteWorkout(id) {
   await db.remove(id)
 }
 
-// ── Rewards shop + redemptions ────────────────────────────────────────────────
-export async function listRewards(person) {
-  const rows = await db.list({ app: APP, type: TYPES.reward })
-  return rows.map(rowFrom).filter((r) => r.person === person).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-}
-export async function addReward(person, data) {
-  await db.create({ app: APP, type: TYPES.reward, data: { person, ...data } })
-}
-export async function updateReward(id, patch) {
-  const rows = await db.list({ app: APP, type: TYPES.reward })
-  const r = rows.find((x) => x.id === id)
-  await db.update(id, { data: { ...(r?.data || {}), ...patch } })
-}
-export async function deleteReward(id) { await db.remove(id) }
-
-export async function listRedemptions(person, { limit = 30 } = {}) {
-  const rows = await db.list({ app: APP, type: TYPES.redemption })
-  return rows.map((r) => ({ id: r.id, redeemed_at: r.occurredAt, ...r.data }))
-    .filter((x) => x.person === person)
-    .sort((a, b) => new Date(b.redeemed_at) - new Date(a.redeemed_at))
-    .slice(0, limit)
-}
-export async function addRedemption(person, data) {
-  const redeemed_at = new Date().toISOString()
-  await db.create({ app: APP, type: TYPES.redemption, occurredAt: redeemed_at, data: { person, redeemed_at, ...data } })
-}
