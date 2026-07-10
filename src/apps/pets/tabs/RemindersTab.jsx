@@ -92,11 +92,17 @@ export default function RemindersTab({ pets, onJump }) {
   if (pets.length === 0) {
     return (
       <div className="tab-pad">
+        <h1 className="p-title" style={{ marginBottom: 20 }}>Reminders</h1>
         <div className="empty full">
-          <IconPaw size={44} />
+          <div className="p-empty-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="3" y="1" width="14" height="15" rx="3" stroke="var(--app-accent)" strokeWidth="2" />
+              <line x1="0" y1="15" x2="20" y2="15" stroke="var(--app-accent)" strokeWidth="2" />
+            </svg>
+          </div>
           <h3>No pets yet</h3>
           <p>Add Mav &amp; Ren&rsquo;s pets to start tracking vaccines, meds, and grooming.</p>
-          <button className="btn primary" onClick={() => onJump('pets')}>Add a pet</button>
+          <button className="p-add-btn" style={{ padding: '12px 22px', marginTop: 6 }} onClick={() => onJump('pets')}>Add a pet</button>
         </div>
       </div>
     )
@@ -120,7 +126,7 @@ export default function RemindersTab({ pets, onJump }) {
             const pet = petById(it.pet_id)
             const b = bucket(daysUntil(it.due))
             return (
-              <div className="row" key={it.key}>
+              <div className="rem-row" key={it.key}>
                 {it.remId ? (
                   <input
                     type="checkbox"
@@ -135,13 +141,11 @@ export default function RemindersTab({ pets, onJump }) {
                       : <it.Ic size={20} />}
                   </div>
                 )}
-                <div className="grow">
-                  <div className="title">{it.label}</div>
-                  <div className="sub">
-                    {pet?.name || '—'} · {it.kind} · {fmtDate(it.due)}
-                  </div>
+                <div className="rem-row-body">
+                  <div className="rem-row-title">{it.label}</div>
+                  <div className="rem-row-sub">{pet?.name || '—'} · {it.kind}</div>
                 </div>
-                <BucketBadge b={b} due={it.due} />
+                <span className={`rem-date ${b}`}>{relativeDays(it.due)}</span>
               </div>
             )
           })}
@@ -151,10 +155,10 @@ export default function RemindersTab({ pets, onJump }) {
 
   return (
     <div className="tab-pad">
-      <div className="section-h-row">
-        <h2 className="section-h flush">Upcoming</h2>
+      <div className="p-page-header">
+        <h1 className="p-title">Reminders</h1>
         <button className="btn ghost sm" onClick={() => setAdding(true)}>
-          <IconPlus size={14} /> Reminder
+          <IconPlus size={14} /> Add
         </button>
       </div>
 
@@ -162,10 +166,15 @@ export default function RemindersTab({ pets, onJump }) {
         <div className="empty"><div className="big">⏳</div><p>Loading&hellip;</p></div>
       ) : items.length === 0 ? (
         <div className="empty">
-          <div className="big">✓</div>
+          <div className="p-empty-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="3" y="1" width="14" height="15" rx="3" stroke="var(--app-accent)" strokeWidth="2" />
+              <line x1="0" y1="15" x2="20" y2="15" stroke="var(--app-accent)" strokeWidth="2" />
+            </svg>
+          </div>
           <h3>All caught up</h3>
           <p>Meds, vet visits, and grooming will show up here as they come due.</p>
-          <button className="btn primary" onClick={() => setAdding(true)}>Add a reminder</button>
+          <button className="p-add-btn" style={{ padding: '12px 22px', marginTop: 6 }} onClick={() => setAdding(true)}>Add a reminder</button>
         </div>
       ) : (
         <>

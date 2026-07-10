@@ -18,41 +18,40 @@ export default function PetsTab({ pets, reloadPets }) {
 
   return (
     <div className="tab-pad">
-      <div className="section-h-row">
-        <h2 className="section-h flush">Our pets</h2>
-        <button className="btn primary sm" onClick={() => setEditing('new')}>
-          <IconPlus size={14} /> Add pet
-        </button>
+      <div className="p-page-header">
+        <h1 className="p-title">Pets</h1>
+        <button className="p-add-btn" onClick={() => setEditing('new')}>Add pet</button>
       </div>
 
       {pets.length === 0 ? (
         <div className="empty full">
-          <IconPaw size={44} />
+          <div className="p-empty-icon">
+            <svg width="26" height="22" viewBox="0 0 26 22" fill="none">
+              <ellipse cx="13" cy="14" rx="7" ry="6" fill="var(--app-accent)" />
+              <circle cx="5" cy="4" r="3" fill="var(--app-accent)" />
+              <circle cx="21" cy="4" r="3" fill="var(--app-accent)" />
+            </svg>
+          </div>
           <h3>No pets yet</h3>
           <p>Add a pet to track their care, reminders, and documents in one place.</p>
-          <button className="btn primary" onClick={() => setEditing('new')}>Add your first pet</button>
+          <button className="p-add-btn" style={{ marginTop: 6, padding: '12px 22px' }} onClick={() => setEditing('new')}>Add your first pet</button>
         </div>
       ) : (
-        <div className="col-2">
+        <div className="pet-grid">
           {pets.map((p) => {
             const meta = speciesMeta(p.species)
             return (
               <button key={p.id} className="pet-card" onClick={() => setOpenPet(p)}>
-                <div className="avatar lg app-tint">
+                <div className="pet-card-photo">
                   {p.photo_url ? <img src={p.photo_url} alt={p.name} /> : meta.icon}
                 </div>
-                <div className="grow">
+                <div className="pet-card-body">
                   <div className="pet-name">{p.name}</div>
-                  <div className="pet-sub">
-                    {meta.label}{p.breed ? ` · ${p.breed}` : ''}
-                  </div>
+                  <div className="pet-sub">{meta.label}{p.breed ? ` · ${p.breed}` : ''}</div>
                   {p.birthday && (
-                    <div className="pet-sub mono" style={{ fontFamily:'var(--font-mono)', fontSize:'var(--fs-xs)', marginTop:2 }}>
-                      {ageFromBirthday(p.birthday)}{p.birthday_estimated ? ' (est.)' : ''}
-                    </div>
+                    <div className="pet-meta">{ageFromBirthday(p.birthday)}{p.birthday_estimated ? ' (est.)' : ''}</div>
                   )}
                 </div>
-                <span className="pet-caret" aria-hidden>›</span>
               </button>
             )
           })}
@@ -125,14 +124,22 @@ function PetDetail({ pet, onClose, onEdit }) {
       onClose={onClose}
       title={null}
     >
-      {/* Hero strip */}
-      <div className="row" style={{ borderBottom: 'none', paddingTop: 0 }}>
-        <div className="avatar lg app-tint">
-          {pet.photo_url ? <img src={pet.photo_url} alt={pet.name} /> : meta.icon}
+      {/* Hero photo strip */}
+      {pet.photo_url ? (
+        <div style={{ width: '100%', height: 160, overflow: 'hidden', borderRadius: 'var(--r-md)', marginBottom: 'var(--sp-3)', flexShrink: 0, background: 'var(--bg-elevated)' }}>
+          <img src={pet.photo_url} alt={pet.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         </div>
-        <div className="grow">
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-2xl)' }}>{pet.name}</div>
-          <div className="sub">
+      ) : (
+        <div style={{ width: '100%', height: 100, background: 'var(--bg-elevated)', borderRadius: 'var(--r-md)', marginBottom: 'var(--sp-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48, flexShrink: 0 }}>
+          {meta.icon}
+        </div>
+      )}
+
+      {/* Name + sub + edit */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--sp-2)', marginBottom: 'var(--sp-3)' }}>
+        <div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text)' }}>{pet.name}</div>
+          <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-soft)', marginTop: 2 }}>
             {meta.label}{pet.breed ? ` · ${pet.breed}` : ''}
             {pet.sex ? ` · ${pet.sex}` : ''}{pet.fixed ? ' · fixed' : ''}
           </div>
@@ -142,22 +149,33 @@ function PetDetail({ pet, onClose, onEdit }) {
         </button>
       </div>
 
-      {/* Quick facts */}
-      <div className="card" style={{ marginTop: 'var(--sp-2)' }}>
-        {pet.birthday && (
-          <div className="kv">
-            <span className="k">Age</span>
-            <span className="v">{ageFromBirthday(pet.birthday)}{pet.birthday_estimated ? ' (est.)' : ''} · {fmtDate(pet.birthday)}</span>
-          </div>
-        )}
-        {pet.adoption_date && <div className="kv"><span className="k">Adopted</span><span className="v">{fmtDate(pet.adoption_date)}</span></div>}
+      {/* Stats row in JetBrains Mono */}
+      {(pet.birthday || latestWeight || pet.adoption_date) && (
+        <div className="pet-stats-row" style={{ marginBottom: 'var(--sp-3)' }}>
+          {pet.birthday && (
+            <div className="pet-stat">
+              <span className="pet-stat-label">Birthday</span>
+              <span className="pet-stat-value">{fmtDate(pet.birthday)}</span>
+            </div>
+          )}
+          {pet.birthday && (
+            <div className="pet-stat">
+              <span className="pet-stat-label">Age</span>
+              <span className="pet-stat-value">{ageFromBirthday(pet.birthday)}{pet.birthday_estimated ? ' (est.)' : ''}</span>
+            </div>
+          )}
+          {latestWeight && (
+            <div className="pet-stat">
+              <span className="pet-stat-label">Weight</span>
+              <span className="pet-stat-value">{latestWeight.weight_lbs} lb</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Supplemental facts */}
+      <div className="card" style={{ marginBottom: 'var(--sp-3)' }}>
         {pet.color && <div className="kv"><span className="k">Color / markings</span><span className="v">{pet.color}</span></div>}
-        {latestWeight && (
-          <div className="kv">
-            <span className="k">Weight</span>
-            <span className="v mono">{latestWeight.weight_lbs} lbs · {fmtDate(latestWeight.weighed_on)}</span>
-          </div>
-        )}
         {pet.microchip && <div className="kv"><span className="k">Microchip</span><span className="v mono">{pet.microchip}</span></div>}
         {pet.vet_name && <div className="kv"><span className="k">Vet</span><span className="v">{pet.vet_name}</span></div>}
         {pet.vet_phone && (
@@ -172,6 +190,7 @@ function PetDetail({ pet, onClose, onEdit }) {
             <span className="v">{[pet.food_brand, pet.food_amount].filter(Boolean).join(' · ')}</span>
           </div>
         )}
+        {pet.adoption_date && <div className="kv"><span className="k">Adopted</span><span className="v">{fmtDate(pet.adoption_date)}</span></div>}
         {pet.notes && (
           <>
             <div className="divider" />

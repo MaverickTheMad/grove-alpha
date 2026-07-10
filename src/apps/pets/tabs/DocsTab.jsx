@@ -49,10 +49,10 @@ export default function DocsTab({ pets }) {
 
   return (
     <div className="tab-pad">
-      <div className="section-h-row">
-        <h2 className="section-h flush">Documents</h2>
+      <div className="p-page-header">
+        <h1 className="p-title">Documents</h1>
         <button className="btn ghost sm" onClick={() => setAdding(true)}>
-          <IconPlus size={14} /> Document
+          <IconPlus size={14} /> Add
         </button>
       </div>
 
@@ -85,10 +85,14 @@ export default function DocsTab({ pets }) {
         <div className="empty"><div className="big">⏳</div><p>Loading&hellip;</p></div>
       ) : shown.length === 0 ? (
         <div className="empty">
-          <IconDoc size={36} />
-          <h3>Nothing here yet</h3>
+          <div className="p-empty-icon">
+            <svg width="16" height="20" viewBox="0 0 16 20" fill="none">
+              <rect x="1" y="1" width="14" height="18" rx="2" stroke="var(--app-accent)" strokeWidth="2" />
+            </svg>
+          </div>
+          <h3>No documents yet</h3>
           <p>Keep vet records, insurance, and invoices together, linked to each pet.</p>
-          <button className="btn primary" onClick={() => setAdding(true)}>Add a document</button>
+          <button className="p-add-btn" style={{ padding: '12px 22px', marginTop: 6 }} onClick={() => setAdding(true)}>Add a document</button>
         </div>
       ) : (
         <div className="doc-grid">
