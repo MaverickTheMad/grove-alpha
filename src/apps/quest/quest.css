@@ -1,6 +1,33 @@
 /* Quest — scoped to [data-app="quest"]. Fern accent via --app-accent.
    Primary actions use house green (--accent) per App.css override. */
 
+/* ── Local bronze token (not in global palette) ── */
+[data-app="quest"] { --q-bronze: #C08A4E; }
+
+/* ── Page header ── */
+[data-app="quest"] .q-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+[data-app="quest"] .q-title {
+  font-family: var(--font-display); font-weight: 500; font-size: 1.95rem;
+  color: var(--text); margin: 0;
+}
+[data-app="quest"] .q-count {
+  font-family: var(--font-mono); font-size: 13px; color: var(--q-bronze);
+}
+
+/* ── Group section label ── */
+[data-app="quest"] .q-group {
+  display: flex; flex-direction: column; gap: 0; margin-bottom: 24px;
+}
+[data-app="quest"] .q-group-label {
+  font-family: var(--font-display); font-size: 0.95rem; font-weight: 600;
+  margin-bottom: 6px;
+}
+[data-app="quest"] .q-group-label.today { color: var(--accent); }
+[data-app="quest"] .q-group-label.later { color: var(--text-soft); }
+
 /* ── Shared primitives ────────────────────────────────────────────────────── */
 [data-app="quest"] .card {
   background: var(--bg-paper);
@@ -180,32 +207,32 @@
 [data-app="quest"] .quest-row {
   display: flex;
   align-items: flex-start;
-  gap: var(--sp-3);
-  padding: var(--sp-3) 0;
-  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
   transition: opacity 280ms ease;
 }
-[data-app="quest"] .quest-row:last-child { border-bottom: none; }
 [data-app="quest"] .quest-row--completing { opacity: .45; pointer-events: none; }
 
+/* Circle check — 22px, green border */
 [data-app="quest"] .quest-check {
-  width: 32px;
-  height: 32px;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
-  border-radius: var(--r-sm);
-  border: 2px solid var(--border);
-  background: var(--bg-sunken);
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: transparent;
   display: grid;
   place-items: center;
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 700;
   color: transparent;
   transition: all 180ms cubic-bezier(.2,.8,.2,1);
   margin-top: 2px;
 }
 [data-app="quest"] .quest-check--done {
-  background: var(--app-accent);
-  border-color: var(--app-accent);
+  background: var(--accent);
+  border-color: var(--accent);
   color: #fff;
 }
 [data-app="quest"] .quest-check-mark { color: #fff; }
@@ -213,38 +240,43 @@
 [data-app="quest"] .quest-row-body { flex: 1; min-width: 0; }
 [data-app="quest"] .quest-row-title {
   font-family: var(--font-display);
-  font-size: var(--fs-base);
-  font-weight: var(--fw-title);
+  font-size: 1rem;
+  font-weight: 500;
   color: var(--text);
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   line-height: 1.25;
 }
 [data-app="quest"] .quest-row-meta {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-/* Difficulty chips */
+/* Difficulty chip — flat, single style per reference */
 [data-app="quest"] .quest-diff-chip {
-  font-size: var(--fs-xs);
+  font-size: 11px;
   font-weight: var(--fw-med);
   padding: 2px 8px;
-  border-radius: var(--r-full);
+  border-radius: var(--r-sm);
+  background: var(--bg-elevated);
+  color: var(--text-soft);
 }
-[data-app="quest"] .quest-diff-easy   { background: color-mix(in srgb, var(--ok)  15%, transparent); color: var(--ok);   }
-[data-app="quest"] .quest-diff-medium { background: color-mix(in srgb, var(--warn) 15%, transparent); color: var(--warn); }
-[data-app="quest"] .quest-diff-hard   { background: color-mix(in srgb, var(--fire) 15%, transparent); color: var(--fire); }
-[data-app="quest"] .quest-diff-epic   { background: color-mix(in srgb, var(--app-accent) 15%, transparent); color: var(--app-accent); }
 
-/* XP chip — Fern identity moment */
+/* XP chip — bronze */
 [data-app="quest"] .quest-xp-chip {
   font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-med);
-  color: var(--app-accent);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--q-bronze);
+}
+
+/* Due date */
+[data-app="quest"] .quest-due-chip {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-soft);
 }
 
 /* Category chip */
@@ -254,13 +286,6 @@
   padding: 2px 7px;
   border-radius: var(--r-full);
   border: 1px solid var(--border);
-}
-
-/* Due date */
-[data-app="quest"] .quest-due-chip {
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  color: var(--text-soft);
 }
 
 /* Delete button */
@@ -293,6 +318,15 @@
   color: var(--text-soft);
 }
 
+/* Add quest button — full width, accent, br:12 */
+[data-app="quest"] .q-add-btn {
+  width: 100%; background: var(--accent); color: var(--bg); border: none;
+  font-family: var(--font-ui); font-size: 15px; font-weight: 600;
+  padding: 14px; border-radius: var(--r-md); cursor: pointer;
+  margin-top: var(--sp-3); transition: opacity 120ms;
+}
+[data-app="quest"] .q-add-btn:active { opacity: .85; }
+
 /* Add form */
 [data-app="quest"] .quest-add-form { display: flex; flex-direction: column; }
 [data-app="quest"] .quest-templates { margin-top: var(--sp-2); margin-bottom: var(--sp-3); }
@@ -315,47 +349,48 @@
 [data-app="quest"] .quest-add-footer .btn { min-width: 100px; }
 
 /* ── Chronicle (LogTab) ───────────────────────────────────────────────────── */
-[data-app="quest"] .chronicle-intro {
-  font-size: var(--fs-sm);
-  color: var(--text-soft);
-  margin-bottom: var(--sp-4);
-  font-style: italic;
-}
 [data-app="quest"] .chronicle-section { margin-bottom: var(--sp-5); }
 [data-app="quest"] .chronicle-date {
-  font-family: var(--font-body);
-  font-size: var(--fs-xs);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
   font-weight: var(--fw-med);
   text-transform: uppercase;
-  letter-spacing: .08em;
+  letter-spacing: .04em;
   color: var(--text-soft);
-  margin-bottom: var(--sp-2);
+  margin-bottom: 14px;
 }
-[data-app="quest"] .chronicle-card { padding: 0 var(--sp-4); }
 [data-app="quest"] .chronicle-item {
   display: flex;
   align-items: center;
-  gap: var(--sp-3);
-  padding: var(--sp-3) 0;
-  border-bottom: 1px solid var(--border);
+  gap: 10px;
+  margin-bottom: 14px;
 }
-[data-app="quest"] .chronicle-item--last { border-bottom: none; }
-[data-app="quest"] .chronicle-item-body { flex: 1; min-width: 0; }
+[data-app="quest"] .chronicle-item-check {
+  font-size: 15px; color: var(--ok); flex-shrink: 0;
+}
 [data-app="quest"] .chronicle-item-title {
-  font-size: var(--fs-base);
+  flex: 1; min-width: 0;
+  font-size: 0.95rem;
   color: var(--text);
-  display: block;
 }
-[data-app="quest"] .chronicle-item-cat {
-  display: inline-block;
-  font-size: var(--fs-xs);
+[data-app="quest"] .chronicle-item-time {
+  font-family: var(--font-mono);
+  font-size: 12px;
   color: var(--text-soft);
-  margin-top: 2px;
-}
-[data-app="quest"] .chronicle-item-xp {
-  font-size: var(--fs-sm);
-  color: var(--app-accent);
   flex-shrink: 0;
+}
+
+/* ── Annals stat card ────────────────────────────────────────────────────── */
+[data-app="quest"] .q-stat-card {
+  background: var(--bg-paper); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 20px; margin-bottom: var(--sp-3);
+}
+[data-app="quest"] .q-stat-label {
+  font-size: 12px; color: var(--text-soft); margin-bottom: 4px;
+}
+[data-app="quest"] .q-stat-value {
+  font-family: var(--font-mono); font-size: 2.44rem; font-weight: 600;
+  color: var(--q-bronze); line-height: 1;
 }
 
 /* ── Loading ──────────────────────────────────────────────────────────────── */

@@ -1,7 +1,6 @@
 import { isoToLocalDateStr, todayStr, addDays, prettyDate } from '../constants'
 
 function groupByDate(quests) {
-  // quests are already sorted newest-first by completed_at
   const groups = []
   const seen = {}
   for (const q of quests) {
@@ -23,35 +22,36 @@ function formatDateLabel(dateStr) {
   return prettyDate(dateStr)
 }
 
+function formatTime(isoStr) {
+  if (!isoStr) return ''
+  return new Date(isoStr).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+}
+
 export default function LogTab({ ctx }) {
   const { completedQuests } = ctx
   const groups = groupByDate(completedQuests)
 
   return (
     <>
-      <div className="chronicle-intro">
-        Every quest you complete gets written into the chronicle.
-      </div>
+      <h1 className="q-title" style={{ marginBottom: 20 }}>Chronicle</h1>
 
       {groups.length === 0 ? (
-        <div className="card">
-          <p className="empty">No completed quests yet. Head to Hero and start your first.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '40vh', gap: 16, textAlign: 'center', padding: '0 32px' }}>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', border: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: 'var(--text-soft)' }}>📜</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--text)' }}>No history yet</div>
+          <div style={{ color: 'var(--text-soft)', fontSize: 14 }}>Every quest you complete gets written into the chronicle.</div>
         </div>
       ) : (
-        groups.map((group, gi) => (
+        groups.map((group) => (
           <section key={group.date} className="chronicle-section">
             <div className="chronicle-date">{formatDateLabel(group.date)}</div>
-            <div className="card chronicle-card">
-              {group.items.map((q, i) => (
-                <div key={q.id} className={`chronicle-item${i < group.items.length - 1 ? '' : ' chronicle-item--last'}`}>
-                  <div className="chronicle-item-body">
-                    <span className="chronicle-item-title">{q.title}</span>
-                    {q.category && <span className="chronicle-item-cat">{q.category}</span>}
-                  </div>
-                  <span className="chronicle-item-xp num">+{q.xp_reward ?? 10}</span>
-                </div>
-              ))}
-            </div>
+            {group.items.map((q) => (
+              <div key={q.id} className="chronicle-item">
+                <span className="chronicle-item-check">✓</span>
+                <span className="chronicle-item-title">{q.title}</span>
+                <span className="chronicle-item-time">{formatTime(q.completed_at)}</span>
+              </div>
+            ))}
           </section>
         ))
       )}

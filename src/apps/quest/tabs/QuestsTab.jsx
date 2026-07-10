@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Sheet from '../../../components/Sheet'
 import { useToast } from '../../../components/Toast'
-import { DIFFICULTIES, QUEST_CATEGORIES, DEFAULT_HABITS } from '../constants'
+import { DIFFICULTIES, QUEST_CATEGORIES, DEFAULT_HABITS, todayStr, addDays } from '../constants'
 
 const diffById = Object.fromEntries(DIFFICULTIES.map(d => [d.id, d]))
 
@@ -135,8 +135,20 @@ function AddQuestForm({ onSave, onCancel }) {
   )
 }
 
+function groupQuests(quests) {
+  const today = todayStr()
+  const weekEnd = addDays(today, 7)
+  const groups = { today: [], week: [], later: [] }
+  for (const q of quests) {
+    if (!q.due || q.due > weekEnd) groups.later.push(q)
+    else if (q.due === today) groups.today.push(q)
+    else groups.week.push(q)
+  }
+  return groups
+}
+
 export default function QuestsTab({ ctx }) {
-  const { prog, rank, streak, totalXp, activeQuests, handleComplete, handleDelete, handleRestore, handleAdd } = ctx
+  const { activeQuests, handleComplete, handleDelete, handleRestore, handleAdd } = ctx
   const [adding, setAdding] = useState(false)
   const { show: showToast } = useToast()
 
@@ -158,7 +170,6 @@ export default function QuestsTab({ ctx }) {
     setAdding(false)
   }
 
-  // Sort active quests: by due date (soonest first), then by creation order
   const sorted = [...activeQuests].sort((a, b) => {
     if (a.due && b.due) return a.due.localeCompare(b.due)
     if (a.due) return -1
@@ -166,14 +177,25 @@ export default function QuestsTab({ ctx }) {
     return new Date(b.createdAt) - new Date(a.createdAt)
   })
 
+  const groups = groupQuests(sorted)
+
+  const QuestGroup = ({ label, quests, labelClass }) =>
+    quests.length === 0 ? null : (
+      <div className="q-group">
+        <div className={`q-group-label ${labelClass}`}>{label}</div>
+        {quests.map(q => (
+          <QuestRow key={q.id} quest={q} onComplete={() => onComplete(q)} onDelete={() => onDelete(q)} />
+        ))}
+      </div>
+    )
+
   return (
     <>
-      {/* Quiet status chips */}
-      <div className="quest-status">
-        <span className="quest-status-chip">{rank}</span>
-        <span className="quest-status-chip num">Lv {prog.level}</span>
-        <span className="quest-status-chip num">{totalXp} XP</span>
-        {streak > 0 && <span className="quest-status-chip quest-streak">🔥 {streak} day{streak === 1 ? '' : 's'}</span>}
+      <div className="q-header">
+        <h1 className="q-title">Hero</h1>
+        {activeQuests.length > 0 && (
+          <span className="q-count">{activeQuests.length} active</span>
+        )}
       </div>
 
       {sorted.length === 0 ? (
@@ -183,14 +205,13 @@ export default function QuestsTab({ ctx }) {
         </div>
       ) : (
         <>
-          <div className="quest-list card">
-            {sorted.map(q => (
-              <QuestRow key={q.id} quest={q} onComplete={() => onComplete(q)} onDelete={() => onDelete(q)} />
-            ))}
-          </div>
-          <button className="btn primary block" onClick={() => setAdding(true)}>Add a quest</button>
+          <QuestGroup label="Today" quests={groups.today} labelClass="today" />
+          <QuestGroup label="This week" quests={groups.week} labelClass="later" />
+          <QuestGroup label="Later" quests={groups.later} labelClass="later" />
         </>
       )}
+
+      <button className="q-add-btn" onClick={() => setAdding(true)}>Add a quest</button>
 
       <Sheet open={adding} onClose={() => setAdding(false)} title="New quest">
         <AddQuestForm onSave={onAdd} onCancel={() => setAdding(false)} />

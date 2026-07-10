@@ -64,26 +64,28 @@ export default function TrendsTab({ ctx }) {
 
   const totalCompleted = completedQuests.length
 
+  const thisWeekCount = weekCounts.reduce((s, d) => s + d.count, 0)
+
   return (
     <>
+      <h1 className="q-title" style={{ marginBottom: 20 }}>Annals</h1>
+
       {totalCompleted === 0 ? (
         <div className="card">
           <p className="empty">No quests completed yet. The annals await your deeds.</p>
         </div>
       ) : (
         <>
+          <div className="q-stat-card">
+            <div className="q-stat-label">Quests completed this week</div>
+            <div className="q-stat-value">{thisWeekCount}</div>
+          </div>
+
           <div className="card">
-            <div className="card-title">This week <span className="card-title-meta">{weekCounts.reduce((s, d) => s + d.count, 0)} quests</span></div>
-            {weekDays.map((d, i) => {
-              return (
-                <BarRow
-                  key={d}
-                  label={DAY_LABELS[i]}
-                  value={weekCounts[i].count}
-                  max={maxWeekDay}
-                />
-              )
-            })}
+            <div className="card-title">This week <span className="card-title-meta">{thisWeekCount} quests</span></div>
+            {weekDays.map((d, i) => (
+              <BarRow key={d} label={DAY_LABELS[i]} value={weekCounts[i].count} max={maxWeekDay} />
+            ))}
           </div>
 
           <div className="card">
