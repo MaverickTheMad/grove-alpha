@@ -98,23 +98,111 @@ export async function saveSections(recordId, map) {
   return rec.id
 }
 
-// ── Shopping state (single record) ────────────────────────────────────────────
-const STATE_DEFAULTS = { selected_meals: [], pantry_items: [], checked_items: [], meal_plan: {} }
+// ── Shopping state (granular records — one record per item) ──────────────────
+// Replaces the legacy single shopping_state blob to fix last-writer-wins
+// concurrency bugs when two devices edit the list simultaneously.
 
+export async function loadGranularState() {
+  const [meals, items, checked, slots] = await Promise.all([
+    data.list({ app: APP, type: TYPES.selectedMeal }),
+    data.list({ app: APP, type: TYPES.pantryItem }),
+    data.list({ app: APP, type: TYPES.checkedItem }),
+    data.list({ app: APP, type: TYPES.mealPlanSlot }),
+  ])
+  return {
+    selected_meals: meals.map((r) => r.data.recipe_id),
+    pantry_items:   items.map((r) => ({ _id: r.id, name: r.data.name, haveQty: r.data.haveQty || '' })),
+    checked_items:  checked.map((r) => r.data.name),
+    meal_plan:      Object.fromEntries(slots.map((r) => [String(r.data.day_index), r.data.recipe_id])),
+    _slots:         Object.fromEntries(slots.map((r) => [String(r.data.day_index), r.id])),
+    _mealRecordIds: Object.fromEntries(meals.map((r) => [r.data.recipe_id, r.id])),
+    _itemRecordIds: Object.fromEntries(items.map((r) => [r.data.name, r.id])),
+    _checkedIds:    Object.fromEntries(checked.map((r) => [r.data.name, r.id])),
+  }
+}
+
+// Idempotent migration: if a legacy shopping_state record exists, decompose it
+// into granular records then remove it. Safe to call on every load.
+export async function migrateShoppingState() {
+  const old = await data.list({ app: APP, type: TYPES.shoppingState })
+  if (old.length === 0) return
+  const blob = old[0].data ?? {}
+
+  // Avoid duplicating granular records that may already exist
+  const existing = await loadGranularState()
+  const existingMeals = new Set(existing._mealRecordIds ? Object.keys(existing._mealRecordIds) : [])
+  const existingItems = new Set(existing._itemRecordIds ? Object.keys(existing._itemRecordIds) : [])
+  const existingChecked = new Set(existing._checkedIds ? Object.keys(existing._checkedIds) : [])
+  const existingSlots = new Set(existing._slots ? Object.keys(existing._slots) : [])
+
+  const writes = []
+  for (const id of (blob.selected_meals ?? [])) {
+    if (!existingMeals.has(id)) writes.push(data.create({ app: APP, type: TYPES.selectedMeal, data: { recipe_id: id } }))
+  }
+  for (const it of (blob.pantry_items ?? [])) {
+    const name = typeof it === 'string' ? it : it.name
+    if (!existingItems.has(name)) writes.push(data.create({ app: APP, type: TYPES.pantryItem, data: { name, haveQty: it.haveQty || '' } }))
+  }
+  for (const name of (blob.checked_items ?? [])) {
+    if (!existingChecked.has(name)) writes.push(data.create({ app: APP, type: TYPES.checkedItem, data: { name } }))
+  }
+  for (const [k, v] of Object.entries(blob.meal_plan ?? {})) {
+    if (!existingSlots.has(k)) writes.push(data.create({ app: APP, type: TYPES.mealPlanSlot, data: { day_index: Number(k), recipe_id: v } }))
+  }
+  await Promise.all(writes)
+  // Remove all legacy records
+  await Promise.all(old.map((r) => data.remove(r.id)))
+}
+
+// Granular write helpers — called directly from Pantry index.jsx on each change
+export async function addSelectedMeal(recipeId) {
+  return data.create({ app: APP, type: TYPES.selectedMeal, data: { recipe_id: recipeId } })
+}
+export async function removeSelectedMeal(recordId) {
+  await data.remove(recordId)
+}
+
+export async function addPantryItem(name, haveQty = '') {
+  return data.create({ app: APP, type: TYPES.pantryItem, data: { name, haveQty } })
+}
+export async function removePantryItem(recordId) {
+  await data.remove(recordId)
+}
+
+export async function addCheckedItem(name) {
+  return data.create({ app: APP, type: TYPES.checkedItem, data: { name } })
+}
+export async function removeCheckedItem(recordId) {
+  await data.remove(recordId)
+}
+
+export async function setMealPlanSlot(dayIndex, recipeId, existingSlotId) {
+  if (existingSlotId) {
+    await data.update(existingSlotId, { data: { day_index: Number(dayIndex), recipe_id: recipeId } })
+    return existingSlotId
+  }
+  const rec = await data.create({ app: APP, type: TYPES.mealPlanSlot, data: { day_index: Number(dayIndex), recipe_id: recipeId } })
+  return rec.id
+}
+export async function removeMealPlanSlot(recordId) {
+  await data.remove(recordId)
+}
+
+export async function clearAllShoppingState(mealRecordIds, itemRecordIds, checkedIds, slotIds) {
+  await Promise.all([
+    ...Object.values(mealRecordIds).map((id) => data.remove(id)),
+    ...Object.values(itemRecordIds).map((id) => data.remove(id)),
+    ...Object.values(checkedIds).map((id) => data.remove(id)),
+    ...Object.values(slotIds).map((id) => data.remove(id)),
+  ])
+}
+
+// ── LEGACY shopping state (kept only for migration, not used for new writes) ──
 export async function loadState() {
   const rows = await data.list({ app: APP, type: TYPES.shoppingState })
   const rec = rows[0]
-  return { recordId: rec?.id ?? null, ...STATE_DEFAULTS, ...(rec?.data ?? {}) }
-}
-
-export async function saveState(recordId, state) {
-  const payload = { ...STATE_DEFAULTS, ...state }
-  if (recordId) {
-    await data.update(recordId, { data: payload })
-    return recordId
-  }
-  const rec = await data.create({ app: APP, type: TYPES.shoppingState, data: payload })
-  return rec.id
+  const defaults = { selected_meals: [], pantry_items: [], checked_items: [], meal_plan: {} }
+  return { recordId: rec?.id ?? null, ...defaults, ...(rec?.data ?? {}) }
 }
 
 // ── Meal history ──────────────────────────────────────────────────────────────
@@ -187,8 +275,9 @@ export function subscribe(onChange) {
 // Load everything the app needs in one go.
 export async function loadAll() {
   await seedIfEmpty()
+  await migrateShoppingState()
   const [recipes, extras, sections, state, lastCooked] = await Promise.all([
-    listRecipes(), listExtras(), loadSections(), loadState(), loadLastCooked(),
+    listRecipes(), listExtras(), loadSections(), loadGranularState(), loadLastCooked(),
   ])
   return { recipes, extras, sections, state, lastCooked }
 }

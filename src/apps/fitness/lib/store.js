@@ -1,49 +1,20 @@
-// Reps (fitness) data layer on grove.records. Tables map to record types:
-//   profiles -> 'profile' (keyed by person), exercises -> 'exercise',
-//   workouts -> 'workout' (occurred_at = performed_at),
-//   workout_exercises -> 'workout_exercise' (payload.workout_id links to a workout),
-//   rewards -> 'reward', redemptions -> 'redemption' (occurred_at = redeemed_at).
-// Joins are resolved client-side (small data); foreign keys live in payloads.
+// Reps (fitness) data layer on grove.records. Profile, reward, and redemption
+// records now live in the shared 'rewards' namespace (src/lib/rewards.js).
+// This file re-exports those functions for backward compat and owns only the
+// fitness-specific types: exercise, workout, workout_exercise.
 
 import * as db from '../../../lib/data'
+export {
+  loadProfiles, ensureProfiles, getProfile, updateProfile,
+  listRewards, addReward, updateReward, deleteReward,
+  listRedemptions, addRedemption,
+} from '../../../lib/rewards'
 
 const APP = 'fitness'
 export const TYPES = {
-  profile: 'profile', exercise: 'exercise', workout: 'workout',
-  workoutExercise: 'workout_exercise', reward: 'reward', redemption: 'redemption',
+  exercise: 'exercise', workout: 'workout', workoutExercise: 'workout_exercise',
 }
 const rowFrom = (r) => ({ id: r.id, ...r.data })
-
-// ── Profiles (one per person) ─────────────────────────────────────────────────
-export async function loadProfiles() {
-  const rows = await db.list({ app: APP, type: TYPES.profile })
-  const map = {}
-  rows.forEach((r) => { map[r.data.person] = { recordId: r.id, ...r.data } })
-  return map
-}
-export async function ensureProfiles(people) {
-  const rows = await db.list({ app: APP, type: TYPES.profile })
-  const have = new Set(rows.map((r) => r.data.person))
-  const missing = people.filter((p) => !have.has(p.id))
-  for (const p of missing) {
-    await db.create({ app: APP, type: TYPES.profile, data: {
-      person: p.id, display_name: p.name, xp: 0, level: 1, tokens: 0,
-      current_streak: 0, longest_streak: 0, last_active_date: null,
-    } })
-  }
-  return missing.length > 0
-}
-export async function getProfile(person) {
-  const rows = await db.list({ app: APP, type: TYPES.profile })
-  const r = rows.find((x) => x.data.person === person)
-  return r ? { recordId: r.id, ...r.data } : null
-}
-export async function updateProfile(person, patch) {
-  const rows = await db.list({ app: APP, type: TYPES.profile })
-  const r = rows.find((x) => x.data.person === person)
-  if (!r) return
-  await db.update(r.id, { data: { ...r.data, ...patch } })
-}
 
 // ── Exercise library (global presets + this person's customs) ─────────────────
 export async function listExercises(person) {

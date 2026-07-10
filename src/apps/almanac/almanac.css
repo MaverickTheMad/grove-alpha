@@ -84,37 +84,46 @@
 [data-app="almanac"] .week-nav h2 { margin:0; }
 [data-app="almanac"] .evrow {
   display:flex; align-items:center; gap:var(--sp-3);
-  padding:var(--sp-3) var(--sp-4);
-  background:var(--bg-paper); border:1px solid var(--border);
+  padding:var(--sp-3) var(--sp-4) var(--sp-3) calc(var(--sp-4) - 3px);
+  background:var(--bg-elevated);
+  border:1px solid var(--border);
   border-left:3px solid var(--dot, var(--accent));
-  border-radius:var(--r-md);
+  border-radius:var(--r-lg);
+  box-shadow:0 1px var(--sp-2) color-mix(in srgb, var(--text) 5%, transparent);
 }
 [data-app="almanac"] .evrow + .evrow { margin-top:var(--sp-2); }
-[data-app="almanac"] .evdot { font-size:17px; flex-shrink:0; }
+[data-app="almanac"] .evdot {
+  font-size:var(--fs-base); line-height:1; flex-shrink:0;
+  width:var(--sp-7); height:var(--sp-7);
+  display:grid; place-items:center;
+  background:color-mix(in srgb, var(--dot, var(--accent)) 12%, transparent);
+  border-radius:var(--r-sm);
+}
 [data-app="almanac"] .evbody { flex:1; min-width:0; }
 [data-app="almanac"] .evtitle {
   font-weight:var(--fw-title); color:var(--text); font-size:var(--fs-base);
-  display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+  line-height:1.25;
+  display:flex; align-items:center; gap:var(--sp-2); flex-wrap:wrap;
 }
 [data-app="almanac"] .evtag {
   font-size:var(--fs-xs); text-transform:uppercase; letter-spacing:.06em;
   background:var(--bg-sunken); color:var(--text-soft);
-  padding:2px 7px; border-radius:var(--r-sm); font-weight:var(--fw-med);
+  padding:2px var(--sp-2); border-radius:var(--r-sm); font-weight:var(--fw-med);
 }
 [data-app="almanac"] .evtag.paid { background:color-mix(in srgb, var(--ok) 18%, transparent); color:var(--ok); }
 [data-app="almanac"] .evsub {
-  font-size:var(--fs-sm); color:var(--text-soft); margin-top:2px;
-  font-family:var(--font-body);
+  font-size:var(--fs-sm); color:var(--text-soft); margin-top:var(--sp-1);
+  font-family:var(--font-body); line-height:1.4;
 }
 [data-app="almanac"] .evsub .mono { font-family:var(--font-mono); }
 [data-app="almanac"] .evamt {
   font-family:var(--font-mono); font-size:var(--fs-sm);
-  color:var(--text-soft); font-weight:var(--fw-med);
+  color:var(--text-soft); font-weight:var(--fw-med); flex-shrink:0;
 }
 [data-app="almanac"] .evamt.pos { color:var(--ok); }
 [data-app="almanac"] .evlink {
-  color:var(--text-soft); padding:6px;
-  display:grid; place-items:center;
+  color:var(--text-soft); padding:var(--sp-2);
+  display:grid; place-items:center; flex-shrink:0;
 }
 [data-app="almanac"] .evlink:hover { color:var(--accent); }
 [data-app="almanac"] .nudges { display:flex; flex-direction:column; gap:var(--sp-2); margin-bottom:var(--sp-4); }

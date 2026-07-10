@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import * as store from '../lib/store.js'
+import { addRewardEvent } from '../../../lib/rewards'
 import {
   CATEGORIES, CATEGORY_EMOJI, CATEGORY_LABEL, FALLBACK_EXERCISES, MODES,
   BASE_XP, BASE_TOKENS, STREAK_TOKEN_MILESTONES,
@@ -194,6 +195,9 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
         longest_streak: streak.longest,
         last_active_date: today,
       })
+      if (xpGain > 0) {
+        await addRewardEvent(person, { source: 'fitness', source_id: w.id, pts: xpGain, label: rest ? 'Rest day' : category })
+      }
 
       setSummary({
         rest,

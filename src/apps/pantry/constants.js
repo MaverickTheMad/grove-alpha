@@ -53,6 +53,11 @@ export const TYPES = {
   recipe: 'recipe',             // payload: { name,url,category,notes,cook_time,servings,pdf_url,ingredients,is_favorite }
   extra: 'extra',               // payload: { name,quantity,active,is_staple,sort_order }
   section: 'section',           // payload: { ingredient,section,sort_order }  (one per ingredient)
-  shoppingState: 'shopping_state', // single record, payload: { selected_meals,pantry_items,checked_items,meal_plan }
+  shoppingState: 'shopping_state', // LEGACY — superseded by granular types below; kept for migration
   mealCooked: 'meal_cooked',    // payload: { recipe_id }, occurred_at = cooked_at
+  // Granular shopping-state records (one record per item — no last-writer-wins clobber)
+  selectedMeal: 'selected_meal',   // payload: { recipe_id }
+  pantryItem: 'pantry_item',       // payload: { name, haveQty }
+  checkedItem: 'checked_item',     // payload: { name }
+  mealPlanSlot: 'meal_plan_slot',  // payload: { day_index, recipe_id }
 }

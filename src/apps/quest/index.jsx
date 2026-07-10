@@ -3,6 +3,7 @@ import './quest.css'
 import BottomNav from '../../components/BottomNav'
 import { ToastProvider } from '../../components/Toast'
 import * as store from './lib/store'
+import { addRewardEvent } from '../../lib/rewards'
 import { levelProgress, rankTitle, isoToLocalDateStr, todayStr, addDays } from './constants'
 import QuestsTab from './tabs/QuestsTab'
 import LogTab from './tabs/LogTab'
@@ -58,6 +59,7 @@ export default function Quest() {
     const { completed_at: _ca, createdAt: _cr, id: _id, ...fields } = quest
     await store.completeQuest(quest.id, fields)
     await store.updateGameState({ total_xp: newXp })
+    await addRewardEvent('household', { source: 'quest', source_id: quest.id, pts: xpGain, label: quest.title })
   }, [totalXp])
 
   const handleDelete = useCallback(async (questId) => {

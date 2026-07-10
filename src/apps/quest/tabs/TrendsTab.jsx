@@ -68,28 +68,28 @@ export default function TrendsTab({ ctx }) {
 
   return (
     <>
-      <h1 className="q-title" style={{ marginBottom: 20 }}>Annals</h1>
+      <h1 className="q-title" style={{ marginBottom: 20 }}>Insight</h1>
 
       {totalCompleted === 0 ? (
         <div className="card">
-          <p className="empty">No quests completed yet. The annals await your deeds.</p>
+          <p className="empty">No tasks completed yet.</p>
         </div>
       ) : (
         <>
           <div className="q-stat-card">
-            <div className="q-stat-label">Quests completed this week</div>
+            <div className="q-stat-label">Tasks completed this week</div>
             <div className="q-stat-value">{thisWeekCount}</div>
           </div>
 
           <div className="card">
-            <div className="card-title">This week <span className="card-title-meta">{thisWeekCount} quests</span></div>
+            <div className="card-title">This week <span className="card-title-meta">{thisWeekCount} tasks</span></div>
             {weekDays.map((d, i) => (
               <BarRow key={d} label={DAY_LABELS[i]} value={weekCounts[i].count} max={maxWeekDay} />
             ))}
           </div>
 
           <div className="card">
-            <div className="card-title">Quests by week</div>
+            <div className="card-title">Tasks by week</div>
             {weekRows.map(r => (
               <BarRow key={r.week} label={weekLabel(r.week)} value={r.count} max={maxWeek} />
             ))}

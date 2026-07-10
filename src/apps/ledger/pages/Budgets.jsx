@@ -1,19 +1,50 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useRecords } from '../lib/useRecords'
 import { usePeople } from '../lib/people'
-import { fmt } from '../lib/format'
+import { fmt, monthName } from '../lib/format'
 import { getPayCycle, formatCycleLabel, toISODate, resolvePersonAnchor } from '../lib/payCycle'
 import { useIsDesktop } from '../../../lib/viewport'
+import * as data from '../../../lib/data'
+
+const SETTING_KEY = 'budget_mode'
+
+function useBudgetMode() {
+  const [mode, setMode] = useState('cycle')
+  const recordRef = useRef(null)
+
+  useEffect(() => {
+    let alive = true
+    data.list({ app: 'settings', type: 'app_setting' }).then((rows) => {
+      if (!alive) return
+      const r = rows.find((row) => row.data?.key === SETTING_KEY)
+      if (r) { recordRef.current = r.id; setMode(r.data.value || 'cycle') }
+    })
+    return () => { alive = false }
+  }, [])
+
+  const save = async (next) => {
+    setMode(next)
+    if (recordRef.current) {
+      await data.update(recordRef.current, { data: { key: SETTING_KEY, value: next } })
+    } else {
+      const rec = await data.create({ app: 'settings', type: 'app_setting', data: { key: SETTING_KEY, value: next } })
+      recordRef.current = rec.id
+    }
+  }
+
+  return [mode, save]
+}
 
 export default function Budgets() {
   const [personView, setPersonView] = useState('both')
   const [manageOpen, setManageOpen] = useState(false)
+  const [budgetMode, saveBudgetMode] = useBudgetMode()
   const isDesktop = useIsDesktop(1080)
 
   const { data: people } = usePeople()
   const { data: paychecks } = useRecords('paycheck')
   const { data: categories, update: updateCategory } = useRecords('category', { orderBy: 'sort_order', filter: (c) => !c.archived })
-  const { data: budgets, insert: insertBudget, update: updateBudget } = useRecords('monthly_budget', { filter: (b) => b.period_type === 'cycle' })
+  const { data: budgets, insert: insertBudget, update: updateBudget } = useRecords('monthly_budget')
   const { data: transactions } = useRecords('transaction')
 
   const tracked = useMemo(() => categories.filter((c) => c.tracked_in_budget), [categories])
@@ -24,7 +55,7 @@ export default function Budgets() {
       const rawCycle = anchorISO ? getPayCycle(anchorISO) : null
       const cycle = rawCycle ? { ...rawCycle, label: formatCycleLabel(rawCycle) } : null
       const rows = tracked.map((c) => {
-        const budgetRow = budgets.find((b) => b.category_id === c.id && b.period_start === cycle?.startISO && b.person_id === person.id)
+        const budgetRow = budgets.find((b) => b.category_id === c.id && b.period_start === cycle?.startISO && b.person_id === person.id && b.period_type === 'cycle')
         const budgetAmt = Number(budgetRow?.amount || 0)
         const spent = cycle
           ? transactions.filter((t) => t.category_id === c.id && Number(t.amount) < 0 && t.date >= cycle.startISO && t.date < cycle.endISO && (t.person_id === person.id || t.person_id == null)).reduce((s, t) => s + Math.abs(Number(t.amount)), 0)
@@ -38,10 +69,38 @@ export default function Budgets() {
     })
   }, [people, paychecks, tracked, budgets, transactions])
 
+  // ── Monthly household mode ────────────────────────────────────────────────
+  const monthData = useMemo(() => {
+    const now = new Date()
+    const y = now.getFullYear(), m = now.getMonth() + 1
+    const monthStart = `${y}-${String(m).padStart(2, '0')}-01`
+    const nextM = m === 12 ? 1 : m + 1, nextY = m === 12 ? y + 1 : y
+    const monthEnd = `${nextY}-${String(nextM).padStart(2, '0')}-01`
+    const label = `${monthName(m)} ${y}`
+
+    const rows = tracked.map((c) => {
+      const budgetRow = budgets.find((b) => b.category_id === c.id && b.period_start === monthStart && b.period_type === 'month')
+      const budgetAmt = Number(budgetRow?.amount || 0)
+      const spent = transactions
+        .filter((t) => t.category_id === c.id && Number(t.amount) < 0 && t.date >= monthStart && t.date < monthEnd)
+        .reduce((s, t) => s + Math.abs(Number(t.amount)), 0)
+      const pct = budgetAmt > 0 ? Math.min(100, (spent / budgetAmt) * 100) : (spent > 0 ? 100 : 0)
+      const over = budgetAmt > 0 && spent > budgetAmt
+      return { ...c, budgetRow, budgetAmt, spent, pct, over, remaining: budgetAmt - spent, monthStart }
+    })
+    const totals = { budget: rows.reduce((s, r) => s + r.budgetAmt, 0), spent: rows.reduce((s, r) => s + r.spent, 0) }
+    return { label, rows, totals, monthStart }
+  }, [tracked, budgets, transactions])
+
   const setBudget = async (personId, categoryId, amount, existingId, cycleStartISO) => {
     if (!cycleStartISO) return
     if (existingId) await updateBudget(existingId, { amount })
     else await insertBudget({ category_id: categoryId, person_id: personId, period_start: cycleStartISO, period_type: 'cycle', amount })
+  }
+
+  const setMonthBudget = async (categoryId, amount, existingId, monthStart) => {
+    if (existingId) await updateBudget(existingId, { amount })
+    else await insertBudget({ category_id: categoryId, person_id: null, period_start: monthStart, period_type: 'month', amount })
   }
 
   const toggleTracked = async (categoryId, newValue) => { await updateCategory(categoryId, { tracked_in_budget: newValue }) }
@@ -58,6 +117,13 @@ export default function Budgets() {
   const showBoth = personView === 'both' && isDesktop
   const anyCycle = personData[0]?.cycle
 
+  const pillStyle = (active) => ({
+    padding: '7px 16px', borderRadius: 9, fontSize: 'var(--fs-sm)', border: 'none', cursor: 'pointer',
+    background: active ? 'var(--bg-elevated)' : 'transparent',
+    color: active ? 'var(--text)' : 'var(--text-soft)',
+    fontWeight: active ? 600 : 400, fontFamily: 'inherit',
+  })
+
   const emptyState = (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '48px 24px' }}>
       <div style={{ width: 60, height: 60, borderRadius: 'var(--r-md)', background: 'color-mix(in srgb, var(--app-accent) 10%, var(--bg-elevated))', border: '1px solid color-mix(in srgb, var(--app-accent) 22%, var(--border))', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
@@ -73,20 +139,28 @@ export default function Budgets() {
     <div className="ledger-page" style={{ paddingTop: isDesktop ? 'var(--sp-5)' : undefined }}>
       {/* Controls row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-        {/* Person pill tabs */}
+        {/* Mode toggle: Per cycle / Monthly */}
         <div style={{ display: 'flex', background: 'var(--bg-sunken)', border: '1px solid var(--border)', borderRadius: 12, padding: 3, gap: 2 }}>
-          {people.map(p => (
-            <button key={p.id} onClick={() => setPersonView(p.id)} style={{ padding: '7px 16px', borderRadius: 9, fontSize: 'var(--fs-sm)', border: 'none', cursor: 'pointer', background: personView === p.id ? 'var(--bg-elevated)' : 'transparent', color: personView === p.id ? 'var(--text)' : 'var(--text-soft)', fontWeight: personView === p.id ? 600 : 400, fontFamily: 'inherit' }}>
-              {p.name}
-            </button>
-          ))}
-          <button onClick={() => setPersonView('both')} style={{ padding: '7px 16px', borderRadius: 9, fontSize: 'var(--fs-sm)', border: 'none', cursor: 'pointer', background: personView === 'both' ? 'var(--bg-elevated)' : 'transparent', color: personView === 'both' ? 'var(--text)' : 'var(--text-soft)', fontWeight: personView === 'both' ? 600 : 400, fontFamily: 'inherit' }}>
-            Both
-          </button>
+          <button onClick={() => saveBudgetMode('cycle')} style={pillStyle(budgetMode === 'cycle')}>Per cycle</button>
+          <button onClick={() => saveBudgetMode('month')} style={pillStyle(budgetMode === 'month')}>Monthly</button>
         </div>
-        {anyCycle && (
+        {/* Person filter (cycle mode only) */}
+        {budgetMode === 'cycle' && (
+          <div style={{ display: 'flex', background: 'var(--bg-sunken)', border: '1px solid var(--border)', borderRadius: 12, padding: 3, gap: 2 }}>
+            {people.map(p => (
+              <button key={p.id} onClick={() => setPersonView(p.id)} style={pillStyle(personView === p.id)}>{p.name}</button>
+            ))}
+            <button onClick={() => setPersonView('both')} style={pillStyle(personView === 'both')}>Both</button>
+          </div>
+        )}
+        {budgetMode === 'cycle' && anyCycle && (
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--text-soft)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 10px' }}>
             {anyCycle.label}
+          </span>
+        )}
+        {budgetMode === 'month' && (
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--text-soft)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 10px' }}>
+            {monthData.label}
           </span>
         )}
         <span style={{ flex: 1 }} />
@@ -95,7 +169,49 @@ export default function Budgets() {
         </button>
       </div>
 
-      {tracked.length === 0 ? emptyState : (
+      {tracked.length === 0 ? emptyState : budgetMode === 'month' ? (
+        /* ── Monthly household view ─────────────────────────────────────── */
+        <div style={{ background: 'var(--bg-paper)', border: '1px solid var(--border)', borderRadius: 16, padding: '18px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-base)' }}>Household</div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xl)', fontWeight: 500, color: 'var(--app-accent)' }}>{fmt(monthData.totals.spent, { showCents: false })}</div>
+              <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-soft)' }}>of {fmt(monthData.totals.budget, { showCents: false })}</div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {monthData.rows.map((r) => (
+              <div key={r.id}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                    <span style={{ width: 9, height: 9, borderRadius: 2, background: r.color, flexShrink: 0 }} />
+                    <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 500 }}>{r.name}</span>
+                    {r.over && <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--danger)' }}>⚠</span>}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xs)', color: 'var(--text-soft)' }}>{fmt(r.spent, { showCents: false })} of</span>
+                    <input
+                      className="input mono"
+                      type="number" step="any"
+                      style={{ width: 80, padding: '4px 8px', fontSize: 'var(--fs-xs)', textAlign: 'right' }}
+                      value={r.budgetAmt || ''}
+                      placeholder="0"
+                      onChange={(e) => setMonthBudget(r.id, parseFloat(e.target.value) || 0, r.budgetRow?.id, r.monthStart)}
+                    />
+                  </div>
+                </div>
+                <div style={{ height: 8, background: 'var(--bg-sunken)', borderRadius: 999, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${r.pct}%`, background: r.over ? 'var(--danger)' : r.color, borderRadius: 999 }} />
+                </div>
+                {r.over && <div style={{ fontSize: 11, color: 'var(--danger)', marginTop: 3 }}>Over by {fmt(r.spent - r.budgetAmt, { showCents: false })}</div>}
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 16, textAlign: 'center' }}>
+            <button onClick={() => setManageOpen(true)} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 12, padding: '9px 18px', color: 'var(--app-accent)', fontFamily: 'inherit', fontSize: 'var(--fs-sm)', cursor: 'pointer', display: 'inline-block' }}>Manage categories</button>
+          </div>
+        </div>
+      ) : (
         <>
           <div className={showBoth ? undefined : undefined} style={{ display: showBoth ? 'grid' : 'flex', gridTemplateColumns: showBoth ? '1fr 1fr' : undefined, flexDirection: 'column', gap: 20 }}>
             {viewPeople.map(({ person, cycle, rows, totals }) => (

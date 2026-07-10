@@ -37,6 +37,11 @@ const APP_DISPLAY_NAMES = {
   media: 'Media', pantry: 'Pantry', pets: 'Pets', quest: 'Quest', settings: 'Settings',
 }
 
+function ordinal(n) {
+  const s = ['th','st','nd','rd'], v = n % 100
+  return n + (s[(v - 20) % 10] || s[v] || s[0])
+}
+
 const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
 
 // ── Greeting ──────────────────────────────────────────────────────────────────
@@ -81,14 +86,60 @@ function useSummaryRows() {
             : null
         })(),
 
-        // Pantry: items running low (TODO: wire)
-        (async () => null)(),
+        // Pantry: meals planned this week
+        (async () => {
+          const rows = await data.list({ app: 'pantry', type: 'shopping_state' })
+          const state = rows[0]?.data ?? {}
+          const count = (state.selected_meals ?? []).length
+          if (count === 0) return null
+          return { app: 'pantry', label: 'Planned', value: `${count} meal${count === 1 ? '' : 's'}` }
+        })(),
 
-        // Ledger: next bill due (TODO: wire)
-        (async () => null)(),
+        // Ledger: unpaid bills this month
+        (async () => {
+          const now = new Date()
+          const year = now.getFullYear()
+          const month = now.getMonth() + 1
+          const today = now.getDate()
+          const mm = String(month).padStart(2, '0')
+          const [bills, payments] = await Promise.all([
+            data.list({ app: 'ledger', type: 'bill' }),
+            data.list({ app: 'ledger', type: 'bill_payment' }),
+          ])
+          const paidKeys = new Set(
+            payments.filter(p => p.data?.paid).map(p => `${p.data.bill_id}::${p.data.due_date}`)
+          )
+          const unpaid = bills
+            .map(b => ({ ...b.data, id: b.id }))
+            .filter(b => {
+              const dueDate = `${year}-${mm}-${String(b.due_day || 1).padStart(2, '0')}`
+              return !paidKeys.has(`${b.id}::${dueDate}`)
+            })
+            .sort((a, b) => (a.due_day ?? 1) - (b.due_day ?? 1))
+          const nextDue = unpaid.find(b => (b.due_day ?? 1) >= today) || unpaid[0]
+          if (!nextDue) return null
+          return { app: 'ledger', label: `due the ${ordinal(nextDue.due_day ?? 1)}`, value: nextDue.name }
+        })(),
 
-        // Pets: next reminder (TODO: wire)
-        (async () => null)(),
+        // Pets: overdue or upcoming vaccines
+        (async () => {
+          const recs = await data.list({ app: 'pets', type: 'vaccination' })
+          const today = new Date(); today.setHours(0, 0, 0, 0)
+          const vax = recs.map(r => r.data).filter(v => v.next_due)
+          if (vax.length === 0) return null
+          const overdue = vax.filter(v => new Date(v.next_due) < today)
+          const upcoming = vax.filter(v => {
+            const d = new Date(v.next_due)
+            return d >= today && (d - today) / 86400000 <= 30
+          })
+          if (overdue.length > 0) {
+            return { app: 'pets', label: overdue.length === 1 ? 'vaccine overdue' : 'vaccines overdue', value: overdue.length === 1 ? overdue[0].name : `${overdue.length}` }
+          }
+          if (upcoming.length > 0) {
+            return { app: 'pets', label: 'vaccine due soon', value: upcoming[0].name }
+          }
+          return null
+        })(),
       ])
       if (cancelled) return
       const built = results
