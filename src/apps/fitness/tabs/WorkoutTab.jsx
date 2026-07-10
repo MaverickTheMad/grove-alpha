@@ -327,6 +327,9 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
   const canResume = lastWorkout && lastWorkout.category !== 'rest' && (lastWorkout.workout_exercises || []).length > 0
   return (
     <div className="tab-pad">
+      <header className="f-page-header">
+        <h1 className="f-title">Reps</h1>
+      </header>
       <LevelStrip profile={profile} />
 
       {canResume && (

@@ -241,6 +241,7 @@ export default function Settings() {
 
   return (
     <main className="screen settings-page">
+      <h1 className="settings-title">Settings</h1>
 
       {/* ── Theme ── */}
       <Section title="Theme">

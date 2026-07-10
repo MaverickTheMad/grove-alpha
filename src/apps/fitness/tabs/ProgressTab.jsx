@@ -78,6 +78,9 @@ export default function ProgressTab({ person, profile, onProfileChange }) {
 
   return (
     <div className="tab-pad">
+      <header className="f-page-header">
+        <h1 className="f-title">Progress</h1>
+      </header>
       {/* Level + streak card */}
       <div className="card stat-card">
         <div className="stat-row">

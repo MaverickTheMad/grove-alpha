@@ -1,8 +1,24 @@
-/* Almanac (almanac) — scoped port onto Grove. Fern accent from the global
-   [data-app="almanac"] token block; kind colors below. */
+/* Almanac — scoped port onto Grove. Plum (#A986C4) is identity-only;
+   house green (--accent) is the primary-action colour. */
+
+/* ── Kind colors + local derived tokens ── */
 [data-app="almanac"] {
   --kind-bill:#c0894a; --kind-payday:#5fb47e; --kind-goal:#6f86c2; --kind-flow:#d06a82;
   --kind-meal:#cb7a4f; --kind-pet:#d8a24f; --kind-gcal:#4ca39b; --kind-family:#9b82be;
+  --app-weak: color-mix(in srgb, var(--app-accent) 14%, var(--bg-paper));
+  --app-soft: color-mix(in srgb, var(--app-accent) 28%, var(--bg-paper));
+}
+@media (prefers-color-scheme: light) { :root:not(.theme-dark) [data-app="almanac"] {
+  --app-weak: color-mix(in srgb, var(--app-accent) 16%, var(--bg-paper));
+  --app-soft: color-mix(in srgb, var(--app-accent) 32%, var(--bg-paper));
+}}
+:root.theme-light [data-app="almanac"] {
+  --app-weak: color-mix(in srgb, var(--app-accent) 16%, var(--bg-paper));
+  --app-soft: color-mix(in srgb, var(--app-accent) 32%, var(--bg-paper));
+}
+:root.theme-dark [data-app="almanac"] {
+  --app-weak: color-mix(in srgb, var(--app-accent) 14%, var(--bg-paper));
+  --app-soft: color-mix(in srgb, var(--app-accent) 28%, var(--bg-paper));
 }
 [data-app="almanac"] .almanac-page { /* layout handled by .page.wide — only app-specific overrides here */ }
 
@@ -40,7 +56,7 @@
   border:1px solid transparent; transition:160ms;
   font-family:inherit;
 }
-[data-app="almanac"] .chip.on { background:var(--accent-weak); color:var(--accent); border-color:var(--accent); }
+[data-app="almanac"] .chip.on { background:var(--app-weak); color:var(--app-accent); border-color:var(--app-accent); }
 [data-app="almanac"] .chip-row { display:flex; gap:var(--sp-2); flex-wrap:wrap; }
 [data-app="almanac"] .field { display:flex; flex-direction:column; gap:4px; }
 [data-app="almanac"] .field > span { font-size:var(--fs-xs); font-weight:var(--fw-med); color:var(--text-soft); text-transform:uppercase; letter-spacing:.06em; }
@@ -335,6 +351,14 @@
   }
   [data-app="almanac"] .sheet-grip { display:none; }
 }
+/* ── Upcoming tab: date group header ── */
+[data-app="almanac"] .al-day-label {
+  font-family: var(--font-body);
+  font-size: var(--fs-xs); font-weight: var(--fw-title);
+  color: var(--text-soft); letter-spacing: .06em;
+  text-transform: uppercase; margin-bottom: var(--sp-2);
+}
+
 @keyframes fade { from { opacity:0; } }
 @keyframes rise { from { transform:translateY(100%); } }
 @keyframes pop { from { opacity:0; transform:translateY(8px) scale(.98); } }

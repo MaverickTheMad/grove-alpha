@@ -70,12 +70,7 @@ export default function UpcomingTab() {
 
       {days.map((d) => (
         <section key={d} style={{ marginTop: 'var(--sp-4)' }}>
-          <div style={{
-            font: 'var(--fw-title) var(--fs-sm)/1.2 var(--font-body)',
-            color: 'var(--text-soft)',
-            letterSpacing: '.06em',
-            marginBottom: 'var(--sp-2)',
-          }}>
+          <div className="al-day-label">
             {upcomingDayLabel(d, today)}
           </div>
           {sortDayEvents(byDay[d]).map((r, i) => (

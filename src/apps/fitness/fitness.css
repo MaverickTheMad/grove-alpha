@@ -1,6 +1,38 @@
-/* Reps (fitness) — scoped port onto Grove. Ember accent comes from the global
-   [data-app="fitness"] token block; house green stays the primary-action colour. */
+/* Reps (fitness) — scoped port onto Grove. Coral accent (#CE6B62) is
+   identity-only; house green (--accent) is the primary-action colour. */
+
+/* ── Local derived tokens ── */
+[data-app="fitness"] {
+  --app-weak: color-mix(in srgb, var(--app-accent) 14%, var(--bg-paper));
+  --app-soft: color-mix(in srgb, var(--app-accent) 28%, var(--bg-paper));
+}
+@media (prefers-color-scheme: light) { :root:not(.theme-dark) [data-app="fitness"] {
+  --app-weak: color-mix(in srgb, var(--app-accent) 16%, var(--bg-paper));
+  --app-soft: color-mix(in srgb, var(--app-accent) 32%, var(--bg-paper));
+}}
+:root.theme-light [data-app="fitness"] {
+  --app-weak: color-mix(in srgb, var(--app-accent) 16%, var(--bg-paper));
+  --app-soft: color-mix(in srgb, var(--app-accent) 32%, var(--bg-paper));
+}
+:root.theme-dark [data-app="fitness"] {
+  --app-weak: color-mix(in srgb, var(--app-accent) 14%, var(--bg-paper));
+  --app-soft: color-mix(in srgb, var(--app-accent) 28%, var(--bg-paper));
+}
+
 [data-app="fitness"] .fitness-page { /* layout handled by .page — only app-specific overrides here */ }
+
+/* ── Page header: Fraunces title + switcher ── */
+[data-app="fitness"] .f-page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+[data-app="fitness"] .f-title {
+  font-family: var(--font-display); font-size: 1.7rem; font-weight: 600;
+  color: var(--text); margin: 0; line-height: 1.1;
+}
+@media (min-width: 1080px) {
+  [data-app="fitness"] .f-title { font-size: 1.95rem; }
+}
 
 [data-app="fitness"] .tab-pad { padding:var(--sp-4) var(--sp-4) var(--sp-6); display:flex; flex-direction:column; gap:var(--sp-4); }
 [data-app="fitness"] .tab-label { font-size:var(--fs-xs); font-weight:var(--fw-med); }
@@ -27,7 +59,7 @@
 [data-app="fitness"] .btn.block { width:100%; }
 [data-app="fitness"] .big-cta { padding:16px; font-size:var(--fs-base); margin-top:var(--sp-1); }
 [data-app="fitness"] .chip { padding:7px 13px; border-radius:var(--r-full); background:var(--bg-sunken); color:var(--text-soft); font-weight:var(--fw-med); font-size:var(--fs-sm); border:1px solid transparent; transition:160ms; }
-[data-app="fitness"] .chip.on { background:var(--accent-weak); color:var(--accent); border-color:var(--accent); }
+[data-app="fitness"] .chip.on { background:var(--app-weak); color:var(--app-accent); border-color:var(--app-accent); }
 [data-app="fitness"] .chip-row, [data-app="fitness"] .row-btns { display:flex; gap:var(--sp-2); flex-wrap:wrap; }
 [data-app="fitness"] .row-btns { justify-content:flex-end; }
 [data-app="fitness"] .row-btns .btn.ghost.danger { margin-right:auto; }
@@ -179,7 +211,7 @@
 [data-app="fitness"] .bar-wrap { margin-top:var(--sp-3); }
 [data-app="fitness"] .bar-chart { width:100%; height:120px; display:block; }
 [data-app="fitness"] .bar-fill { fill:var(--accent); opacity:.88; }
-[data-app="fitness"] .bar-est-fill { fill:var(--accent); opacity:.45; }
+[data-app="fitness"] .bar-est-fill { fill:var(--app-accent); opacity:.5; }
 [data-app="fitness"] .bar-meta { display:flex; justify-content:space-between; align-items:center; margin-top:6px; font-size:var(--fs-sm); }
 [data-app="fitness"] .bar-last { color:var(--text); }
 [data-app="fitness"] .bar-est-label { color:var(--text-soft); font-style:italic; }

@@ -64,6 +64,9 @@ export default function RewardsTab({ person, profile, onProfileChange }) {
 
   return (
     <div className="tab-pad">
+      <header className="f-page-header">
+        <h1 className="f-title">Rewards</h1>
+      </header>
       {/* Wallet */}
       <div className="card wallet">
         <div className="wallet-top">

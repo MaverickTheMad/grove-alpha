@@ -1,4 +1,23 @@
-/* Grove · Settings — narrow centered column, slate accent */
+/* Grove · Settings — narrow centered column, slate identity accent */
+
+/* ── Local derived tokens ── */
+[data-app="settings"] {
+  --app-weak: color-mix(in srgb, var(--app-accent) 14%, var(--bg-paper));
+  --app-soft: color-mix(in srgb, var(--app-accent) 28%, var(--bg-paper));
+}
+@media (prefers-color-scheme: light) { :root:not(.theme-dark) [data-app="settings"] {
+  --app-weak: color-mix(in srgb, var(--app-accent) 16%, var(--bg-paper));
+  --app-soft: color-mix(in srgb, var(--app-accent) 32%, var(--bg-paper));
+}}
+:root.theme-light [data-app="settings"] {
+  --app-weak: color-mix(in srgb, var(--app-accent) 16%, var(--bg-paper));
+  --app-soft: color-mix(in srgb, var(--app-accent) 32%, var(--bg-paper));
+}
+:root.theme-dark [data-app="settings"] {
+  --app-weak: color-mix(in srgb, var(--app-accent) 14%, var(--bg-paper));
+  --app-soft: color-mix(in srgb, var(--app-accent) 28%, var(--bg-paper));
+}
+
 [data-app="settings"] .settings-page {
   max-width: 640px; margin: 0 auto;
   padding: var(--sp-4); padding-bottom: calc(var(--sp-8) + 64px);
@@ -7,6 +26,15 @@
   [data-app="settings"] .settings-page {
     padding-left: var(--sp-6); padding-right: var(--sp-6); padding-bottom: var(--sp-8);
   }
+}
+
+/* ── Page title ── */
+[data-app="settings"] .settings-title {
+  font-family: var(--font-display); font-size: 1.7rem; font-weight: 600;
+  color: var(--text); margin: 0 0 28px;
+}
+@media (min-width: 1080px) {
+  [data-app="settings"] .settings-title { font-size: 1.95rem; }
 }
 
 [data-app="settings"] .set-section { margin-bottom: var(--sp-6); }
@@ -45,12 +73,20 @@
   background: var(--bg-paper); border: 1px solid var(--border);
   position: relative; overflow: hidden; flex: none;
 }
+[data-app="settings"] .seg-preview-bg {
+  position: absolute; inset: 0;
+  background: var(--bg-paper);
+}
 [data-app="settings"] .seg-preview-dot {
   position: absolute; right: 5px; bottom: 4px;
   width: 8px; height: 8px; border-radius: var(--r-full);
   background: var(--accent);
 }
-[data-app="settings"] .seg-btn.on .seg-preview { border-color: transparent; }
+[data-app="settings"] .seg-btn.on .seg-preview {
+  border-color: transparent;
+  background: var(--bg-elevated);
+}
+[data-app="settings"] .seg-btn.on .seg-preview-bg { background: var(--bg-elevated); }
 
 /* ── Account / household rows ── */
 [data-app="settings"] .who { display: flex; align-items: center; gap: var(--sp-3); }
