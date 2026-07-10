@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Icon from '../../../components/Icon'
-import { SectionHeader, Checkbox } from '../ui'
+import { PageHeader, Checkbox } from '../ui'
 
 function QtyStep({ value, onChange }) {
   const n = parseInt(value) || 1
@@ -37,7 +37,7 @@ export default function ExtrasTab({ extras, onToggle, onAdd, onDelete, onUpdateQ
 
   return (
     <main className="screen">
-      <SectionHeader eyebrow="step three" title="Extras & staples" subtitle="Running-low items always appear on your list. One-time extras are for this trip only." />
+      <PageHeader title="Extras" />
 
       <div className="stack" style={{ gap: 'var(--sp-2)', marginBottom: 'var(--sp-5)' }}>
         <div className="row" style={{ gap: 'var(--sp-2)' }}>

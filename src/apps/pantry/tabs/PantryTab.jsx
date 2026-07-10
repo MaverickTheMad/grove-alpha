@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Sheet from '../../../components/Sheet'
 import { subtractQuantity } from '../lib/shopping'
-import { SectionHeader, Empty, Checkbox } from '../ui'
+import { PageHeader, Empty, Checkbox } from '../ui'
 
 export default function PantryTab({ ingredients, agg, pantryMap, onToggle, skipCount }) {
   const [qtyPopup, setQtyPopup] = useState(null) // { name, needed }
@@ -10,7 +10,7 @@ export default function PantryTab({ ingredients, agg, pantryMap, onToggle, skipC
   if (ingredients.length === 0) {
     return (
       <main className="screen">
-        <SectionHeader eyebrow="step two" title="Check your pantry" subtitle="Select meals first and ingredients appear here." />
+        <PageHeader eyebrow="step two" title="Check your pantry" subtitle="Select meals first and ingredients appear here." />
         <Empty icon="pantry" message="No ingredients yet — pick some meals first." />
       </main>
     )
@@ -23,7 +23,7 @@ export default function PantryTab({ ingredients, agg, pantryMap, onToggle, skipC
 
   return (
     <main className="screen">
-      <SectionHeader eyebrow="step two" title="Check your pantry" subtitle={`Tap items you already have. ${skipCount} of ${ingredients.length} marked.`} />
+      <PageHeader eyebrow="step two" title="Check your pantry" subtitle={`Tap items you already have. ${skipCount} of ${ingredients.length} marked.`} />
       <div className="stack" style={{ gap: 'var(--sp-2)' }}>
         {ingredients.map((name) => {
           const have = name in pantryMap

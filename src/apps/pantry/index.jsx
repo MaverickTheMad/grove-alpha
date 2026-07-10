@@ -210,7 +210,8 @@ export default function Pantry() {
       {tab === 'meals' && (
         <MealsTab recipes={recipes} selected={selectedMeals} multipliers={mealMultipliers} mealPlan={mealPlan}
           onToggle={toggleMeal} onSetMultiplier={setMultiplier} onAssignDay={assignDay}
-          onEdit={setEditingRecipe} onAddRecipe={() => setEditingRecipe(NEW_RECIPE)} />
+          onEdit={setEditingRecipe} onAddRecipe={() => setEditingRecipe(NEW_RECIPE)}
+          onNewTrip={() => setNewTrip(todayStr())} />
       )}
       {tab === 'recipes' && (
         <RecipesTab recipes={recipes} selected={selectedMeals} lastCooked={lastCooked}

@@ -2,11 +2,11 @@ import { useState } from 'react'
 import Icon from '../../../components/Icon'
 import Sheet from '../../../components/Sheet'
 import { normIng } from '../lib/shopping'
-import { SectionHeader, SectionLabel, Empty, Checkbox } from '../ui'
+import { PageHeader, SectionLabel, Empty, Checkbox } from '../ui'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-export default function MealsTab({ recipes, selected, multipliers, mealPlan, onToggle, onSetMultiplier, onAssignDay, onEdit, onAddRecipe }) {
+export default function MealsTab({ recipes, selected, multipliers, mealPlan, onToggle, onSetMultiplier, onAssignDay, onEdit, onAddRecipe, onNewTrip }) {
   const [assigningDay, setAssigningDay] = useState(null)
   const [search, setSearch] = useState('')
   const [dragFrom, setDragFrom] = useState(null)
@@ -30,7 +30,9 @@ export default function MealsTab({ recipes, selected, multipliers, mealPlan, onT
 
   return (
     <main className="screen">
-      <SectionHeader eyebrow="step one" title="Meal planner" subtitle="Tap any day to assign a meal. All three weeks feed your shopping list." />
+      <PageHeader title="Meals" action={onNewTrip && (
+        <button onClick={onNewTrip} style={{ background: 'var(--accent)', color: '#0B0F09', border: 'none', borderRadius: 12, padding: '10px 14px', fontFamily: 'inherit', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', whiteSpace: 'nowrap', minHeight: 44 }}>Start new trip</button>
+      )} />
 
       <div className="cal" style={{ marginBottom: 'var(--sp-5)' }}>
         <div className="cal-dayhead">{DAYS.map((d) => <div key={d}>{d}</div>)}</div>
@@ -76,10 +78,14 @@ export default function MealsTab({ recipes, selected, multipliers, mealPlan, onT
                     }}
                     onClick={() => !dragFrom && setAssigningDay(picking ? null : off)}
                   >
-                    <span className={`cal-date ${isToday ? 'today' : ''}`}>{date.getDate()}</span>
+                    <span className={`cal-date ${isToday ? 'today' : ''}`}>
+                      <span className="cal-dow">{DAYS[i].slice(0, 3)}</span>
+                      <span className="cal-date-num">{date.getDate()}</span>
+                      {isToday && <span className="cal-today-badge">Today</span>}
+                    </span>
                     {assignedRecipe
                       ? <span className="cal-meal">{assignedRecipe.name}</span>
-                      : !isPast && <span style={{ color: 'var(--text-soft)', fontSize: 16 }}>+</span>}
+                      : !isPast && <span style={{ fontSize: '12.5px', color: 'var(--text-soft)' }}>+ Plan a meal</span>}
                   </div>
                 )
               })}

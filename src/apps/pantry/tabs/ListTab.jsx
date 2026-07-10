@@ -3,7 +3,7 @@ import Icon from '../../../components/Icon'
 import Sheet from '../../../components/Sheet'
 import { getSection, sumQuantities } from '../lib/shopping'
 import { SECTION_ORDER } from '../constants'
-import { SectionHeader, SectionLabel, Empty, Checkbox } from '../ui'
+import { PageHeader, SectionLabel, Empty, Checkbox } from '../ui'
 
 export default function ListTab({ groups, checked, onToggle, total, sections, onSetSection, onNewTrip }) {
   const [reassigning, setReassigning] = useState(null)
@@ -37,7 +37,7 @@ export default function ListTab({ groups, checked, onToggle, total, sections, on
   if (total === 0) {
     return (
       <main className="screen">
-        <SectionHeader eyebrow="step four" title="Shopping list" subtitle="Your list builds from selected meals, pantry, and extras." />
+        <PageHeader title="List" />
         <Empty icon="cart" message="Nothing on the list yet — plan a few meals to fill it." />
       </main>
     )
@@ -45,13 +45,12 @@ export default function ListTab({ groups, checked, onToggle, total, sections, on
 
   return (
     <main className="screen">
-      <div className="spread" style={{ alignItems: 'flex-end' }}>
-        <SectionHeader eyebrow="step four" title="Shopping list" subtitle={`${total} item${total !== 1 ? 's' : ''} across ${groups.length} section${groups.length !== 1 ? 's' : ''}`} />
-        <div className="row" style={{ gap: 'var(--sp-2)', marginBottom: 'var(--sp-5)' }}>
+      <PageHeader title="List" action={
+        <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn sm" onClick={handlePrint}><Icon name="print" size={16} /> Print</button>
-          <button className="btn sm" onClick={onNewTrip}><Icon name="cart" size={16} /> New trip</button>
+          <button style={{ background: 'var(--accent)', color: '#0B0F09', border: 'none', borderRadius: 12, padding: '10px 14px', fontFamily: 'inherit', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', whiteSpace: 'nowrap', minHeight: 44 }} onClick={onNewTrip}>New trip</button>
         </div>
-      </div>
+      } />
 
       <div className="stack" style={{ gap: 'var(--sp-5)' }}>
         {groups.map((g) => (

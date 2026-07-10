@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import Icon from '../../../components/Icon'
-import { normIng, timeAgo } from '../lib/shopping'
+import { normIng } from '../lib/shopping'
 import { RECIPE_CATEGORIES } from '../constants'
 import { sortByName } from '../../../lib/sort'
-import { SectionHeader, Empty } from '../ui'
+import { PageHeader, Empty } from '../ui'
 
 const SORTED_CATEGORIES = sortByName(RECIPE_CATEGORIES.map((c) => ({ name: c }))).map((c) => c.name)
 
@@ -29,7 +29,9 @@ export default function RecipesTab({ recipes, selected, lastCooked, onView, onTo
 
   return (
     <main className="screen">
-      <SectionHeader eyebrow="recipe hub" title="All recipes" subtitle={`${recipes.length} recipes · ${recipes.filter((r) => r.is_favorite).length} favorites`} />
+      <PageHeader title="Recipes" action={
+        <button onClick={onAddRecipe} style={{ background: 'var(--accent)', color: '#0B0F09', border: 'none', borderRadius: 12, padding: '10px 12px', fontFamily: 'inherit', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', whiteSpace: 'nowrap', minHeight: 44 }}>+ New recipe</button>
+      } />
 
       <div className="row" style={{ marginBottom: 'var(--sp-3)', gap: 'var(--sp-2)' }}>
         <div className="grow" style={{ position: 'relative' }}>
@@ -69,35 +71,18 @@ export default function RecipesTab({ recipes, selected, lastCooked, onView, onTo
           {filtered.map((r) => {
             const ings = (r.ingredients || []).map(normIng)
             const isSelected = selected.includes(r.id)
-            const ago = timeAgo(lastCooked[r.id])
             return (
               <button key={r.id} className={`rcard ${isSelected ? 'on' : ''}`} onClick={() => onView(r)}>
-                <div className="spread" style={{ marginBottom: 'var(--sp-2)' }}>
-                  <span className={`tag ${isSelected ? 'on' : ''}`}>{isSelected ? '✓ this week' : (r.category || 'Other')}</span>
-                  <span className="row" style={{ gap: 'var(--sp-2)' }}>
-                    {ago && <span style={{ fontSize: 10, color: 'var(--text-soft)' }}>{ago}</span>}
-                    <span role="button" tabIndex={0}
-                      onClick={(e) => { e.stopPropagation(); onToggleFavorite(r) }}
-                      style={{ color: r.is_favorite ? 'var(--danger)' : 'var(--text-soft)', display: 'inline-flex' }}>
-                      <Icon name="heart" size={16} filled={!!r.is_favorite} />
-                    </span>
-                    {r.url && <span style={{ color: 'var(--text-soft)' }}><Icon name="external" size={14} /></span>}
-                  </span>
+                <div className="rcard-img">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6 3V11M6 3C4.5 3 4 4.5 4 6V9C4 10 4.5 11 6 11M6 11V21M18 3C15.5 3 14 5.5 14 9V11H18M18 3V21" stroke="var(--border)" strokeWidth="1.4" strokeLinecap="round" /></svg>
+                  <span style={{ position: 'absolute', top: 6, left: 6, fontSize: '9.5px', fontWeight: 600, color: 'var(--app-accent)', background: 'color-mix(in srgb, var(--app-accent) 14%, transparent)', borderRadius: 6, padding: '2px 6px' }}>{isSelected ? '✓ this week' : (r.category || 'Other')}</span>
+                  {r.is_favorite && <span style={{ position: 'absolute', top: 6, right: 6, color: 'var(--app-accent)', fontSize: 14 }}>★</span>}
                 </div>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-lg)', lineHeight: 1.15, marginBottom: 'var(--sp-2)' }}>{r.name}</div>
-                <div className="row" style={{ gap: 'var(--sp-3)', fontSize: 'var(--fs-sm)', color: 'var(--text-soft)', marginBottom: 'var(--sp-2)', flexWrap: 'wrap' }}>
-                  {r.cook_time && <span className="row" style={{ gap: 4 }}><Icon name="clock" size={13} />{r.cook_time}</span>}
-                  {r.servings && <span className="row" style={{ gap: 4 }}><Icon name="users" size={13} />{r.servings}</span>}
-                  {ings.length > 0 && <span>{ings.length} ingredient{ings.length !== 1 ? 's' : ''}</span>}
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: '13.5px', color: 'var(--text)', lineHeight: 1.25 }}>{r.name}</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-soft)' }}>
+                  {[r.cook_time && `${r.cook_time}m`, r.servings && `${r.servings} srv`, ings.length && `${ings.length} ing`].filter(Boolean).join(' · ') || <span>&nbsp;</span>}
                 </div>
-                {r.notes && <div className="p-sub" style={{ fontStyle: 'italic', marginBottom: 'var(--sp-2)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{r.notes}</div>}
-                {ings.length > 0 && (
-                  <div className="row" style={{ flexWrap: 'wrap', gap: 4, marginBottom: 'var(--sp-2)' }}>
-                    {ings.slice(0, 4).map((ing, i) => <span key={i} className="ingchip">{ing.name}</span>)}
-                    {ings.length > 4 && <span style={{ fontSize: 10, color: 'var(--text-soft)' }}>+{ings.length - 4} more</span>}
-                  </div>
-                )}
-                <div className="view-cta">View <span aria-hidden>›</span></div>
+                <div className="view-cta">View ›</div>
               </button>
             )
           })}
