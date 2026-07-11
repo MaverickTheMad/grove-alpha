@@ -238,15 +238,6 @@
 [data-app="quest"] .quest-check-mark { color: #fff; }
 
 [data-app="quest"] .quest-row-body { flex: 1; min-width: 0; }
-[data-app="quest"] .quest-row-title {
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--text);
-  display: block;
-  margin-bottom: 4px;
-  line-height: 1.25;
-}
 [data-app="quest"] .quest-row-meta {
   display: flex;
   align-items: center;
@@ -404,3 +395,66 @@
 /* ── Animations ───────────────────────────────────────────────────────────── */
 @keyframes fade { from { opacity: 0; } }
 @keyframes rise { from { transform: translateY(100%); } }
+
+/* ── Filter chips (Mine / Anyone / Everyone) ──────────────────────────────── */
+[data-app="quest"] .q-filter-row {
+  display: flex; gap: 8px; margin-bottom: var(--sp-4);
+}
+[data-app="quest"] .chip {
+  padding: 6px 14px;
+  border-radius: var(--r-full);
+  background: var(--bg-sunken);
+  color: var(--text-soft);
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-med);
+  border: 1px solid transparent;
+  transition: 140ms;
+  min-height: 34px;
+}
+[data-app="quest"] .chip.on {
+  background: var(--accent-weak);
+  color: var(--app-accent);
+  border-color: var(--app-accent);
+}
+
+/* ── Member dot ───────────────────────────────────────────────────────────── */
+[data-app="quest"] .q-member-dot {
+  display: inline-block;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Assignee display on quest row ───────────────────────────────────────── */
+[data-app="quest"] .quest-row-title-line {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;
+}
+[data-app="quest"] .quest-row-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.25;
+  margin-bottom: 0;
+}
+[data-app="quest"] .q-assignee-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: var(--fs-xs); color: var(--text-soft);
+}
+[data-app="quest"] .q-assignee-anyone {
+  font-size: var(--fs-xs); color: var(--text-soft); opacity: .7;
+}
+
+/* ── Assignee option pill (with dot) ─────────────────────────────────────── */
+[data-app="quest"] .pill.q-assignee-opt {
+  display: inline-flex; align-items: center; gap: 6px;
+}
+
+/* ── Completion sheet ─────────────────────────────────────────────────────── */
+[data-app="quest"] .q-log-xp {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--q-bronze);
+  margin: 0 0 var(--sp-4);
+}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import * as store from '../lib/store.js'
-import { addRewardEvent } from '../../../lib/rewards'
+import { awardXp } from '../../../lib/rewards'
 import {
   CATEGORIES, CATEGORY_EMOJI, CATEGORY_LABEL, FALLBACK_EXERCISES, MODES,
   BASE_XP, BASE_TOKENS, STREAK_TOKEN_MILESTONES,
@@ -143,25 +143,17 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
     try {
       const fresh = await store.getProfile(person)
       const p = fresh || profile
-      const today = todayStr()
-      const streak = nextStreakState(
-        { lastActiveDate: p.last_active_date, currentStreak: p.current_streak, longestStreak: p.longest_streak },
-        today,
-      )
 
-      let xpGain = 0, tokenGain = 0, milestone = null
+      // Compute XP using Fitness-specific streak bonus (same numbers as before)
+      let xpGain = 0
       if (!rest) {
+        const today = todayStr()
+        const streak = nextStreakState(
+          { lastActiveDate: p.last_active_date, currentStreak: p.current_streak, longestStreak: p.longest_streak },
+          today,
+        )
         xpGain = BASE_XP + streakXp(streak.current)
-        tokenGain = BASE_TOKENS
-        if (streak.changed && STREAK_TOKEN_MILESTONES[streak.current]) {
-          milestone = STREAK_TOKEN_MILESTONES[streak.current]
-          tokenGain += milestone
-        }
       }
-
-      const newXp = p.xp + xpGain
-      const newLevel = levelForXp(newXp)
-      const leveledUp = newLevel > p.level
 
       const rows = rest ? [] : session.filter((r) => r.done)
       const minutes = startedAt ? Math.max(1, Math.round((Date.now() - startedAt) / 60000)) : null
@@ -169,7 +161,7 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
         category: rest ? 'rest' : category,
         duration_minutes: rest ? null : minutes,
         xp_awarded: xpGain,
-        tokens_awarded: tokenGain,
+        tokens_awarded: 0, // filled in by awardXp
       })
 
       if (rows.length) {
@@ -187,22 +179,22 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
         await store.addWorkoutExercises(exRows)
       }
 
-      await store.updateProfile(person, {
-        xp: newXp,
-        level: newLevel,
-        tokens: p.tokens + tokenGain,
-        current_streak: streak.current,
-        longest_streak: streak.longest,
-        last_active_date: today,
-      })
+      let tokenGain = 0, milestone = null, leveledUp = false, newLevel = p.level, currentStreak = p.current_streak
       if (xpGain > 0) {
-        await addRewardEvent(person, { source: 'fitness', source_id: w.id, pts: xpGain, label: rest ? 'Rest day' : category })
+        const result = await awardXp(person, { pts: xpGain, source: 'fitness', source_id: w.id, label: rest ? 'Rest day' : category })
+        if (result) {
+          tokenGain   = result.tokenGain
+          milestone   = result.milestone
+          leveledUp   = result.leveledUp
+          newLevel    = result.newLevel
+          currentStreak = result.streak
+        }
       }
 
       setSummary({
         rest,
         xpGain, tokenGain, milestone,
-        streak: streak.current,
+        streak: currentStreak,
         leveledUp, newLevel,
         unlocked: leveledUp ? unlocksAtLevel(newLevel) : [],
       })

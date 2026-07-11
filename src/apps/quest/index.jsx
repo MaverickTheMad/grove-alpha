@@ -3,7 +3,8 @@ import './quest.css'
 import BottomNav from '../../components/BottomNav'
 import { ToastProvider } from '../../components/Toast'
 import * as store from './lib/store'
-import { addRewardEvent } from '../../lib/rewards'
+import { awardXp } from '../../lib/rewards'
+import { currentUser, members } from '../../lib/identity'
 import { levelProgress, rankTitle, isoToLocalDateStr, todayStr, addDays } from './constants'
 import QuestsTab from './tabs/QuestsTab'
 import LogTab from './tabs/LogTab'
@@ -49,7 +50,7 @@ export default function Quest() {
   const completedQuests = [...quests.filter(q => q.completed_at)]
     .sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at))
 
-  const handleComplete = useCallback(async (quest) => {
+  const handleComplete = useCallback(async (quest, completed_by) => {
     const xpGain = quest.xp_reward || 10
     const now = new Date().toISOString()
     setQuests(prev => prev.map(q => q.id === quest.id ? { ...q, completed_at: now } : q))
@@ -57,9 +58,11 @@ export default function Quest() {
     setTotalXp(newXp)
     // eslint-disable-next-line no-unused-vars
     const { completed_at: _ca, createdAt: _cr, id: _id, ...fields } = quest
-    await store.completeQuest(quest.id, fields)
+    // Track 1: household co-op XP
+    await store.completeQuest(quest.id, { ...fields, completed_by })
     await store.updateGameState({ total_xp: newXp })
-    await addRewardEvent('household', { source: 'quest', source_id: quest.id, pts: xpGain, label: quest.title })
+    // Track 2: personal XP for the completer
+    await awardXp(completed_by, { pts: xpGain, source: 'quest', source_id: quest.id, label: quest.category || quest.title })
   }, [totalXp])
 
   const handleDelete = useCallback(async (questId) => {
@@ -87,7 +90,8 @@ export default function Quest() {
     )
   }
 
-  const ctx = { prog, rank, streak, totalXp, activeQuests, completedQuests, handleComplete, handleDelete, handleRestore, handleAdd }
+  const me = currentUser()
+  const ctx = { prog, rank, streak, totalXp, activeQuests, completedQuests, handleComplete, handleDelete, handleRestore, handleAdd, currentUser: me, members: members() }
 
   return (
     <ToastProvider>

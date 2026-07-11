@@ -27,39 +27,8 @@ export const DEFAULT_HABITS = [
   { title: 'Mow the lawn',           difficulty: 'hard',   category: 'Outdoor'  },
 ]
 
-// ── XP / rank progression ──────────────────────────────────────────────────────
-export function xpForLevel(level) {
-  return Math.round(50 * (level - 1) + 25 * (level - 1) * (level - 1))
-}
-export function levelFromXp(totalXp) {
-  let level = 1
-  while (xpForLevel(level + 1) <= totalXp) level++
-  return level
-}
-export function levelProgress(totalXp) {
-  const level = levelFromXp(totalXp)
-  const floor = xpForLevel(level)
-  const ceil  = xpForLevel(level + 1)
-  const into  = totalXp - floor
-  const span  = ceil - floor
-  return { level, into, span, pct: Math.max(0, Math.min(1, into / span)) }
-}
-
-export const RANK_TITLES = [
-  { min: 1,  title: 'Commoner'   },
-  { min: 5,  title: 'Squire'     },
-  { min: 10, title: 'Adventurer' },
-  { min: 18, title: 'Knight'     },
-  { min: 28, title: 'Champion'   },
-  { min: 40, title: 'Hero'       },
-  { min: 55, title: 'Archmage'   },
-  { min: 75, title: 'Legend'     },
-]
-export function rankTitle(level) {
-  let t = RANK_TITLES[0].title
-  for (const r of RANK_TITLES) if (level >= r.min) t = r.title
-  return t
-}
+// ── XP / rank progression (canonical in lib/rewards.js; re-exported here) ─────
+export { xpForLevel, levelFromXp, levelProgress, rankTitle, RANK_TITLES } from '../../lib/rewards'
 
 // ── Extra date helpers (not in lib/time.js) ────────────────────────────────────
 export function prettyDate(dateStr) {

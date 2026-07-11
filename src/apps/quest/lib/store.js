@@ -16,17 +16,25 @@ export async function listAllQuests() {
   return rows.map(questFrom)
 }
 
-export async function createQuest({ title, difficulty, xp_reward, due, category, notes }) {
+export async function createQuest({ title, difficulty, xp_reward, due, category, notes, assignee }) {
   const rec = await db.create({
     app: APP,
     type: QUEST,
-    data: { title, difficulty, xp_reward: xp_reward ?? 10, due: due || null, category: category || null, notes: notes || null, completed_at: null },
+    data: { title, difficulty, xp_reward: xp_reward ?? 10, due: due || null, category: category || null, notes: notes || null, completed_at: null, assignee: assignee ?? null },
   })
   return questFrom(rec)
 }
 
-export async function completeQuest(id, fields) {
-  const rec = await db.update(id, { data: { ...fields, completed_at: new Date().toISOString() } })
+export async function updateQuest(id, patch) {
+  const rows = await db.list({ app: APP, type: QUEST })
+  const r = rows.find((x) => x.id === id)
+  if (!r) return
+  const rec = await db.update(id, { data: { ...r.data, ...patch } })
+  return questFrom(rec)
+}
+
+export async function completeQuest(id, { completed_by, ...fields }) {
+  const rec = await db.update(id, { data: { ...fields, completed_at: new Date().toISOString(), completed_by: completed_by ?? null } })
   return questFrom(rec)
 }
 
