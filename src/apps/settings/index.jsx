@@ -58,17 +58,12 @@ const COLOR_PALETTE = [
   { label: 'Dusk',   value: '#6F86C2' },
 ]
 
-// App preferences — teaching placeholders; these will be wired to records in later builds
+// Household-level app preferences (personal prefs live in Profile)
 const APP_PREFS = [
-  { id: 'media_autoplay',  label: 'Autoplay next episode',     app: 'Media',   type: 'toggle', default: true },
   { id: 'ledger_default',  label: 'Default account',           app: 'Ledger',  type: 'select',
     // TODO: read from data.list({ app:'ledger', type:'account' }) in Ledger build
     options: ['Personal checking', 'Joint savings'],
     default: 'Personal checking' },
-  { id: 'pantry_remind',   label: 'Low-stock reminders',       app: 'Pantry',  type: 'toggle', default: false },
-  { id: 'fitness_unit',    label: 'Weight unit',               app: 'Fitness', type: 'select',
-    options: ['lbs', 'kg'],
-    default: 'lbs' },
 ]
 
 function Section({ title, subtitle, children }) {
@@ -370,33 +365,7 @@ export default function Settings() {
         </button>
       </Section>
 
-      {/* ── App preferences ── */}
-      <Section title="App preferences">
-        <div className="card set-card">
-          {APP_PREFS.filter(p => p.id !== 'ledger_default').map((p, i, arr) => (
-            <div key={p.id} className="set-row pref-row">
-              <div>
-                <div className="pref-label">{p.label}</div>
-                <div className="pref-app">{p.app}</div>
-              </div>
-              {p.type === 'toggle' ? (
-                <button
-                  role="switch"
-                  aria-checked={prefs[p.id]}
-                  className={'toggle' + (prefs[p.id] ? ' on' : '')}
-                  onClick={() => setPref(p.id, !prefs[p.id])}
-                  aria-label={p.label}
-                />
-              ) : (
-                <select className="set-select" value={prefs[p.id]}
-                  onChange={(e) => setPref(p.id, e.target.value)}>
-                  {p.options.map(o => <option key={o}>{o}</option>)}
-                </select>
-              )}
-            </div>
-          ))}
-        </div>
-      </Section>
+      {/* ── App preferences (personal prefs moved to Profile) ── */}
 
       {/* ── Visible apps ── */}
       <Section title="Visible apps" subtitle="Choose which apps appear on the launcher. Settings can't be hidden.">

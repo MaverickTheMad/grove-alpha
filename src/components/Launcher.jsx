@@ -260,7 +260,14 @@ export default function Launcher({ apps, onOpen, user, onSignOut, theme, onCycle
             </div>
           )}
           {user && (
-            <button className="btn ghost sm" onClick={onSignOut}>Sign out</button>
+            <button
+              className="launcher-avatar-btn"
+              onClick={() => onOpen('profile')}
+              aria-label="Open profile"
+              title={user.name}
+            >
+              <span className="launcher-avatar-initial">{user.name[0]?.toUpperCase()}</span>
+            </button>
           )}
         </header>
 

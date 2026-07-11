@@ -40,6 +40,13 @@ export async function getSession() {
   return data.session
 }
 
+// Change password: re-verify current password, then update.
+export async function changePassword(username, current, next) {
+  await signIn(username, current)   // throws if current pw is wrong
+  const { error } = await supabase.auth.updateUser({ password: next })
+  if (error) throw error
+}
+
 // Fires on login / logout / token refresh. Returns an unsubscribe fn.
 export function onAuthChange(cb) {
   const { data } = supabase.auth.onAuthStateChange((_event, session) => {

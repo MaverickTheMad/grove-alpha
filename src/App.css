@@ -70,6 +70,7 @@
 [data-app="almanac"] { --app-accent:#A986C4; } /* Plum   */
 [data-app="fitness"] { --app-accent:#CE6B62; } /* Coral  */
 [data-app="media"]   { --app-accent:#4CA39B; } /* Tide   */
+[data-app="profile"] { --app-accent:#9B82BE; } /* Plum (personal) */
 
 @media (prefers-color-scheme: light) {
   :root:not(.theme-dark) [data-app="journal"] { --app-accent:#B24E66; }
@@ -81,6 +82,7 @@
   :root:not(.theme-dark) [data-app="almanac"] { --app-accent:#7A619B; } /* Plum  */
   :root:not(.theme-dark) [data-app="fitness"] { --app-accent:#A8524A; } /* Coral */
   :root:not(.theme-dark) [data-app="media"]   { --app-accent:#347D76; } /* Tide  */
+  :root:not(.theme-dark) [data-app="profile"] { --app-accent:#6E5891; } /* Plum  */
 }
 :root.theme-light [data-app="journal"] { --app-accent:#B24E66; }
 :root.theme-light [data-app="pantry"]  { --app-accent:#A85F36; }
@@ -91,6 +93,7 @@
 :root.theme-light [data-app="almanac"] { --app-accent:#7A619B; }
 :root.theme-light [data-app="fitness"] { --app-accent:#A8524A; }
 :root.theme-light [data-app="media"]   { --app-accent:#347D76; }
+:root.theme-light [data-app="profile"] { --app-accent:#6E5891; }
 
 /* Quest (Fern) and Media (Tide) are green-adjacent — primary actions use
    house green so two greens don't fight (BRAND-GUIDE §3.3). */
@@ -387,6 +390,19 @@ button.card:focus-visible, .rcard:focus-visible {
 .launcher-top-bar { background: var(--bg); backdrop-filter: none; }
 @media (min-width: 720px) {
   .launcher-top-bar { height: 60px; padding: 0 var(--sp-8); }
+}
+
+.launcher-avatar-btn {
+  width: 32px; height: 32px; border-radius: var(--r-full);
+  background: var(--accent-soft); border: 1px solid var(--accent-weak);
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 140ms;
+  flex-shrink: 0;
+}
+.launcher-avatar-btn:hover { border-color: var(--accent); }
+.launcher-avatar-initial {
+  font-size: var(--fs-sm); font-weight: var(--fw-med);
+  color: var(--accent); line-height: 1;
 }
 
 .launcher-wordmark {

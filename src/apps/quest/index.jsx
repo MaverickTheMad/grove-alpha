@@ -12,6 +12,22 @@ import TrendsTab from './tabs/TrendsTab'
 
 export const meta = { id: 'quest', name: 'Quest', tagline: 'Goals worth the walk' }
 
+export async function summary({ member }) {
+  const quests = await store.listAllQuests()
+  const active = quests.filter((q) => !q.completed_at)
+  const completed = quests.filter((q) => q.completed_at)
+  const myActive = active.filter((q) => !q.assignee || q.assignee === member)
+  const now = new Date()
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const recentCompleted = completed.filter((q) => q.completed_at && new Date(q.completed_at) >= weekAgo)
+  return {
+    active_total: active.length,
+    active_mine: myActive.length,
+    completed_this_week: recentCompleted.length,
+    completed_total: completed.length,
+  }
+}
+
 const TABS = [
   { id: 'chronicle', label: 'Completed', icon: 'log' },
   { id: 'hero',      label: 'Tasks',     icon: 'goals' },

@@ -10,6 +10,18 @@ import RewardsTab from './tabs/RewardsTab'
 
 export const meta = { id: 'fitness', name: 'Reps', tagline: 'Workouts & progress' }
 
+export async function summary({ member }) {
+  const workouts = await store.listWorkouts(member)
+  const now = new Date()
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const thisWeek = workouts.filter((w) => new Date(w.performed_at) >= weekAgo)
+  return {
+    workouts_this_week: thisWeek.length,
+    total_workouts: workouts.length,
+    last_workout: workouts[0]?.performed_at || null,
+  }
+}
+
 const TABS = [
   { id: 'workout', label: 'Workout', icon: 'workout' },
   { id: 'progress', label: 'Progress', icon: 'trends' },

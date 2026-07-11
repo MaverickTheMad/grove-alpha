@@ -9,6 +9,22 @@ import CalendarTab from './tabs/CalendarTab'
 
 export const meta = { id: 'journal', name: "Ren's Journal", tagline: 'Cycle & symptoms' }
 
+export async function summary({ member }) {
+  if (member !== 'ren') return null
+  const periodStarts = await store.loadPeriodStarts()
+  if (!periodStarts.length) return null
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const cycleDay = await store.getCycleDay(todayStr)
+  const lastStart = [...periodStarts].sort().pop()
+  const dayInCycle = Math.floor((new Date(todayStr) - new Date(lastStart)) / 86400000) + 1
+  return {
+    period_starts: periodStarts,
+    last_start: lastStart,
+    day_in_cycle: dayInCycle,
+    flow: cycleDay?.flow ?? 'none',
+  }
+}
+
 const TABS = [
   { id: 'intake', label: 'Log', icon: 'log' },
   { id: 'trends', label: 'Trends', icon: 'trends' },

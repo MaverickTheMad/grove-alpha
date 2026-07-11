@@ -37,6 +37,7 @@ export function currentUser() {
     name: m.name || m.username || 'Member',
     username: m.username || null,
     color: MEMBER_COLOR[id] || 'var(--info)',
+    created_at: u.created_at || null,
   }
 }
 

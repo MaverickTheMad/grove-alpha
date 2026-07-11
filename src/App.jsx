@@ -18,6 +18,7 @@ import Settings, { meta as settingsMeta } from './apps/settings'
 import Quest, { meta as questMeta } from './apps/quest'
 import Almanac, { meta as almanacMeta } from './apps/almanac'
 import Fitness, { meta as fitnessMeta } from './apps/fitness'
+import Profile, { meta as profileMeta } from './apps/profile'
 
 const REGISTRY = {
   journal: { Component: Journal, meta: journalMeta },
@@ -27,7 +28,8 @@ const REGISTRY = {
   settings: { Component: Settings, meta: settingsMeta },
   quest: { Component: Quest, meta: questMeta },
   almanac: { Component: Almanac, meta: almanacMeta },
-  fitness: { Component: Fitness, meta: fitnessMeta },
+  fitness:  { Component: Fitness,  meta: fitnessMeta  },
+  profile:  { Component: Profile,  meta: profileMeta  },
 }
 
 function appIdFromPath() {

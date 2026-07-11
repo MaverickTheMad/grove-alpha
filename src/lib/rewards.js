@@ -151,6 +151,20 @@ export async function listRewardEvents(person, { limit = 50 } = {}) {
 // ── awardXp — single path for all per-person XP grants ───────────────────────
 // Both Fitness and Quest call this so numbers stay identical.
 // Returns { profile, tokenGain, leveledUp, newLevel, streak, milestone }.
+export async function summary({ member }) {
+  await ensureProfiles(members())
+  const p = await getProfile(member)
+  if (!p) return null
+  const { level, into, span, pct } = levelProgress(p.xp)
+  return {
+    xp: p.xp, level, tokens: p.tokens,
+    current_streak: p.current_streak,
+    longest_streak: p.longest_streak,
+    last_active_date: p.last_active_date,
+    xp_into: into, xp_span: span, xp_pct: pct,
+  }
+}
+
 export async function awardXp(person, { pts, source, source_id, label }) {
   await ensureProfiles(members())
   const p = await getProfile(person)
