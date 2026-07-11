@@ -17,6 +17,9 @@
   /* ---- semantic ---- */
   --ok:#5FB47E; --warn:#D8A24F; --danger:#D2685F; --info:#6F86C2;
 
+  /* ---- named app palette (used in cross-app views like Profile) ---- */
+  --col-quest:#86B24F; --col-fitness:#CE6B62; --col-journal:#D06A82;
+
   /* ---- accent tints (derived) ---- */
   --accent-weak:   color-mix(in srgb, var(--accent) 14%, var(--bg-paper));
   --accent-soft:   color-mix(in srgb, var(--accent) 28%, var(--bg-paper));
@@ -393,16 +396,17 @@ button.card:focus-visible, .rcard:focus-visible {
 }
 
 .launcher-avatar-btn {
-  width: 32px; height: 32px; border-radius: var(--r-full);
-  background: var(--accent-soft); border: 1px solid var(--accent-weak);
+  width: 34px; height: 34px; border-radius: var(--r-full);
+  border: none;
   display: flex; align-items: center; justify-content: center;
-  transition: border-color 140ms;
-  flex-shrink: 0;
+  flex-shrink: 0; opacity: .95;
+  transition: opacity 140ms;
 }
-.launcher-avatar-btn:hover { border-color: var(--accent); }
+.launcher-avatar-btn:hover { opacity: 1; }
 .launcher-avatar-initial {
-  font-size: var(--fs-sm); font-weight: var(--fw-med);
-  color: var(--accent); line-height: 1;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm); font-weight: var(--fw-title);
+  color: #fff; line-height: 1;
 }
 
 .launcher-wordmark {

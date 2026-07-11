@@ -9,11 +9,13 @@
 
 const ALPHA_HOUSEHOLD = '00000000-0000-0000-0000-000000000001'
 
-const MEMBER_COLOR = { ren: 'var(--app-accent)', mav: 'var(--info)' }
+// Fixed member colors — consistent across all app contexts (no CSS-var indirection).
+// Berry for Ren (matches journal accent), Dusk for Mav (matches --info).
+const MEMBER_COLOR = { ren: '#D06A82', mav: '#6F86C2' }
 
 const ALPHA_MEMBERS = [
-  { id: 'mav', name: 'Mav', color: 'var(--info)' },
-  { id: 'ren', name: 'Ren', color: 'var(--app-accent)' },
+  { id: 'mav', name: 'Mav', color: '#6F86C2' },
+  { id: 'ren', name: 'Ren', color: '#D06A82' },
 ]
 
 // Set by lib/auth.js whenever the session changes (login / logout / refresh).

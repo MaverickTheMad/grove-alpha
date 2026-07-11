@@ -12,19 +12,22 @@ import TrendsTab from './tabs/TrendsTab'
 
 export const meta = { id: 'quest', name: 'Quest', tagline: 'Goals worth the walk' }
 
-export async function summary({ member }) {
+export async function summary({ member, now = new Date() }) {
   const quests = await store.listAllQuests()
   const active = quests.filter((q) => !q.completed_at)
   const completed = quests.filter((q) => q.completed_at)
-  const myActive = active.filter((q) => !q.assignee || q.assignee === member)
-  const now = new Date()
-  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-  const recentCompleted = completed.filter((q) => q.completed_at && new Date(q.completed_at) >= weekAgo)
+  const cutoff30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+  const completed30d = completed.filter((q) => q.completed_at && new Date(q.completed_at) >= cutoff30)
+  const todayStr = now.toISOString().slice(0, 10)
+  const tenDaysStr = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  const upcoming = active
+    .filter((q) => q.due && q.due >= todayStr && q.due <= tenDaysStr)
+    .sort((a, b) => a.due.localeCompare(b.due))
   return {
     active_total: active.length,
-    active_mine: myActive.length,
-    completed_this_week: recentCompleted.length,
-    completed_total: completed.length,
+    completed30d: completed30d.length,
+    total_in_period: active.length + completed30d.length,
+    upcoming,
   }
 }
 

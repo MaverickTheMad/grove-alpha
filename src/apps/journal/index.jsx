@@ -14,15 +14,29 @@ export async function summary({ member }) {
   const periodStarts = await store.loadPeriodStarts()
   if (!periodStarts.length) return null
   const todayStr = new Date().toISOString().slice(0, 10)
-  const cycleDay = await store.getCycleDay(todayStr)
-  const lastStart = [...periodStarts].sort().pop()
-  const dayInCycle = Math.floor((new Date(todayStr) - new Date(lastStart)) / 86400000) + 1
-  return {
-    period_starts: periodStarts,
-    last_start: lastStart,
-    day_in_cycle: dayInCycle,
-    flow: cycleDay?.flow ?? 'none',
-  }
+  const sorted = [...periodStarts].sort()
+  const lastStart = sorted[sorted.length - 1]
+  const dayInCycle = Math.floor((new Date(todayStr + 'T00:00:00') - new Date(lastStart + 'T00:00:00')) / 86400000) + 1
+  // cycle phase — inline rather than importing computeCyclePhase to keep summary lightweight
+  let phase = null
+  if (dayInCycle <= 5) phase = 'Menstrual'
+  else if (dayInCycle <= 13) phase = 'Follicular'
+  else if (dayInCycle <= 16) phase = 'Ovulation'
+  else phase = 'Luteal'
+  // cycle length estimate
+  const cycleLen = sorted.length >= 2
+    ? Math.round((new Date(sorted[sorted.length - 1] + 'T00:00:00') - new Date(sorted[sorted.length - 2] + 'T00:00:00')) / 86400000)
+    : 28
+  const clamped = Math.max(21, Math.min(40, cycleLen))
+  const nextEstimate = new Date(new Date(lastStart + 'T00:00:00').getTime() + clamped * 86400000).toISOString().slice(0, 10)
+  // last 4 days flow for sparkline
+  const cycleDays = await store.listCycleDays()
+  const flowVal = { none: 0, spotting: 0.25, light: 0.5, medium: 0.75, heavy: 1 }
+  const bars = Array.from({ length: 4 }, (_, i) => {
+    const d = new Date(Date.now() - (3 - i) * 86400000).toISOString().slice(0, 10)
+    return flowVal[cycleDays[d]?.flow ?? 'none'] ?? 0
+  })
+  return { last_start: lastStart, day_in_cycle: dayInCycle, phase, next_estimate: nextEstimate, bars }
 }
 
 const TABS = [

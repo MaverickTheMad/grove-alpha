@@ -1,8 +1,11 @@
-/* ── Profile app ── */
+/* ── Profile page ── */
 .profile-page {
   max-width: var(--content-narrow);
   margin: 0 auto;
   padding: var(--sp-4) var(--sp-4) calc(var(--sp-8) + 64px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
 }
 @media (min-width: 720px) {
   .profile-page {
@@ -11,210 +14,305 @@
     padding-bottom: var(--sp-8);
   }
 }
-@media (min-width: 1080px) {
-  .profile-page {
-    max-width: var(--content-wide);
-  }
+
+/* ── Zone 1 — Identity card ── */
+.profile-identity-card {
+  background: var(--bg-elevated);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
 }
 
-/* ── Header ── */
-.profile-header {
+.profile-id-row {
   display: flex;
+  gap: 14px;
   align-items: center;
-  gap: var(--sp-4);
-  margin-bottom: var(--sp-5);
 }
+
 .profile-avatar {
   width: 56px;
   height: 56px;
   border-radius: var(--r-full);
-  background: var(--app-soft);
-  border: 2px solid var(--app-accent);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-display);
-  font-size: var(--fs-xl);
+  font-size: 1.4rem;
   font-weight: var(--fw-title);
-  color: var(--app-accent);
+  color: var(--text);
   flex-shrink: 0;
 }
-.profile-identity {
-  flex: 1;
-  min-width: 0;
-}
+
+.profile-id-text { min-width: 0; }
+
 .profile-name {
   font-family: var(--font-display);
   font-size: var(--fs-xl);
   font-weight: var(--fw-title);
-  line-height: 1.1;
+  line-height: 1.15;
+  color: var(--text);
 }
-.profile-rank {
+.profile-username {
   font-size: var(--fs-sm);
   color: var(--text-soft);
-  margin-top: var(--sp-1);
+  margin-top: 2px;
 }
-.profile-rank-title {
-  color: var(--app-accent);
-  font-weight: var(--fw-med);
+.profile-since {
+  font-size: var(--fs-xs);
+  color: var(--text-soft);
+  margin-top: 2px;
 }
 
-/* ── XP bar ── */
-.profile-xp-section {
-  margin-bottom: var(--sp-5);
+/* rewards badge (nested card) */
+.profile-rewards-badge {
+  background: var(--bg-paper);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
-.profile-xp-track {
+
+.profile-badge-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.profile-badge-rank {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+.profile-badge-level {
+  font-family: var(--font-display);
+  font-weight: var(--fw-title);
+  font-size: 1.1rem;
+  color: var(--text);
+}
+.profile-badge-title {
+  font-size: var(--fs-sm);
+  color: var(--text-soft);
+}
+
+.profile-badge-streak {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+.profile-streak-dot {
+  width: 8px;
   height: 8px;
+  border-radius: var(--r-sm);
+  background: var(--warn);
+  flex-shrink: 0;
+}
+.profile-streak-val { font-size: var(--fs-sm); }
+
+.profile-xp-track {
+  height: 6px;
   border-radius: var(--r-full);
   background: var(--bg-sunken);
   overflow: hidden;
-  margin-bottom: var(--sp-2);
 }
 .profile-xp-fill {
   height: 100%;
   border-radius: var(--r-full);
-  background: var(--app-accent);
+  background: var(--accent);
   transition: width 400ms cubic-bezier(.2,.8,.2,1);
 }
-.profile-xp-meta {
+
+.profile-badge-footer {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   font-size: var(--fs-xs);
   color: var(--text-soft);
+}
+.profile-badge-tokens {
   font-family: var(--font-mono);
+  color: var(--text);
 }
 
-/* ── Stat pills ── */
-.profile-stats {
+.profile-id-actions {
   display: flex;
-  gap: var(--sp-3);
-  flex-wrap: wrap;
-  margin-bottom: var(--sp-5);
-}
-.profile-stat {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  padding: var(--sp-2) var(--sp-3);
-  background: var(--bg-paper);
-  border: 1px solid var(--border);
-  border-radius: var(--r-full);
-  font-size: var(--fs-sm);
-}
-.profile-stat-icon {
-  font-size: var(--fs-base);
-  line-height: 1;
-}
-.profile-stat-val {
-  font-weight: var(--fw-med);
-}
-.profile-stat-label {
-  color: var(--text-soft);
+  gap: 10px;
 }
 
-/* ── Card grid ── */
-.profile-cards {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--sp-4);
-}
-@media (min-width: 1080px) {
-  .profile-cards {
-    grid-template-columns: 1fr 1fr;
-  }
-  .profile-card--wide {
-    grid-column: 1 / -1;
-  }
+/* ── Section headings ── */
+.profile-section { display: flex; flex-direction: column; gap: 10px; }
+.profile-section-head {
+  font-family: var(--font-display);
+  font-size: .95rem;
+  font-weight: var(--fw-title);
+  color: var(--text);
 }
 
-/* ── Individual cards ── */
-.profile-card {
+/* ── Unified list card (Frame A + Prefs) ── */
+.profile-list-card {
   background: var(--bg-paper);
-  border: 1px solid var(--border);
+  border: 0.5px solid var(--border);
   border-radius: var(--r-lg);
-  padding: var(--sp-4) var(--sp-5);
+  overflow: hidden;
 }
-.profile-card-head {
+
+/* Frame A — horizon rows */
+.profile-horizon-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--sp-3);
+  gap: 12px;
+  padding: 14px var(--sp-4);
 }
-.profile-card-title {
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-med);
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--text-soft);
-}
-.profile-card-accent {
+.profile-horizon-row--border { border-bottom: 0.5px solid var(--border); }
+
+.profile-horizon-dot {
   width: 8px;
   height: 8px;
   border-radius: var(--r-full);
+  flex-shrink: 0;
+}
+.profile-horizon-text { flex: 1; min-width: 0; }
+.profile-horizon-title {
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+.profile-horizon-title--dashed {
+  opacity: .8;
+  border-bottom: 1px dashed var(--border);
+  display: inline-block;
+}
+.profile-horizon-meta {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-soft);
+  margin-top: 2px;
 }
 
-.profile-card-rows {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
+/* ── Frame B — per-app cards ── */
+.profile-b-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
-.profile-card-row {
+@media (max-width: 480px) {
+  .profile-b-grid { grid-template-columns: 1fr; }
+}
+
+.profile-b-card {
+  background: var(--bg-paper);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4);
+}
+.profile-b-card--wide { grid-column: 1 / -1; }
+
+.profile-b-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-3);
+  gap: var(--sp-2);
+  margin-bottom: 10px;
 }
-.profile-card-row-label {
-  font-size: var(--fs-sm);
+.profile-b-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--r-full);
+  flex-shrink: 0;
+}
+.profile-b-label {
+  font-size: .75rem;
   color: var(--text-soft);
 }
-.profile-card-row-val {
-  font-weight: var(--fw-med);
-  font-size: var(--fs-sm);
+
+.profile-b-big {
   font-family: var(--font-mono);
+  font-size: var(--fs-lg);
+  color: var(--text);
+}
+.profile-b-big--xl {
+  font-size: var(--fs-3xl);
+  line-height: 1;
+}
+.profile-b-sub {
+  font-size: var(--fs-xs);
+  color: var(--text-soft);
+  margin-top: 4px;
+}
+.profile-b-text {
+  font-size: var(--fs-sm);
+  color: var(--text);
+  margin-bottom: var(--sp-2);
 }
 
-/* ── Prefs card ── */
+/* sparkline */
+.profile-sparkline {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  margin-top: 10px;
+}
+.profile-spark-bar {
+  flex: 1;
+  border-radius: 2px;
+  opacity: .85;
+  min-height: 4px;
+}
+
+/* ── Prefs rows ── */
 .profile-pref-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 13px var(--sp-4);
   gap: var(--sp-3);
-  padding: var(--sp-2) 0;
-  border-bottom: 1px solid var(--border);
 }
-.profile-pref-row:last-child {
-  border-bottom: none;
-}
+.profile-pref-row--border { border-bottom: 0.5px solid var(--border); }
 .profile-pref-label {
   font-size: var(--fs-sm);
+  color: var(--text);
 }
 .profile-pref-app {
   font-size: var(--fs-xs);
   color: var(--text-soft);
+  margin-top: 2px;
 }
 
-/* reuse toggle from settings */
-.toggle {
+.profile-pref-footer {
+  padding: 13px var(--sp-4);
+  font-size: .75rem;
+  color: var(--text-soft);
+}
+
+.profile-toggle {
   position: relative;
-  width: 40px; height: 22px; min-height: 22px;
+  width: 38px;
+  height: 22px;
+  min-height: 22px;
   border-radius: var(--r-full);
   background: var(--border);
-  border: none; cursor: pointer;
+  border: none;
+  cursor: pointer;
   transition: background 140ms;
   flex-shrink: 0;
 }
-.toggle::after {
+.profile-toggle::after {
   content: '';
   position: absolute;
-  top: 3px; left: 3px;
-  width: 16px; height: 16px;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
   border-radius: var(--r-full);
   background: var(--text-soft);
   transition: transform 140ms, background 140ms;
 }
-.toggle.on { background: var(--app-accent); }
-.toggle.on::after { transform: translateX(18px); background: #fff; }
+.profile-toggle.on { background: var(--accent); }
+.profile-toggle.on::after { transform: translateX(16px); background: var(--text); }
 
 .profile-select {
   background: var(--bg-elevated);
@@ -225,49 +323,103 @@
   color: var(--text);
 }
 
-/* ── Account / password ── */
+/* ── Zone 4 — Data & privacy ── */
+.profile-privacy-card {
+  background: var(--bg-paper);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.profile-privacy-text {
+  font-size: var(--fs-sm);
+  color: var(--text-soft);
+  line-height: 1.5;
+  margin: 0;
+}
+.profile-privacy-note {
+  font-size: .75rem;
+  color: var(--text-soft);
+  border-top: 0.5px solid var(--border);
+  padding-top: 12px;
+  margin: 0;
+}
+.profile-passphrase-row {
+  border: 0.5px dashed var(--border);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.profile-beta-badge {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-soft);
+  background: var(--bg-sunken);
+  border-radius: var(--r-sm);
+  padding: 3px var(--sp-2);
+}
+
+/* ── Password sheet ── */
+.profile-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg-sunken) 72%, transparent);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+}
+@media (min-width: 480px) {
+  .profile-sheet-backdrop { align-items: center; justify-content: center; }
+}
+
+.profile-sheet {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  padding: var(--sp-5);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+@media (min-width: 480px) {
+  .profile-sheet {
+    border-radius: var(--r-lg);
+    max-width: 400px;
+  }
+}
+
+.profile-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.profile-sheet-title {
+  font-family: var(--font-display);
+  font-weight: var(--fw-title);
+  font-size: var(--fs-lg);
+}
+.profile-sheet-close {
+  background: transparent;
+  border: none;
+  color: var(--text-soft);
+  font-size: var(--fs-lg);
+  cursor: pointer;
+  line-height: 1;
+}
+.profile-sheet-close:hover { color: var(--text); }
+
 .profile-pw-form {
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
 }
-.profile-pw-input {
-  width: 100%;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 10px var(--sp-4);
-  color: var(--text);
-}
-.profile-pw-input:focus {
-  outline: 2px solid var(--app-accent);
-  outline-offset: 1px;
-}
 .profile-pw-error {
   font-size: var(--fs-sm);
   color: var(--danger);
-}
-.profile-pw-ok {
-  font-size: var(--fs-sm);
-  color: var(--ok);
-}
-
-/* ── Section label ── */
-.profile-section-label {
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-med);
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--text-soft);
-  margin: var(--sp-5) 0 var(--sp-3);
-}
-.profile-section-label:first-of-type {
-  margin-top: var(--sp-3);
-}
-
-/* ── empty state ── */
-.profile-empty {
-  font-size: var(--fs-sm);
-  color: var(--text-soft);
-  padding: var(--sp-3) 0;
+  margin: 0;
 }

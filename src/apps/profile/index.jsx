@@ -2,228 +2,39 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import './profile.css'
 import { currentUser } from '../../lib/identity'
 import { rankTitle, levelProgress } from '../../lib/rewards'
-import { changePassword } from '../../lib/auth'
+import { changePassword, signOut } from '../../lib/auth'
 import { loadPrefs, setPref } from './lib/prefs'
 import { loadAll } from './providers'
 import { useToast } from '../../components/Toast'
 
 export const meta = { id: 'profile', name: 'Profile', tagline: 'Your progress & preferences' }
 
-// ── Personal prefs (moved from Settings) ──────────────────────────────────────
 const PERSONAL_PREFS = [
-  { id: 'fitness_unit',   label: 'Weight unit',          app: 'Reps',    type: 'select', options: ['lbs', 'kg'],    default: 'lbs' },
-  { id: 'media_autoplay', label: 'Autoplay next episode', app: 'Media',   type: 'toggle', default: true },
-  { id: 'pantry_remind',  label: 'Low-stock reminders',  app: 'Pantry',  type: 'toggle', default: false },
+  { id: 'fitness_unit',   label: 'Weight unit',          sub: 'Fitness · lbs', subOff: 'Fitness · kg', app: 'Fitness', type: 'select', options: ['lbs', 'kg'], default: 'lbs' },
+  { id: 'media_autoplay', label: 'Autoplay next',         sub: 'Media',          app: 'Media',   type: 'toggle', default: true },
+  { id: 'pantry_remind',  label: 'Low-stock reminders',   sub: 'Pantry',         app: 'Pantry',  type: 'toggle', default: false },
+  { id: 'pay_cycle',      label: 'Pay-cycle anchor',      sub: 'Ledger · primary paycheck', app: 'Ledger', type: 'toggle', default: false },
 ]
 
-// ── XP bar ────────────────────────────────────────────────────────────────────
-function XpBar({ xp, level }) {
-  const prog = levelProgress(xp)
-  return (
-    <div className="profile-xp-section">
-      <div className="profile-xp-track">
-        <div className="profile-xp-fill" style={{ width: `${Math.round(prog.pct * 100)}%` }} />
-      </div>
-      <div className="profile-xp-meta">
-        <span>Lv. {level}</span>
-        <span>{prog.into} / {prog.span} XP</span>
-        <span>Lv. {level + 1}</span>
-      </div>
-    </div>
-  )
-}
-
-// ── Quest summary card ─────────────────────────────────────────────────────────
-function QuestCard({ data }) {
-  return (
-    <div className="profile-card">
-      <div className="profile-card-head">
-        <span className="profile-card-title">Quest</span>
-        <span className="profile-card-accent" style={{ background: 'var(--quest-accent, #86B24F)' }} />
-      </div>
-      {data ? (
-        <div className="profile-card-rows">
-          <div className="profile-card-row">
-            <span className="profile-card-row-label">Active tasks</span>
-            <span className="profile-card-row-val">{data.active_total}</span>
-          </div>
-          <div className="profile-card-row">
-            <span className="profile-card-row-label">Assigned to me</span>
-            <span className="profile-card-row-val">{data.active_mine}</span>
-          </div>
-          <div className="profile-card-row">
-            <span className="profile-card-row-label">Done this week</span>
-            <span className="profile-card-row-val">{data.completed_this_week}</span>
-          </div>
-        </div>
-      ) : (
-        <p className="profile-empty">No data</p>
-      )}
-    </div>
-  )
-}
-
-// ── Fitness summary card ───────────────────────────────────────────────────────
-function FitnessCard({ data }) {
-  function lastWorkoutLabel(iso) {
-    if (!iso) return '—'
-    const days = Math.floor((Date.now() - new Date(iso)) / 86400000)
-    if (days === 0) return 'Today'
-    if (days === 1) return 'Yesterday'
-    return `${days}d ago`
-  }
-  return (
-    <div className="profile-card">
-      <div className="profile-card-head">
-        <span className="profile-card-title">Reps</span>
-        <span className="profile-card-accent" style={{ background: 'var(--fitness-accent, #CE6B62)' }} />
-      </div>
-      {data ? (
-        <div className="profile-card-rows">
-          <div className="profile-card-row">
-            <span className="profile-card-row-label">Workouts this week</span>
-            <span className="profile-card-row-val">{data.workouts_this_week}</span>
-          </div>
-          <div className="profile-card-row">
-            <span className="profile-card-row-label">Last workout</span>
-            <span className="profile-card-row-val">{lastWorkoutLabel(data.last_workout)}</span>
-          </div>
-          <div className="profile-card-row">
-            <span className="profile-card-row-label">Total workouts</span>
-            <span className="profile-card-row-val">{data.total_workouts}</span>
-          </div>
-        </div>
-      ) : (
-        <p className="profile-empty">No data</p>
-      )}
-    </div>
-  )
-}
-
-// ── Ledger summary card ────────────────────────────────────────────────────────
-function LedgerCard({ data }) {
-  function ordinal(n) {
-    const s = ['th','st','nd','rd'], v = n % 100
-    return n + (s[(v - 20) % 10] || s[v] || s[0])
-  }
-  return (
-    <div className="profile-card profile-card--wide">
-      <div className="profile-card-head">
-        <span className="profile-card-title">Ledger</span>
-        <span className="profile-card-accent" style={{ background: 'var(--ledger-accent, #6F86C2)' }} />
-      </div>
-      {data ? (
-        <div className="profile-card-rows">
-          <div className="profile-card-row">
-            <span className="profile-card-row-label">Bills unpaid this month</span>
-            <span className="profile-card-row-val">{data.unpaid_count} / {data.total_bills}</span>
-          </div>
-          {data.next_due_name && (
-            <div className="profile-card-row">
-              <span className="profile-card-row-label">Next due</span>
-              <span className="profile-card-row-val">
-                {data.next_due_name}{data.next_due_day ? ` · ${ordinal(data.next_due_day)}` : ''}
-              </span>
-            </div>
-          )}
-        </div>
-      ) : (
-        <p className="profile-empty">No bill data</p>
-      )}
-    </div>
-  )
-}
-
-// ── Journal summary card (Ren only) ───────────────────────────────────────────
-function JournalCard({ data }) {
-  return (
-    <div className="profile-card profile-card--wide">
-      <div className="profile-card-head">
-        <span className="profile-card-title">Journal</span>
-        <span className="profile-card-accent" style={{ background: 'var(--journal-accent, #D06A82)' }} />
-      </div>
-      {data ? (
-        <div className="profile-card-rows">
-          <div className="profile-card-row">
-            <span className="profile-card-row-label">Cycle day</span>
-            <span className="profile-card-row-val">{data.day_in_cycle}</span>
-          </div>
-          <div className="profile-card-row">
-            <span className="profile-card-row-label">Flow today</span>
-            <span className="profile-card-row-val" style={{ textTransform: 'capitalize' }}>{data.flow}</span>
-          </div>
-          <div className="profile-card-row">
-            <span className="profile-card-row-label">Last period</span>
-            <span className="profile-card-row-val">{data.last_start}</span>
-          </div>
-        </div>
-      ) : (
-        <p className="profile-empty">No cycle data yet</p>
-      )}
-    </div>
-  )
-}
-
-// ── Prefs card ────────────────────────────────────────────────────────────────
-function PrefsCard({ prefs, prefRows, onSetPref }) {
-  return (
-    <div className="profile-card profile-card--wide">
-      <div className="profile-card-head">
-        <span className="profile-card-title">Preferences</span>
-      </div>
-      {PERSONAL_PREFS.map((p) => {
-        const val = prefs[p.id] ?? p.default
-        return (
-          <div key={p.id} className="profile-pref-row">
-            <div>
-              <div className="profile-pref-label">{p.label}</div>
-              <div className="profile-pref-app">{p.app}</div>
-            </div>
-            {p.type === 'toggle' ? (
-              <button
-                role="switch"
-                aria-checked={val}
-                className={'toggle' + (val ? ' on' : '')}
-                onClick={() => onSetPref(p.id, !val, prefRows)}
-                aria-label={p.label}
-              />
-            ) : (
-              <select
-                className="profile-select"
-                value={val}
-                onChange={(e) => onSetPref(p.id, e.target.value, prefRows)}
-              >
-                {p.options.map((o) => <option key={o}>{o}</option>)}
-              </select>
-            )}
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-// ── Change password ───────────────────────────────────────────────────────────
-function PasswordCard({ user }) {
+// ── Password Sheet ────────────────────────────────────────────────────────────
+function PasswordSheet({ user, onClose }) {
   const toast = useToast()
   const [current, setCurrent] = useState('')
   const [next, setNext]       = useState('')
   const [confirm, setConfirm] = useState('')
   const [saving, setSaving]   = useState(false)
   const [err, setErr]         = useState('')
-  const [ok, setOk]           = useState(false)
 
   async function submit(e) {
     e.preventDefault()
-    setErr(''); setOk(false)
-    if (next !== confirm) { setErr('New passwords don\'t match.'); return }
-    if (next.length < 8) { setErr('Password must be at least 8 characters.'); return }
+    setErr('')
+    if (next !== confirm) { setErr("New passwords don't match."); return }
+    if (next.length < 8)  { setErr('Password must be at least 8 characters.'); return }
     setSaving(true)
     try {
       await changePassword(user.username, current, next)
-      setCurrent(''); setNext(''); setConfirm('')
-      setOk(true)
       toast.show('Password updated.')
+      onClose()
     } catch (e) {
       setErr(e.message || 'Password change failed.')
     } finally {
@@ -232,45 +43,75 @@ function PasswordCard({ user }) {
   }
 
   return (
-    <div className="profile-card profile-card--wide">
-      <div className="profile-card-head">
-        <span className="profile-card-title">Account</span>
+    <div className="profile-sheet-backdrop" onClick={onClose}>
+      <div className="profile-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="profile-sheet-header">
+          <span className="profile-sheet-title">Change password</span>
+          <button className="profile-sheet-close" onClick={onClose} aria-label="Close">✕</button>
+        </div>
+        <form className="profile-pw-form" onSubmit={submit}>
+          <input type="password" className="input" placeholder="Current password"
+            value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" />
+          <input type="password" className="input" placeholder="New password"
+            value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" />
+          <input type="password" className="input" placeholder="Confirm new password"
+            value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" />
+          {err && <p className="profile-pw-error">{err}</p>}
+          <button type="submit" className="btn primary block" disabled={saving || !current || !next || !confirm}>
+            {saving ? 'Updating…' : 'Update password'}
+          </button>
+        </form>
       </div>
-      <form className="profile-pw-form" onSubmit={submit}>
-        <input
-          type="password"
-          className="profile-pw-input"
-          placeholder="Current password"
-          value={current}
-          onChange={(e) => setCurrent(e.target.value)}
-          autoComplete="current-password"
+    </div>
+  )
+}
+
+// ── Format helpers ─────────────────────────────────────────────────────────────
+function fmtDate(iso) {
+  if (!iso) return null
+  const d = new Date(iso)
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+function fmtMoney(n) {
+  if (!n && n !== 0) return null
+  const abs = Math.abs(n)
+  if (abs >= 1000) return `$${(abs / 1000).toFixed(1)}k`
+  return `$${Math.round(abs)}`
+}
+
+function memberSince(createdAt) {
+  if (!createdAt) return null
+  const d = new Date(createdAt)
+  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+}
+
+// ── Sparkline bars ─────────────────────────────────────────────────────────────
+function Sparkline({ bars, colorVar, height = 36 }) {
+  if (!bars || !bars.length) return null
+  const max = Math.max(...bars, 1)
+  return (
+    <div className="profile-sparkline" style={{ height }}>
+      {bars.map((v, i) => (
+        <div
+          key={i}
+          className="profile-spark-bar"
+          style={{ height: `${Math.max(4, Math.round((v / max) * 100))}%`, background: colorVar }}
         />
-        <input
-          type="password"
-          className="profile-pw-input"
-          placeholder="New password"
-          value={next}
-          onChange={(e) => setNext(e.target.value)}
-          autoComplete="new-password"
-        />
-        <input
-          type="password"
-          className="profile-pw-input"
-          placeholder="Confirm new password"
-          value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-          autoComplete="new-password"
-        />
-        {err && <p className="profile-pw-error">{err}</p>}
-        {ok  && <p className="profile-pw-ok">Password updated.</p>}
-        <button
-          type="submit"
-          className="btn primary"
-          disabled={saving || !current || !next || !confirm}
-        >
-          {saving ? 'Updating…' : 'Update password'}
-        </button>
-      </form>
+      ))}
+    </div>
+  )
+}
+
+// ── Frame B cards ──────────────────────────────────────────────────────────────
+function AppCard({ dotColor, label, children, wide = false }) {
+  return (
+    <div className={'profile-b-card' + (wide ? ' profile-b-card--wide' : '')}>
+      <div className="profile-b-head">
+        <div className="profile-b-dot" style={{ background: dotColor }} />
+        <span className="profile-b-label">{label}</span>
+      </div>
+      {children}
     </div>
   )
 }
@@ -278,12 +119,13 @@ function PasswordCard({ user }) {
 // ── Root ──────────────────────────────────────────────────────────────────────
 export default function Profile() {
   const user = currentUser()
-  const [data, setData]       = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [prefs, setPrefs]     = useState(() =>
+  const [data, setData]           = useState(null)
+  const [loading, setLoading]     = useState(true)
+  const [prefs, setPrefs]         = useState(() =>
     Object.fromEntries(PERSONAL_PREFS.map((p) => [p.id, p.default]))
   )
   const prefRowsRef = useRef([])
+  const [showPwSheet, setShowPwSheet] = useState(false)
 
   const reload = useCallback(async () => {
     if (!user) return
@@ -302,77 +144,266 @@ export default function Profile() {
   const handleSetPref = useCallback(async (key, value) => {
     setPrefs((p) => ({ ...p, [key]: value }))
     await setPref(user.id, key, value, prefRowsRef.current)
-    // refresh rows so next write finds the record
     const { rows } = await loadPrefs(user.id)
     prefRowsRef.current = rows
   }, [user?.id])
 
   if (!user) return null
 
-  const rewardsData = data?.rewards
-  const rank = rankTitle(rewardsData?.level ?? 1)
-  const xp = rewardsData?.xp ?? 0
-  const level = rewardsData?.level ?? 1
-  const streak = rewardsData?.current_streak ?? 0
-  const tokens = rewardsData?.tokens ?? 0
+  const r = data?.rewards
+  const level   = r?.level ?? 1
+  const rank    = rankTitle(level)
+  const xpInto  = r?.xp_into ?? 0
+  const xpSpan  = r?.xp_span ?? 100
+  const xpPct   = r?.xp_pct ?? 0
+  const xpTotal = r?.xp ?? 0
+  const streak  = r?.current_streak ?? 0
+  const tokens  = r?.tokens ?? 0
+  const xp30d   = r?.xp30d ?? 0
+  const mostActive = r?.most_active_app || null
+
+  const quest   = data?.quest
+  const fitness = data?.fitness
+  const ledger  = data?.ledger
+  const journal = data?.journal
+
+  // Frame A rows
+  const horizonRows = []
+  if (quest?.upcoming) {
+    quest.upcoming.forEach((q) => horizonRows.push({
+      type: 'quest', title: q.title,
+      meta: `Due ${fmtDate(q.due)} · +${q.xp_reward ?? 10} XP`,
+    }))
+  }
+  if (ledger?.upcoming_bills) {
+    ledger.upcoming_bills.forEach((b) => horizonRows.push({
+      type: 'ledger', title: b.name,
+      meta: `Due ${fmtDate(b.due_date)}${b.amount ? ` · $${b.amount}` : ''}`,
+    }))
+  }
+  if (journal?.next_estimate && user.id === 'ren') {
+    horizonRows.push({
+      type: 'journal', title: 'Next period estimate',
+      meta: `~${fmtDate(journal.next_estimate)} · estimate`,
+      dashed: true,
+    })
+  }
+
+  const appDisplayName = { fitness: 'Fitness', quest: 'Quest', unknown: 'Grove' }
 
   return (
     <main className="profile-page">
-      {/* ── Header ── */}
-      <div className="profile-header">
-        <div className="profile-avatar">{user.name[0]?.toUpperCase()}</div>
-        <div className="profile-identity">
-          <div className="profile-name">{user.name}</div>
-          <div className="profile-rank">
-            <span className="profile-rank-title">{rank}</span>
-            {' · Lv. '}{level}
+
+      {/* ── Zone 1 — Identity ── */}
+      <div className="profile-identity-card">
+        <div className="profile-id-row">
+          <div className="profile-avatar" style={{ background: user.color }}>
+            {user.name[0]?.toUpperCase()}
           </div>
+          <div className="profile-id-text">
+            <div className="profile-name">{user.name}</div>
+            <div className="profile-username">@{user.id}</div>
+            {user.created_at && (
+              <div className="profile-since">Member since {memberSince(user.created_at)}</div>
+            )}
+          </div>
+        </div>
+
+        {/* rewards badge */}
+        <div className="profile-rewards-badge">
+          <div className="profile-badge-top">
+            <div className="profile-badge-rank">
+              <span className="profile-badge-level">Lv. {level}</span>
+              <span className="profile-badge-title">{rank}</span>
+            </div>
+            <div className="profile-badge-streak">
+              <div className="profile-streak-dot" />
+              <span className="profile-streak-val">{streak}d</span>
+            </div>
+          </div>
+          <div className="profile-xp-track">
+            <div className="profile-xp-fill" style={{ width: `${Math.round(xpPct * 100)}%` }} />
+          </div>
+          <div className="profile-badge-footer">
+            <span>{xpInto} / {xpSpan} XP to Lv. {level + 1}</span>
+            <span className="profile-badge-tokens">{tokens} tokens</span>
+          </div>
+        </div>
+
+        <div className="profile-id-actions">
+          <button className="btn primary" style={{ flex: 1 }} onClick={() => setShowPwSheet(true)}>
+            Change password
+          </button>
+          <button className="btn" onClick={() => signOut()}>Sign out</button>
         </div>
       </div>
 
-      {/* ── XP bar ── */}
-      {rewardsData && <XpBar xp={xp} level={level} />}
-
-      {/* ── Stats ── */}
-      <div className="profile-stats">
-        <div className="profile-stat">
-          <span className="profile-stat-icon">🔥</span>
-          <span className="profile-stat-val">{streak}</span>
-          <span className="profile-stat-label">day streak</span>
-        </div>
-        <div className="profile-stat">
-          <span className="profile-stat-icon">💎</span>
-          <span className="profile-stat-val">{tokens}</span>
-          <span className="profile-stat-label">tokens</span>
-        </div>
-      </div>
-
-      {/* ── Cards ── */}
-      {!loading && (
-        <>
-          <p className="profile-section-label">Your activity</p>
-          <div className="profile-cards">
-            <QuestCard data={data.quest} />
-            <FitnessCard data={data.fitness} />
-            <LedgerCard data={data.ledger} />
-            {data.journal !== null && <JournalCard data={data.journal} />}
+      {/* ── Frame A — Ahead ── */}
+      {!loading && horizonRows.length > 0 && (
+        <section className="profile-section">
+          <h2 className="profile-section-head">Ahead · next 10 days</h2>
+          <div className="profile-list-card">
+            {horizonRows.map((row, i) => (
+              <div
+                key={i}
+                className={'profile-horizon-row' + (i < horizonRows.length - 1 ? ' profile-horizon-row--border' : '')}
+              >
+                <div
+                  className="profile-horizon-dot"
+                  style={{ background: row.type === 'quest' ? 'var(--col-quest)' : row.type === 'journal' ? 'var(--col-journal)' : 'var(--info)' }}
+                />
+                <div className="profile-horizon-text">
+                  <div className={'profile-horizon-title' + (row.dashed ? ' profile-horizon-title--dashed' : '')}>
+                    {row.title}
+                  </div>
+                  <div className="profile-horizon-meta">{row.meta}</div>
+                </div>
+              </div>
+            ))}
           </div>
-
-          <p className="profile-section-label">Preferences</p>
-          <div className="profile-cards">
-            <PrefsCard
-              prefs={prefs}
-              prefRows={prefRowsRef.current}
-              onSetPref={handleSetPref}
-            />
-          </div>
-
-          <p className="profile-section-label">Account</p>
-          <div className="profile-cards">
-            <PasswordCard user={user} />
-          </div>
-        </>
+        </section>
       )}
+
+      {/* ── Frame B — Last 30 days ── */}
+      {!loading && (
+        <section className="profile-section">
+          <h2 className="profile-section-head">Last 30 days</h2>
+          <div className="profile-b-grid">
+
+            {/* Rewards */}
+            <AppCard dotColor="var(--accent)" label="Rewards">
+              <div className="profile-b-big">{xp30d > 0 ? `+${xp30d} XP` : '0 XP'}</div>
+              <div className="profile-b-sub">{streak}d streak · {tokens} tokens earned</div>
+            </AppCard>
+
+            {/* Fitness */}
+            <AppCard dotColor="var(--col-fitness)" label="Fitness">
+              <div className="profile-b-big">{fitness ? `${fitness.workouts_30d} workouts` : '—'}</div>
+              {fitness?.last_workout && (
+                <div className="profile-b-sub">
+                  last {fmtDate(fitness.last_workout)}
+                </div>
+              )}
+              {fitness?.bars && (
+                <Sparkline bars={fitness.bars} colorVar="var(--col-fitness)" height={36} />
+              )}
+            </AppCard>
+
+            {/* Ledger — full width */}
+            <AppCard dotColor="var(--info)" label="Ledger" wide>
+              {ledger && (ledger.money_in > 0 || ledger.money_out > 0) ? (
+                <>
+                  <div className="profile-b-big profile-b-big--xl">
+                    {fmtMoney(ledger.net_amount)}
+                  </div>
+                  <div className="profile-b-sub">
+                    net · {fmtMoney(ledger.money_in)} in · {fmtMoney(ledger.money_out)} out
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="profile-b-big">{ledger ? `${ledger.unpaid_count}/${ledger.total_bills}` : '—'}</div>
+                  <div className="profile-b-sub">bills unpaid this month</div>
+                </>
+              )}
+            </AppCard>
+
+            {/* Journal — Ren only, full width */}
+            {journal && (
+              <AppCard dotColor="var(--col-journal)" label="Journal" wide>
+                <div className="profile-b-text">
+                  {journal.phase} · day {journal.day_in_cycle}
+                </div>
+                {journal.bars && (
+                  <Sparkline bars={journal.bars} colorVar="var(--col-journal)" height={32} />
+                )}
+              </AppCard>
+            )}
+
+            {/* Quest */}
+            <AppCard dotColor="var(--col-quest)" label="Quest">
+              {quest ? (
+                <>
+                  <div className="profile-b-big">{quest.completed30d}/{quest.active_total + quest.completed30d}</div>
+                  <div className="profile-b-sub">completed · {quest.active_total} active</div>
+                </>
+              ) : <div className="profile-b-sub">—</div>}
+            </AppCard>
+
+            {/* Your rhythm */}
+            <AppCard dotColor="var(--accent)" label="Your rhythm">
+              <div className="profile-b-text">
+                {streak > 0 ? `Logging streak: ${streak} days` : 'No streak yet'}
+                {mostActive ? ` · most active in ${appDisplayName[mostActive] || mostActive} this month.` : '.'}
+              </div>
+            </AppCard>
+
+          </div>
+        </section>
+      )}
+
+      {/* ── Zone 3 — Preferences ── */}
+      {!loading && (
+        <section className="profile-section">
+          <h2 className="profile-section-head">Preferences</h2>
+          <div className="profile-list-card">
+            {PERSONAL_PREFS.map((p, i) => {
+              const val = prefs[p.id] ?? p.default
+              return (
+                <div
+                  key={p.id}
+                  className={'profile-pref-row' + (i < PERSONAL_PREFS.length - 1 ? ' profile-pref-row--border' : '')}
+                >
+                  <div>
+                    <div className="profile-pref-label">{p.label}</div>
+                    <div className="profile-pref-app">
+                      {p.type === 'select' ? `${p.app} · ${val}` : p.app}
+                    </div>
+                  </div>
+                  {p.type === 'toggle' ? (
+                    <button
+                      role="switch"
+                      aria-checked={val}
+                      className={'profile-toggle' + (val ? ' on' : '')}
+                      onClick={() => handleSetPref(p.id, !val)}
+                      aria-label={p.label}
+                    />
+                  ) : (
+                    <select
+                      className="profile-select"
+                      value={val}
+                      onChange={(e) => handleSetPref(p.id, e.target.value)}
+                    >
+                      {p.options.map((o) => <option key={o}>{o}</option>)}
+                    </select>
+                  )}
+                </div>
+              )
+            })}
+            <div className="profile-pref-footer">Appearance is set per device in Settings.</div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Zone 4 — Data & privacy ── */}
+      {!loading && (
+        <section className="profile-section">
+          <h2 className="profile-section-head">Data &amp; privacy</h2>
+          <div className="profile-privacy-card">
+            <p className="profile-privacy-text">
+              This page only shows your own records. Everything in Grove is login-gated now, and will be end-to-end encrypted in beta — so Grove itself can't read your data. Grove doesn't hide records between you and your housemate; it's a shared home, kept private from the outside world.
+            </p>
+            <button className="btn sm">Export your data</button>
+            <p className="profile-privacy-note">Password &amp; sign-out live above, in Identity.</p>
+            <div className="profile-passphrase-row">
+              <span className="profile-privacy-text">Passphrase &amp; recovery key</span>
+              <span className="profile-beta-badge">beta</span>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {showPwSheet && <PasswordSheet user={user} onClose={() => setShowPwSheet(false)} />}
     </main>
   )
 }

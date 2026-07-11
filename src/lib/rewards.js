@@ -156,12 +156,24 @@ export async function summary({ member }) {
   const p = await getProfile(member)
   if (!p) return null
   const { level, into, span, pct } = levelProgress(p.xp)
+  const events = await listRewardEvents(member, { limit: 300 })
+  const cutoff30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+  const recent = events.filter((e) => new Date(e.occurredAt) >= cutoff30)
+  const xp30d = recent.reduce((s, e) => s + (e.data?.pts || 0), 0)
+  const sourcePts = {}
+  recent.forEach((e) => {
+    const src = e.data?.source || 'unknown'
+    sourcePts[src] = (sourcePts[src] || 0) + (e.data?.pts || 0)
+  })
+  const mostActiveApp = Object.entries(sourcePts).sort((a, b) => b[1] - a[1])[0]?.[0] || null
   return {
     xp: p.xp, level, tokens: p.tokens,
     current_streak: p.current_streak,
     longest_streak: p.longest_streak,
     last_active_date: p.last_active_date,
     xp_into: into, xp_span: span, xp_pct: pct,
+    xp30d,
+    most_active_app: mostActiveApp,
   }
 }
 

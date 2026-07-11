@@ -262,6 +262,7 @@ export default function Launcher({ apps, onOpen, user, onSignOut, theme, onCycle
           {user && (
             <button
               className="launcher-avatar-btn"
+              style={{ background: user.color }}
               onClick={() => onOpen('profile')}
               aria-label="Open profile"
               title={user.name}
