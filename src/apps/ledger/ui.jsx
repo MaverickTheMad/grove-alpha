@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Grove SubTabs — in-page segmented nav (Money = Transactions/Imports/Rules,
 // Plan = Budgets/Bills/Goals/Snowball). Local state instead of the router.
 export function SubTabs({ tabs, current, onChange, name }) {
@@ -19,6 +20,10 @@ export function SubTabs({ tabs, current, onChange, name }) {
     </div>
   )
 }
+=======
+// Re-export from the DS so existing imports keep working without changes.
+export { default as SubTabs } from '../../ds/SubTabs'
+>>>>>>> ca3770d455fcfc019218e512eafbdf0b3fb407fc
 
 // Placeholder for pages not yet ported in this pass.
 export function Stub({ title }) {
