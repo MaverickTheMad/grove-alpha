@@ -7,6 +7,7 @@ import AddEvent from '../components/AddEvent'
 import WeekAgenda from '../components/WeekAgenda'
 import WeekTimeGrid from '../components/WeekTimeGrid'
 import Icon from '../../../components/Icon'
+import { Button } from '../../../ds'
 import {
   weekBounds, monthBounds, dateRange, todayStr, addDays,
   sortDayEvents, fmtDate, computeNudges,
@@ -81,11 +82,11 @@ export default function WeekTab() {
         </div>
         <div className="head-actions">
           {weekOffset !== 0 && (
-            <button className="btn ghost sm" onClick={() => setWeekOffset(0)}>Today</button>
+            <Button variant="ghost" size="sm" onClick={() => setWeekOffset(0)}>Today</Button>
           )}
-          <button className="btn primary sm" onClick={() => setAdding(true)}>
+          <Button variant="primary" size="sm" onClick={() => setAdding(true)}>
             <Icon name="log" size={16} /> Event
-          </button>
+          </Button>
         </div>
       </div>
 

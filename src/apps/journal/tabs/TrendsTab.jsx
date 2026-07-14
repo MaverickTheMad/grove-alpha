@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import * as store from '../lib/store.js'
 import { FOOD_CATEGORIES, SYMPTOMS, PHASES, isoToLocalDateStr } from '../constants.js'
+import { Card, Chip } from '../../../ds'
 
 const WINDOWS = [
   { value: 14, label: '14 days' },
@@ -41,13 +42,14 @@ export default function TrendsTab({ periodStarts, refreshKey }) {
     <div className="trends-tab stack">
       <div className="window-picker">
         {WINDOWS.map(w => (
-          <button
+          <Chip
             key={w.value}
-            className={`chip chip-sm ${windowDays === w.value ? 'on' : ''}`}
+            className="chip-sm"
+            active={windowDays === w.value}
             onClick={() => setWindowDays(w.value)}
           >
             {w.label}
-          </button>
+          </Chip>
         ))}
       </div>
 
@@ -105,7 +107,7 @@ function CycleStats({ periodStarts }) {
   }
 
   return (
-    <div className="card">
+    <Card>
       <div className="card-head">
         <h3 className="card-title section-h">Cycle</h3>
       </div>
@@ -150,7 +152,7 @@ function CycleStats({ periodStarts }) {
           text-transform: uppercase;
         }
       `}</style>
-    </div>
+    </Card>
   )
 }
 
@@ -169,7 +171,7 @@ function SymptomFrequency({ symptoms }) {
   const max = rows[0]?.count || 1
 
   return (
-    <div className="card">
+    <Card>
       <div className="card-head">
         <h3 className="card-title section-h">Most common symptoms</h3>
       </div>
@@ -225,7 +227,7 @@ function SymptomFrequency({ symptoms }) {
           font-size: 11px;
         }
       `}</style>
-    </div>
+    </Card>
   )
 }
 
@@ -257,12 +259,12 @@ function FoodFlareCorrelations({ foods, symptoms }) {
   const allEvents = [...foods, ...symptoms].map(e => new Date(e.occurred_at).getTime())
   if (allEvents.length === 0) {
     return (
-      <div className="card">
+      <Card>
         <div className="card-head">
           <h3 className="card-title section-h">Food → flare-up patterns</h3>
         </div>
         <div className="empty">Need more data — log some food and symptoms to see patterns.</div>
-      </div>
+      </Card>
     )
   }
   const span = Math.max(...allEvents) - Math.min(...allEvents)
@@ -290,7 +292,7 @@ function FoodFlareCorrelations({ foods, symptoms }) {
   rows.sort((a, b) => b.lift - a.lift)
 
   return (
-    <div className="card">
+    <Card>
       <div className="card-head">
         <h3 className="card-title section-h">Food → flare-up patterns</h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -313,13 +315,14 @@ function FoodFlareCorrelations({ foods, symptoms }) {
 
       <div className="chip-row" style={{ marginBottom: 12 }}>
         {[6, 12, 24, 48].map(h => (
-          <button
+          <Chip
             key={h}
-            className={`chip chip-sm ${windowHours === h ? 'on' : ''}`}
+            className="chip-sm"
+            active={windowHours === h}
             onClick={() => setWindowHours(h)}
           >
             {h}h
-          </button>
+          </Chip>
         ))}
       </div>
 
@@ -364,7 +367,7 @@ function FoodFlareCorrelations({ foods, symptoms }) {
         }
         .lift-explain strong { color: var(--text); font-weight: 600; }
       `}</style>
-    </div>
+    </Card>
   )
 }
 
@@ -391,16 +394,16 @@ function PhaseBreakdown({ symptoms, periodStarts }) {
   const total = Object.values(phaseCounts).reduce((s, n) => s + n, 0)
   if (total === 0) {
     return (
-      <div className="card">
+      <Card>
         <div className="card-head">
           <h3 className="card-title section-h">Symptoms by phase</h3>
         </div>
         <div className="empty">No phase data yet.</div>
-      </div>
+      </Card>
     )
   }
   return (
-    <div className="card">
+    <Card>
       <div className="card-head">
         <h3 className="card-title section-h">Symptoms by phase</h3>
       </div>
@@ -425,7 +428,7 @@ function PhaseBreakdown({ symptoms, periodStarts }) {
         .phase-name { font-size: 13px; color: var(--text-soft); }
         .phase-count { font-size: 13px; color: var(--text-soft); text-align: right; font-variant-numeric: tabular-nums; }
       `}</style>
-    </div>
+    </Card>
   )
 }
 

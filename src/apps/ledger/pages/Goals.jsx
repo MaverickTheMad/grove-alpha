@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useRecords } from '../lib/useRecords'
 import { fmt, todayISO } from '../lib/format'
+import { Button } from '../../../ds'
 
 function ProgressRing({ pct, color, size = 80 }) {
   const r = (size - 10) / 2
@@ -153,13 +154,13 @@ export default function Goals() {
               {contributeFor?.id === g.id ? (
                 <div style={{ display: 'flex', gap: 6, marginTop: 'var(--sp-3)' }}>
                   <input className="input mono" type="number" placeholder="Amount" value={contributeAmount} onChange={(e) => setContributeAmount(e.target.value)} autoFocus />
-                  <button className="btn btn-sm" onClick={addContribution}>Add</button>
-                  <button className="btn btn-ghost btn-sm" onClick={() => { setContributeFor(null); setContributeAmount('') }}>Cancel</button>
+                  <Button size="sm" onClick={addContribution}>Add</Button>
+                  <Button variant="ghost" size="sm" onClick={() => { setContributeFor(null); setContributeAmount('') }}>Cancel</Button>
                 </div>
               ) : (
-                <button className="btn btn-ghost btn-sm" onClick={() => setContributeFor(g)} style={{ width: '100%', marginTop: 'var(--sp-3)' }}>
+                <Button variant="ghost" size="sm" block onClick={() => setContributeFor(g)} style={{ marginTop: 'var(--sp-3)' }}>
                   + Contribute
-                </button>
+                </Button>
               )}
             </div>
           )
@@ -221,9 +222,9 @@ function GoalModal({ editing, setEditing, accounts, onSave, onClose, onDelete })
           </div>
         </div>
         <div className="modal-actions">
-          {onDelete && <button className="btn btn-ghost" style={{ marginRight: 'auto', color: 'var(--negative)' }} onClick={onDelete}>Delete</button>}
-          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button className="btn" onClick={onSave}>Save</button>
+          {onDelete && <Button variant="ghost" style={{ marginRight: 'auto', color: 'var(--negative)' }} onClick={onDelete}>Delete</Button>}
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button onClick={onSave}>Save</Button>
         </div>
       </div>
     </div>

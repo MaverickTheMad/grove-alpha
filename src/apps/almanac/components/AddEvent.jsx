@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import * as store from '../lib/store'
 import { todayStr } from '../constants'
+import { Button } from '../../../ds'
 
 export default function AddEvent({ defaultDate, onDone }) {
   const [title, setTitle] = useState('')
@@ -56,13 +57,14 @@ export default function AddEvent({ defaultDate, onDone }) {
         <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g. bring paperwork" />
       </label>
       {error && <div className="error">{error}</div>}
-      <button
-        className="btn primary block"
+      <Button
+        variant="primary"
+        block
         onClick={save}
         disabled={saving || !title.trim()}
       >
         {saving ? 'Saving…' : 'Save event'}
-      </button>
+      </Button>
     </div>
   )
 }

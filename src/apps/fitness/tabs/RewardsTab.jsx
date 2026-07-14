@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import * as store from '../lib/store.js'
 import { levelProgress, levelTitle, REWARD_EMOJIS, fmtRelative, isoToLocalDateStr } from '../constants.js'
 import Sheet from '../../../components/Sheet'
+import { Button, Card } from '../../../ds'
 
 export default function RewardsTab({ person, profile, onProfileChange }) {
   const [rewards, setRewards] = useState(null)
@@ -68,7 +69,7 @@ export default function RewardsTab({ person, profile, onProfileChange }) {
         <h1 className="f-title">Rewards</h1>
       </header>
       {/* Wallet */}
-      <div className="card wallet">
+      <Card className="wallet">
         <div className="wallet-top">
           <div>
             <div className="lvl-title">{levelTitle(profile.level)}</div>
@@ -78,11 +79,11 @@ export default function RewardsTab({ person, profile, onProfileChange }) {
         </div>
         <div className="xp-bar"><div className="xp-fill" style={{ width: `${prog.pct}%` }} /></div>
         <div className="muted sm">{prog.toNext} XP to Level {prog.level + 1}</div>
-      </div>
+      </Card>
 
       <div className="card-head">
         <h3 className="section-h">Rewards shop</h3>
-        <button className="btn ghost sm" onClick={() => setEdit({})}>+ Add</button>
+        <Button variant="ghost" size="sm" onClick={() => setEdit({})}>+ Add</Button>
       </div>
 
       <div className="reward-grid">
@@ -94,10 +95,10 @@ export default function RewardsTab({ person, profile, onProfileChange }) {
               <div className="reward-emoji">{r.emoji || '🎁'}</div>
               <div className="reward-name">{r.name}</div>
               <div className="reward-cost mono">🪙 {r.cost_tokens}</div>
-              <button className="btn primary sm block" disabled={!afford || busy}
+              <Button variant="primary" size="sm" block disabled={!afford || busy}
                 onClick={() => setRedeemTarget(r)}>
                 {afford ? 'Redeem' : 'Need more'}
-              </button>
+              </Button>
             </div>
           )
         })}
@@ -111,14 +112,14 @@ export default function RewardsTab({ person, profile, onProfileChange }) {
           <h3 className="section-h">Redeemed</h3>
           <div className="hist-list">
             {history.map((h) => (
-              <div key={h.id} className="card hist-row static">
+              <Card key={h.id} className="hist-row static">
                 <span className="hist-emoji">{h.emoji || '🎁'}</span>
                 <span className="grow">
                   <span className="hist-title">{h.name}</span>
                   <span className="sub">{fmtRelative(isoToLocalDateStr(h.redeemed_at))}</span>
                 </span>
                 <span className="mono muted">−{h.cost_tokens} 🪙</span>
-              </div>
+              </Card>
             ))}
           </div>
         </>
@@ -131,11 +132,11 @@ export default function RewardsTab({ person, profile, onProfileChange }) {
         title="Redeem reward?"
         footer={
           <div className="row-btns">
-            <button className="btn ghost" onClick={() => setRedeemTarget(null)}>Cancel</button>
-            <button className="btn primary" disabled={busy}
+            <Button variant="ghost" onClick={() => setRedeemTarget(null)}>Cancel</Button>
+            <Button variant="primary" disabled={busy}
               onClick={() => performRedeem(redeemTarget)}>
               Spend {redeemTarget?.cost_tokens} tokens
-            </button>
+            </Button>
           </div>
         }
       >
@@ -175,11 +176,11 @@ function RewardEditor({ item, onClose, onSave, onDelete }) {
       footer={
         <div className="row-btns">
           {item?.id && <button className="btn ghost danger" onClick={() => onDelete(item.id)}>Delete</button>}
-          <button className="btn ghost" onClick={onClose}>Cancel</button>
-          <button className="btn primary" disabled={!valid}
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button variant="primary" disabled={!valid}
             onClick={() => onSave({ id: item?.id, name: name.trim(), emoji, cost_tokens: Number(cost) })}>
             Save
-          </button>
+          </Button>
         </div>
       }
     >

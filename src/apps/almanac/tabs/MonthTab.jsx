@@ -4,6 +4,7 @@ import { useIsDesktop } from '../../../lib/viewport'
 import EventRow from '../components/EventRow'
 import Sheet from '../../../components/Sheet'
 import Icon from '../../../components/Icon'
+import { Button } from '../../../ds'
 import {
   monthBounds, dateRange, parseLocalDate, todayStr, addDays,
   kindMeta, sortDayEvents, fmtDate,
@@ -53,7 +54,7 @@ export default function MonthTab() {
           </button>
         </div>
         {anchor.slice(0, 7) !== today.slice(0, 7) && (
-          <button className="btn ghost sm" onClick={() => setAnchor(today)}>Today</button>
+          <Button variant="ghost" size="sm" onClick={() => setAnchor(today)}>Today</Button>
         )}
       </div>
 

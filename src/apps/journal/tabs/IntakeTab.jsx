@@ -16,6 +16,7 @@ import {
 } from '../constants.js'
 import TimePicker from '../../../components/TimePicker'
 import { cmpText, sortByName } from '../../../lib/sort.js'
+import { Button, Card, Chip } from '../../../ds'
 
 export default function IntakeTab({ periodStarts, onChange, refreshKey }) {
   const [date, setDate] = useState(todayLocalISO())
@@ -284,7 +285,7 @@ function CycleSummaryHeader({ date, setDate, periodStarts, activePhase, dayOverr
   }
 
   return (
-    <div className="cycle-summary-header card">
+    <Card className="cycle-summary-header">
       {/* TOP ROW: mini wheel + countdowns */}
       <div className="csh-top">
         {/* Mini wheel */}
@@ -355,7 +356,7 @@ function CycleSummaryHeader({ date, setDate, periodStarts, activePhase, dayOverr
 
       {/* DATE NAV row */}
       <div className="csh-date-nav">
-        <button className="btn ghost btn sm" onClick={() => setDate(shiftDate(date, -1))} aria-label="Previous day">‹</button>
+        <Button variant="ghost" size="sm" onClick={() => setDate(shiftDate(date, -1))} aria-label="Previous day">‹</Button>
         <div className="csh-date-center">
           <input
             type="date"
@@ -366,12 +367,13 @@ function CycleSummaryHeader({ date, setDate, periodStarts, activePhase, dayOverr
           />
           <div className="csh-date-label">{formatDateLong(date)}</div>
         </div>
-        <button
-          className="btn ghost btn sm"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => { const n = shiftDate(date, 1); if (n <= today) setDate(n) }}
           disabled={date >= today}
           aria-label="Next day"
-        >›</button>
+        >›</Button>
       </div>
 
       <style>{`
@@ -437,7 +439,7 @@ function CycleSummaryHeader({ date, setDate, periodStarts, activePhase, dayOverr
           margin-top: 2px;
         }
       `}</style>
-    </div>
+    </Card>
   )
 }
 // Size + fill cue per flow level (not color alone).
@@ -460,7 +462,7 @@ function flowDotStyle(f) {
 function FlowCard({ day, updateDay }) {
   const current = day?.flow || 'none'
   return (
-    <div className="card">
+    <Card>
       <div className="card-head">
         <h3 className="card-title section-h">Flow</h3>
       </div>
@@ -476,7 +478,7 @@ function FlowCard({ day, updateDay }) {
           </button>
         ))}
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -502,7 +504,7 @@ function AddSymptom({ date, onDone }) {
   }
 
   return (
-    <div className="card add-panel rise">
+    <Card className="add-panel rise">
       <div className="card-head">
         <h3 className="card-title section-h">Log symptoms</h3>
         {selected.length > 0 && (
@@ -513,9 +515,9 @@ function AddSymptom({ date, onDone }) {
       <label className="field-label">What <span className="muted" style={{ textTransform: 'none', fontWeight: 400 }}>(tap all that apply)</span></label>
       <div className="chip-row">
         {[...SYMPTOMS].sort(cmpText).map(s => (
-          <button key={s} className={`chip ${selected.includes(s) ? 'on' : ''}`} onClick={() => toggle(s)}>
+          <Chip key={s} active={selected.includes(s)} onClick={() => toggle(s)}>
             {s}
-          </button>
+          </Chip>
         ))}
       </div>
 
@@ -529,14 +531,14 @@ function AddSymptom({ date, onDone }) {
       <textarea className="textarea" rows={2} value={notes} onChange={e => setNotes(e.target.value)} placeholder="e.g. came on suddenly, dull ache…" />
 
       <div className="row" style={{ marginTop: 16, gap: 8 }}>
-        <button className="btn ghost btn sm" onClick={onDone}>Cancel</button>
-        <button className="btn primary btn block" onClick={save} disabled={selected.length === 0 || saving}>
+        <Button variant="ghost" size="sm" onClick={onDone}>Cancel</Button>
+        <Button variant="primary" block onClick={save} disabled={selected.length === 0 || saving}>
           {saving ? 'Saving…' : selected.length > 1 ? `Save ${selected.length} symptoms` : 'Save symptom'}
-        </button>
+        </Button>
       </div>
 
       <style>{`.required { color: var(--app-accent); }`}</style>
-    </div>
+    </Card>
   )
 }
 
@@ -647,7 +649,7 @@ function AddFood({ date, onDone }) {
   const mealNames = [...new Set(basket.filter(b => b.fromMeal).map(b => b.fromMeal))]
 
   return (
-    <div className="card add-panel rise">
+    <Card className="add-panel rise">
       <div className="card-head">
         <h3 className="card-title section-h">Log food</h3>
         {basket.length > 0 && (
@@ -735,10 +737,10 @@ function AddFood({ date, onDone }) {
       <textarea className="textarea" rows={2} value={notes} onChange={e => setNotes(e.target.value)} placeholder="e.g. big portion, post-workout…" />
 
       <div className="row" style={{ marginTop: 16, gap: 8 }}>
-        <button className="btn ghost btn sm" onClick={onDone}>Cancel</button>
-        <button className="btn primary btn block" onClick={save} disabled={basket.length === 0 || saving}>
+        <Button variant="ghost" size="sm" onClick={onDone}>Cancel</Button>
+        <Button variant="primary" block onClick={save} disabled={basket.length === 0 || saving}>
           {saving ? 'Saving…' : basket.length > 1 ? `Save ${basket.length} foods` : 'Save food'}
-        </button>
+        </Button>
       </div>
 
       <style>{`
@@ -801,7 +803,7 @@ function AddFood({ date, onDone }) {
         .meal-row-action { font-size: 13px; font-weight: 600; color: var(--app-accent); white-space: nowrap; }
         .meal-empty { padding: 14px; text-align: center; color: var(--text-soft); font-size: 13px; }
       `}</style>
-    </div>
+    </Card>
   )
 }
 
@@ -880,7 +882,7 @@ function AddMood({ date, onDone }) {
   }
 
   return (
-    <div className="card add-panel rise">
+    <Card className="add-panel rise">
       <div className="card-head">
         <h3 className="card-title section-h">Log mood</h3>
         {selected.length > 0 && (
@@ -890,9 +892,9 @@ function AddMood({ date, onDone }) {
       <label className="field-label">How are you feeling? <span className="muted" style={{ textTransform: 'none', fontWeight: 400 }}>(tap all that apply)</span></label>
       <div className="chip-row">
         {[...MOODS].sort(cmpText).map(m => (
-          <button key={m} className={`chip ${selected.includes(m) ? 'on' : ''}`} onClick={() => toggle(m)}>
+          <Chip key={m} active={selected.includes(m)} onClick={() => toggle(m)}>
             {m}
-          </button>
+          </Chip>
         ))}
       </div>
       <label className="field-label" style={{ marginTop: 16 }}>When</label>
@@ -900,12 +902,12 @@ function AddMood({ date, onDone }) {
       <label className="field-label" style={{ marginTop: 16 }}>Notes (optional)</label>
       <textarea className="textarea" rows={2} value={notes} onChange={e => setNotes(e.target.value)} />
       <div className="row" style={{ marginTop: 16, gap: 8 }}>
-        <button className="btn ghost btn sm" onClick={onDone}>Cancel</button>
-        <button className="btn primary btn block" onClick={save} disabled={selected.length === 0 || saving}>
+        <Button variant="ghost" size="sm" onClick={onDone}>Cancel</Button>
+        <Button variant="primary" block onClick={save} disabled={selected.length === 0 || saving}>
           {saving ? 'Saving…' : selected.length > 1 ? `Save ${selected.length} moods` : 'Save mood'}
-        </button>
+        </Button>
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -923,25 +925,25 @@ function AddWater({ date, onDone }) {
   }
 
   return (
-    <div className="card add-panel rise">
+    <Card className="add-panel rise">
       <div className="card-head"><h3 className="card-title section-h">Log water</h3></div>
       <label className="field-label">Amount (oz)</label>
       <div className="chip-row">
         {[4, 8, 12, 16, 20, 32].map(n => (
-          <button key={n} className={`chip ${amount === n ? 'on' : ''}`} onClick={() => setAmount(n)}>
+          <Chip key={n} active={amount === n} onClick={() => setAmount(n)}>
             {n} oz
-          </button>
+          </Chip>
         ))}
       </div>
       <label className="field-label" style={{ marginTop: 16 }}>When</label>
       <TimePicker value={time} onChange={setTime} />
       <div className="row" style={{ marginTop: 16, gap: 8 }}>
-        <button className="btn ghost btn sm" onClick={onDone}>Cancel</button>
-        <button className="btn primary btn block" onClick={save} disabled={saving}>
+        <Button variant="ghost" size="sm" onClick={onDone}>Cancel</Button>
+        <Button variant="primary" block onClick={save} disabled={saving}>
           {saving ? 'Saving…' : `Save ${amount} oz`}
-        </button>
+        </Button>
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -962,22 +964,22 @@ function AddExercise({ date, onDone }) {
   }
 
   return (
-    <div className="card add-panel rise">
+    <Card className="add-panel rise">
       <div className="card-head"><h3 className="card-title section-h">Log exercise</h3></div>
       <label className="field-label">Type</label>
       <div className="chip-row">
         {[...EXERCISE_TYPES].sort(cmpText).map(t => (
-          <button key={t} className={`chip ${type === t ? 'on' : ''}`} onClick={() => setType(t)}>
+          <Chip key={t} active={type === t} onClick={() => setType(t)}>
             {t}
-          </button>
+          </Chip>
         ))}
       </div>
       <label className="field-label" style={{ marginTop: 16 }}>Duration (min)</label>
       <div className="chip-row">
         {[10, 20, 30, 45, 60, 90].map(d => (
-          <button key={d} className={`chip ${duration === d ? 'on' : ''}`} onClick={() => setDuration(d)}>
+          <Chip key={d} active={duration === d} onClick={() => setDuration(d)}>
             {d} min
-          </button>
+          </Chip>
         ))}
       </div>
       <label className="field-label" style={{ marginTop: 16 }}>When</label>
@@ -985,12 +987,12 @@ function AddExercise({ date, onDone }) {
       <label className="field-label" style={{ marginTop: 16 }}>Notes (optional)</label>
       <textarea className="textarea" rows={2} value={notes} onChange={e => setNotes(e.target.value)} />
       <div className="row" style={{ marginTop: 16, gap: 8 }}>
-        <button className="btn ghost btn sm" onClick={onDone}>Cancel</button>
-        <button className="btn primary btn block" onClick={save} disabled={!type || saving}>
+        <Button variant="ghost" size="sm" onClick={onDone}>Cancel</Button>
+        <Button variant="primary" block onClick={save} disabled={!type || saving}>
           {saving ? 'Saving…' : 'Save exercise'}
-        </button>
+        </Button>
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -1060,7 +1062,7 @@ function Timeline({ symptoms, foods, moods, waters, exercises, workouts = [], on
   }
 
   return (
-    <div className="card">
+    <Card>
       <div className="card-head">
         <h3 className="card-title section-h">Today's timeline</h3>
         <span className="card-sub">{entryCount} {entryCount === 1 ? 'entry' : 'entries'}</span>
@@ -1119,7 +1121,7 @@ function Timeline({ symptoms, foods, moods, waters, exercises, workouts = [], on
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -1181,7 +1183,7 @@ function EditFoodGroup({ group, onDone, onCancel }) {
     <div className="edit-panel rise">
       <div className="edit-panel-header">
         <span className="edit-panel-title">Edit food block</span>
-        <button className="btn ghost btn sm" onClick={onCancel}>Cancel</button>
+        <Button variant="ghost" size="sm" onClick={onCancel}>Cancel</Button>
       </div>
 
       <label className="field-label">
@@ -1202,14 +1204,15 @@ function EditFoodGroup({ group, onDone, onCancel }) {
       </label>
       <TimePicker value={time} onChange={setTime} />
 
-      <button
-        className="btn btn amber-btn btn block"
+      <Button
+        className="amber-btn"
+        block
         style={{ marginTop: 14 }}
         onClick={save}
         disabled={saving}
       >
         {saving ? 'Saving…' : items.length === 0 ? 'Delete block' : `Save ${items.length} item${items.length > 1 ? 's' : ''}`}
-      </button>
+      </Button>
 
       <style>{fgStyle}</style>
     </div>
@@ -1390,7 +1393,7 @@ function EditEvent({ ev, onDone, onCancel }) {
     <div className="edit-panel rise">
       <div className="edit-panel-header">
         <span className="edit-panel-title">Edit {ev.kind}</span>
-        <button className="btn ghost btn sm" onClick={onCancel}>Cancel</button>
+        <Button variant="ghost" size="sm" onClick={onCancel}>Cancel</Button>
       </div>
 
       {ev.kind === 'symptom' && (
@@ -1398,7 +1401,7 @@ function EditEvent({ ev, onDone, onCancel }) {
           <label className="field-label">Symptom</label>
           <div className="chip-row" style={{ marginBottom: 12 }}>
             {[...SYMPTOMS].sort(cmpText).map(s => (
-              <button key={s} className={`chip chip-sm ${symptom === s ? 'on' : ''}`} onClick={() => setSymptom(s)}>{s}</button>
+              <Chip key={s} className="chip-sm" active={symptom === s} onClick={() => setSymptom(s)}>{s}</Chip>
             ))}
           </div>
           <label className="field-label">Severity</label>
@@ -1411,7 +1414,7 @@ function EditEvent({ ev, onDone, onCancel }) {
           <label className="field-label">Category</label>
           <div className="chip-row" style={{ marginBottom: 12 }}>
             {sortByName([...FOOD_CATEGORIES]).map(c => (
-              <button key={c.name} className={`chip chip-sm ${category === c.name ? 'on' : ''}`} onClick={() => { setCategory(c.name); setItem(null) }}>{c.name}</button>
+              <Chip key={c.name} className="chip-sm" active={category === c.name} onClick={() => { setCategory(c.name); setItem(null) }}>{c.name}</Chip>
             ))}
           </div>
           {catItems.length > 0 && (
@@ -1419,7 +1422,7 @@ function EditEvent({ ev, onDone, onCancel }) {
               <label className="field-label">Item</label>
               <div className="chip-row" style={{ marginBottom: 12 }}>
                 {catItems.map(i => (
-                  <button key={i} className={`chip chip-sm ${item === i ? 'on' : ''}`} onClick={() => setItem(i)}>{i}</button>
+                  <Chip key={i} className="chip-sm" active={item === i} onClick={() => setItem(i)}>{i}</Chip>
                 ))}
               </div>
             </>
@@ -1432,7 +1435,7 @@ function EditEvent({ ev, onDone, onCancel }) {
           <label className="field-label">Mood</label>
           <div className="chip-row" style={{ marginBottom: 12 }}>
             {[...MOODS].sort(cmpText).map(m => (
-              <button key={m} className={`chip chip-sm ${mood === m ? 'on' : ''}`} onClick={() => setMood(m)}>{m}</button>
+              <Chip key={m} className="chip-sm" active={mood === m} onClick={() => setMood(m)}>{m}</Chip>
             ))}
           </div>
         </>
@@ -1443,7 +1446,7 @@ function EditEvent({ ev, onDone, onCancel }) {
           <label className="field-label">Amount (oz)</label>
           <div className="chip-row" style={{ marginBottom: 12 }}>
             {[4, 8, 12, 16, 20, 32].map(n => (
-              <button key={n} className={`chip chip-sm ${amount === n ? 'on' : ''}`} onClick={() => setAmount(n)}>{n} oz</button>
+              <Chip key={n} className="chip-sm" active={amount === n} onClick={() => setAmount(n)}>{n} oz</Chip>
             ))}
           </div>
         </>
@@ -1454,13 +1457,13 @@ function EditEvent({ ev, onDone, onCancel }) {
           <label className="field-label">Type</label>
           <div className="chip-row" style={{ marginBottom: 12 }}>
             {[...EXERCISE_TYPES].sort(cmpText).map(t => (
-              <button key={t} className={`chip chip-sm ${exerciseType === t ? 'on' : ''}`} onClick={() => setExerciseType(t)}>{t}</button>
+              <Chip key={t} className="chip-sm" active={exerciseType === t} onClick={() => setExerciseType(t)}>{t}</Chip>
             ))}
           </div>
           <label className="field-label">Duration (min)</label>
           <div className="chip-row" style={{ marginBottom: 12 }}>
             {[10, 20, 30, 45, 60, 90].map(d => (
-              <button key={d} className={`chip chip-sm ${duration === d ? 'on' : ''}`} onClick={() => setDuration(d)}>{d} min</button>
+              <Chip key={d} className="chip-sm" active={duration === d} onClick={() => setDuration(d)}>{d} min</Chip>
             ))}
           </div>
         </>
@@ -1476,14 +1479,15 @@ function EditEvent({ ev, onDone, onCancel }) {
       <label className="field-label">Time</label>
       <TimePicker value={time} onChange={setTime} />
 
-      <button
-        className="btn btn amber-btn btn block"
+      <Button
+        className="amber-btn"
+        block
         style={{ marginTop: 14 }}
         onClick={save}
         disabled={saving}
       >
         {saving ? 'Saving…' : 'Save changes'}
-      </button>
+      </Button>
 
     </div>
   )
@@ -1511,7 +1515,7 @@ function DaySummary({ day, updateDay, totalWater, totalExercise }) {
   }
 
   return (
-    <div className="card">
+    <Card>
       <div className="card-head">
         <h3 className="card-title section-h">Day summary</h3>
       </div>
@@ -1556,7 +1560,7 @@ function DaySummary({ day, updateDay, totalWater, totalExercise }) {
         onChange={e => setNotes(e.target.value)}
         onBlur={saveNotes}
       />
-    </div>
+    </Card>
   )
 }
 
@@ -1566,7 +1570,7 @@ function PhaseOverride({ day, updateDay, computedPhase }) {
   const phases = Object.keys(PHASES)
 
   return (
-    <div className="card">
+    <Card>
       <button className="row-between" style={{ width: '100%' }} onClick={() => setOpen(o => !o)}>
         <div>
           <div className="card-title section-h" style={{ fontSize: 16 }}>Cycle phase</div>
@@ -1585,27 +1589,28 @@ function PhaseOverride({ day, updateDay, computedPhase }) {
           <label className="field-label">Override phase for this day</label>
           <div className="chip-row">
             {phases.map(p => (
-              <button
+              <Chip
                 key={p}
-                className={`chip ${day?.cycle_phase === p && day?.cycle_phase_override ? 'on' : ''}`}
+                active={day?.cycle_phase === p && day?.cycle_phase_override}
                 onClick={() => updateDay({ cycle_phase: p, cycle_phase_override: true })}
               >
                 {PHASES[p].label}
-              </button>
+              </Chip>
             ))}
           </div>
           {day?.cycle_phase_override && (
-            <button
-              className="btn ghost btn sm"
+            <Button
+              variant="ghost"
+              size="sm"
               style={{ marginTop: 12 }}
               onClick={() => updateDay({ cycle_phase: computedPhase, cycle_phase_override: false })}
             >
               Reset to auto
-            </button>
+            </Button>
           )}
         </div>
       )}
-    </div>
+    </Card>
   )
 }
 

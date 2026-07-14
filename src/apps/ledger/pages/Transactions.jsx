@@ -6,6 +6,7 @@ import { fmt, todayISO } from '../lib/format'
 import { useToast } from '../../../components/Toast'
 import { useIsDesktop } from '../../../lib/viewport'
 import Sheet from '../../../components/Sheet'
+import { Button } from '../../../ds'
 
 const SORTS = [
   { id: 'date_desc', label: 'Newest first' },
@@ -289,7 +290,7 @@ export default function Transactions() {
 
       {/* Mobile filter sheet */}
       <Sheet open={filterSheetOpen} onClose={() => setFilterSheetOpen(false)} title="Filter transactions" footer={
-        <button className="btn" style={{ width: '100%' }} onClick={() => setFilterSheetOpen(false)}>Show results</button>
+        <Button style={{ width: '100%' }} onClick={() => setFilterSheetOpen(false)}>Show results</Button>
       }>
         <div style={{ padding: 'var(--sp-4)', display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
           <div className="field"><label>Category</label>
@@ -316,7 +317,7 @@ export default function Transactions() {
               {SORTS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
             </select>
           </div>
-          {hasFilters && <button className="btn btn-ghost btn-sm" onClick={() => { clearFilters(); setFilterSheetOpen(false) }}>Clear all filters</button>}
+          {hasFilters && <Button variant="ghost" size="sm" onClick={() => { clearFilters(); setFilterSheetOpen(false) }}>Clear all filters</Button>}
         </div>
       </Sheet>
 
@@ -369,8 +370,8 @@ export default function Transactions() {
               </div>
             </div>
             <div className="modal-actions">
-              <button className="btn btn-ghost" onClick={() => setModalOpen(false)}>Cancel</button>
-              <button className="btn" onClick={handleSave}>Save</button>
+              <Button variant="ghost" onClick={() => setModalOpen(false)}>Cancel</Button>
+              <Button onClick={handleSave}>Save</Button>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ import Sheet from '../../../components/Sheet'
 import { useToast } from '../../../components/Toast'
 import { sortByName } from '../../../lib/sort'
 import { DIFFICULTIES, QUEST_CATEGORIES, DEFAULT_HABITS, todayStr, addDays } from '../constants'
+import { Button, Card, Chip } from '../../../ds'
 
 const diffById = Object.fromEntries(DIFFICULTIES.map(d => [d.id, d]))
 
@@ -38,8 +39,8 @@ function CompleteSheet({ open, quest, members, defaultPerson, onConfirm, onClose
     <Sheet open={open} onClose={onClose} title="Log this quest?"
       footer={
         <div className="row-btns">
-          <button className="btn ghost" onClick={onClose}>Cancel</button>
-          <button className="btn primary" onClick={() => onConfirm(completedBy)}>Log it.</button>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button variant="primary" onClick={() => onConfirm(completedBy)}>Log it.</Button>
         </div>
       }
     >
@@ -208,10 +209,10 @@ function AddQuestForm({ onSave, onCancel, members }) {
       )}
 
       <div className="quest-add-footer">
-        <button className="btn ghost" onClick={onCancel}>Cancel</button>
-        <button className="btn primary" onClick={save} disabled={saving || !title.trim()}>
+        <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+        <Button variant="primary" onClick={save} disabled={saving || !title.trim()}>
           {saving ? 'Adding…' : 'Add task'}
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -303,25 +304,25 @@ export default function QuestsTab({ ctx }) {
 
       <div className="q-filter-row">
         {FILTERS.map(f => (
-          <button
+          <Chip
             key={f.id}
-            className={`chip${filter === f.id ? ' on' : ''}`}
+            active={filter === f.id}
             onClick={() => setFilter(f.id)}
           >
             {f.label}
-          </button>
+          </Chip>
         ))}
       </div>
 
       {filtered.length === 0 && activeQuests.length === 0 ? (
-        <div className="card quest-empty-card">
+        <Card className="quest-empty-card">
           <p className="quest-empty-line">No tasks yet — add your first.</p>
-          <button className="btn primary" onClick={() => setAdding(true)}>Add a task</button>
-        </div>
+          <Button variant="primary" onClick={() => setAdding(true)}>Add a task</Button>
+        </Card>
       ) : filtered.length === 0 ? (
-        <div className="card quest-empty-card">
+        <Card className="quest-empty-card">
           <p className="quest-empty-line">No tasks match this filter.</p>
-        </div>
+        </Card>
       ) : (
         <>
           <QuestGroup label="Today" quests={groups.today} labelClass="today" />

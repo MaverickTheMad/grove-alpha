@@ -6,6 +6,8 @@ import { changePassword, signOut } from '../../lib/auth'
 import { loadPrefs, setPref } from './lib/prefs'
 import { loadAll } from './providers'
 import { useToast } from '../../components/Toast'
+import Sheet from '../../components/Sheet'
+import { Sparkline, AppCard, Button } from '../../ds'
 
 export const meta = { id: 'profile', name: 'Profile', tagline: 'Your progress & preferences' }
 
@@ -43,26 +45,20 @@ function PasswordSheet({ user, onClose }) {
   }
 
   return (
-    <div className="profile-sheet-backdrop" onClick={onClose}>
-      <div className="profile-sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="profile-sheet-header">
-          <span className="profile-sheet-title">Change password</span>
-          <button className="profile-sheet-close" onClick={onClose} aria-label="Close">✕</button>
-        </div>
-        <form className="profile-pw-form" onSubmit={submit}>
-          <input type="password" className="input" placeholder="Current password"
-            value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" />
-          <input type="password" className="input" placeholder="New password"
-            value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" />
-          <input type="password" className="input" placeholder="Confirm new password"
-            value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" />
-          {err && <p className="profile-pw-error">{err}</p>}
-          <button type="submit" className="btn primary block" disabled={saving || !current || !next || !confirm}>
-            {saving ? 'Updating…' : 'Update password'}
-          </button>
-        </form>
-      </div>
-    </div>
+    <Sheet open onClose={onClose} title="Change password">
+      <form className="profile-pw-form" onSubmit={submit}>
+        <input type="password" className="input" placeholder="Current password"
+          value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" />
+        <input type="password" className="input" placeholder="New password"
+          value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" />
+        <input type="password" className="input" placeholder="Confirm new password"
+          value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" />
+        {err && <p className="profile-pw-error">{err}</p>}
+        <button type="submit" className="btn primary block" disabled={saving || !current || !next || !confirm}>
+          {saving ? 'Updating…' : 'Update password'}
+        </button>
+      </form>
+    </Sheet>
   )
 }
 
@@ -84,36 +80,6 @@ function memberSince(createdAt) {
   if (!createdAt) return null
   const d = new Date(createdAt)
   return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-}
-
-// ── Sparkline bars ─────────────────────────────────────────────────────────────
-function Sparkline({ bars, colorVar, height = 36 }) {
-  if (!bars || !bars.length) return null
-  const max = Math.max(...bars, 1)
-  return (
-    <div className="profile-sparkline" style={{ height }}>
-      {bars.map((v, i) => (
-        <div
-          key={i}
-          className="profile-spark-bar"
-          style={{ height: `${Math.max(4, Math.round((v / max) * 100))}%`, background: colorVar }}
-        />
-      ))}
-    </div>
-  )
-}
-
-// ── Frame B cards ──────────────────────────────────────────────────────────────
-function AppCard({ dotColor, label, children, wide = false }) {
-  return (
-    <div className={'profile-b-card' + (wide ? ' profile-b-card--wide' : '')}>
-      <div className="profile-b-head">
-        <div className="profile-b-dot" style={{ background: dotColor }} />
-        <span className="profile-b-label">{label}</span>
-      </div>
-      {children}
-    </div>
-  )
 }
 
 // ── Root ──────────────────────────────────────────────────────────────────────
@@ -231,10 +197,10 @@ export default function Profile() {
         </div>
 
         <div className="profile-id-actions">
-          <button className="btn primary" style={{ flex: 1 }} onClick={() => setShowPwSheet(true)}>
+          <Button variant="primary" style={{ flex: 1 }} onClick={() => setShowPwSheet(true)}>
             Change password
-          </button>
-          <button className="btn" onClick={() => signOut()}>Sign out</button>
+          </Button>
+          <Button onClick={() => signOut()}>Sign out</Button>
         </div>
       </div>
 
@@ -393,7 +359,7 @@ export default function Profile() {
             <p className="profile-privacy-text">
               This page only shows your own records. Everything in Grove is login-gated now, and will be end-to-end encrypted in beta — so Grove itself can't read your data. Grove doesn't hide records between you and your housemate; it's a shared home, kept private from the outside world.
             </p>
-            <button className="btn sm">Export your data</button>
+            <Button size="sm">Export your data</Button>
             <p className="profile-privacy-note">Password &amp; sign-out live above, in Identity.</p>
             <div className="profile-passphrase-row">
               <span className="profile-privacy-text">Passphrase &amp; recovery key</span>

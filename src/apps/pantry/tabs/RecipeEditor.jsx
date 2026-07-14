@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { Button, Card, Chip } from '../../../ds'
 import Icon from '../../../components/Icon'
 import Sheet from '../../../components/Sheet'
 import { normIng, getSection, detectSection } from '../lib/shopping'
@@ -122,30 +123,30 @@ export default function RecipeEditor({ recipe, onSave, onCancel, onDelete, secti
       title={isNew ? 'New recipe' : 'Edit recipe'}
       footer={
         <div className="spread" style={{ width: '100%' }}>
-          {onDelete ? <button className="btn danger sm" onClick={onDelete}><Icon name="trash" size={16} /> Delete</button> : <span />}
+          {onDelete ? <Button variant="danger" size="sm" onClick={onDelete}><Icon name="trash" size={16} /> Delete</Button> : <span />}
           <div className="row" style={{ gap: 'var(--sp-2)' }}>
-            <button className="btn ghost" onClick={onCancel}>Cancel</button>
-            <button className="btn primary" disabled={saving} onClick={handleSave}>{saving ? 'Saving…' : 'Save recipe'}</button>
+            <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+            <Button variant="primary" disabled={saving} onClick={handleSave}>{saving ? 'Saving…' : 'Save recipe'}</Button>
           </div>
         </div>
       }
     >
       {/* import */}
-      <div className="card" style={{ background: 'var(--app-weak)' }}>
+      <Card style={{ background: 'var(--app-weak)' }}>
         <div className="p-eyebrow row" style={{ gap: 6, marginBottom: 4 }}><Icon name="external" size={14} /> Import recipe</div>
         <p className="p-sub" style={{ marginBottom: 'var(--sp-3)' }}>Paste a URL to auto-import, or upload a recipe PDF (File → Print → Save as PDF).</p>
         <div className="row" style={{ gap: 'var(--sp-2)', marginBottom: 'var(--sp-2)' }}>
           <input className="input" placeholder="https://recipe-site.com/recipe" value={importUrl} disabled={importing}
             onChange={(e) => setImportUrl(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && !importing && handleUrlImport()} />
-          <button className="btn primary" disabled={importing || !importUrl.trim()} onClick={handleUrlImport} style={{ whiteSpace: 'nowrap' }}>{importing ? 'Importing…' : 'Try URL'}</button>
+          <Button variant="primary" disabled={importing || !importUrl.trim()} onClick={handleUrlImport} style={{ whiteSpace: 'nowrap' }}>{importing ? 'Importing…' : 'Try URL'}</Button>
         </div>
         <div className="row" style={{ gap: 'var(--sp-2)' }}>
           <span className="p-sub grow" style={{ fontStyle: 'italic' }}>or upload a PDF</span>
           <input ref={fileRef} type="file" accept="application/pdf" onChange={handlePdfImport} style={{ display: 'none' }} />
-          <button className="btn" disabled={importing} onClick={() => fileRef.current?.click()}><Icon name="log" size={16} /> Upload PDF</button>
+          <Button disabled={importing} onClick={() => fileRef.current?.click()}><Icon name="log" size={16} /> Upload PDF</Button>
         </div>
         {importError && <p style={{ color: 'var(--danger)', fontSize: 'var(--fs-sm)', marginTop: 'var(--sp-2)' }}>{importError}</p>}
-      </div>
+      </Card>
 
       <div>
         <label className="field-label">Name</label>
@@ -166,7 +167,7 @@ export default function RecipeEditor({ recipe, onSave, onCancel, onDelete, secti
       <div>
         <label className="field-label">Category</label>
         <div className="row" style={{ flexWrap: 'wrap', gap: 'var(--sp-2)' }}>
-          {RECIPE_CATEGORIES.map((c) => <button key={c} className={`chip ${category === c ? 'on' : ''}`} onClick={() => setCategory(c)}>{c}</button>)}
+          {RECIPE_CATEGORIES.map((c) => <Chip key={c} active={category === c} onClick={() => setCategory(c)}>{c}</Chip>)}
         </div>
       </div>
 
@@ -175,7 +176,7 @@ export default function RecipeEditor({ recipe, onSave, onCancel, onDelete, secti
         <div className="row" style={{ gap: 'var(--sp-2)', marginBottom: 'var(--sp-2)' }}>
           <input className="input" style={{ width: 72 }} placeholder="qty" value={newIngQty} onChange={(e) => setNewIngQty(e.target.value)} />
           <input className="input grow" placeholder="ingredient name" value={newIngName} onChange={(e) => setNewIngName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addIngredient()} />
-          <button className="btn" onClick={addIngredient}><Icon name="log" size={16} /></button>
+          <Button onClick={addIngredient}><Icon name="log" size={16} /></Button>
         </div>
         <div className="stack" style={{ gap: 'var(--sp-2)', maxHeight: 320, overflowY: 'auto' }}>
           {ingredients.map((ing, idx) => (

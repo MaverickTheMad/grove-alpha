@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
+import { Button } from '../../ds'
 import BottomNav from '../../components/BottomNav'
 import Sheet from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
@@ -322,8 +323,8 @@ export default function Pantry() {
 
       <Sheet open={!!newTrip} onClose={() => setNewTrip(null)} title="Start a new trip?"
         footer={<>
-          <button className="btn ghost grow" onClick={() => setNewTrip(null)}>Keep current</button>
-          <button className="btn primary grow" onClick={confirmNewTrip}>Start new trip</button>
+          <Button variant="ghost" className="grow" onClick={() => setNewTrip(null)}>Keep current</Button>
+          <Button variant="primary" className="grow" onClick={confirmNewTrip}>Start new trip</Button>
         </>}>
         <p style={{ maxWidth: 'var(--measure)' }}>
           This logs your meals to history and clears the meal plan, pantry, and shopping list. Running-low staples stay.

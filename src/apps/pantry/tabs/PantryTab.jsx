@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Button } from '../../../ds'
 import Sheet from '../../../components/Sheet'
 import { subtractQuantity } from '../lib/shopping'
 import { PageHeader, Empty, Checkbox } from '../ui'
@@ -52,7 +53,7 @@ export default function PantryTab({ ingredients, agg, pantryMap, onToggle, skipC
         footer={
           <>
             <button className="btn grow" style={{ background: 'var(--ok)', borderColor: 'var(--ok)', color: '#0B0F09' }} onClick={() => { onToggle(qtyPopup.name, ''); setQtyPopup(null) }}>✓ I have all of it</button>
-            <button className="btn ghost" onClick={() => setQtyPopup(null)}>Cancel</button>
+            <Button variant="ghost" onClick={() => setQtyPopup(null)}>Cancel</Button>
           </>
         }
       >
@@ -61,7 +62,7 @@ export default function PantryTab({ ingredients, agg, pantryMap, onToggle, skipC
         <div className="row" style={{ gap: 'var(--sp-2)' }}>
           <input className="input grow" autoFocus placeholder={`e.g. ${qtyPopup?.needed ? 'half of ' + qtyPopup.needed : '1 cup'}`} value={qtyInput}
             onChange={(e) => setQtyInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && qtyInput.trim() && (onToggle(qtyPopup.name, qtyInput.trim()), setQtyPopup(null))} />
-          <button className="btn primary" disabled={!qtyInput.trim()} onClick={() => { onToggle(qtyPopup.name, qtyInput.trim()); setQtyPopup(null) }}>Partial</button>
+          <Button variant="primary" disabled={!qtyInput.trim()} onClick={() => { onToggle(qtyPopup.name, qtyInput.trim()); setQtyPopup(null) }}>Partial</Button>
         </div>
       </Sheet>
     </main>

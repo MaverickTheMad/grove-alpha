@@ -9,6 +9,7 @@ import { useToast } from '../../components/Toast'
 import Sheet from '../../components/Sheet'
 import { sortByName } from '../../lib/sort'
 import { exposedApps } from '../../config'
+import { Button, Card } from '../../ds'
 
 export const meta = { id: 'settings', name: 'Settings', tagline: 'Appearance, account & data' }
 
@@ -104,10 +105,10 @@ function MemberSheet({ open, onClose, member }) {
       title={isNew ? 'Add household member' : 'Edit member'}
       footer={
         <div className="sheet-row">
-          <button className="btn ghost" onClick={onClose}>Cancel</button>
-          <button className="btn primary" onClick={save} disabled={!name.trim()}>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button variant="primary" onClick={save} disabled={!name.trim()}>
             {isNew ? 'Add member' : 'Save changes'}
-          </button>
+          </Button>
         </div>
       }
     >
@@ -151,8 +152,8 @@ function RemoveSheet({ open, onClose, member, onConfirm }) {
       title="Remove member"
       footer={
         <div className="sheet-row">
-          <button className="btn primary" onClick={onClose}>Keep {member?.name}</button>
-          <button className="btn ghost danger-btn" onClick={onConfirm}>Remove</button>
+          <Button variant="primary" onClick={onClose}>Keep {member?.name}</Button>
+          <Button variant="ghost" className="danger-btn" onClick={onConfirm}>Remove</Button>
         </div>
       }
     >
@@ -317,7 +318,7 @@ export default function Settings() {
 
       {/* ── Account ── */}
       <Section title="Account">
-        <div className="card set-card">
+        <Card className="set-card">
           <div className="set-row">
             <div className="who">
               <span className="who-dot" style={{ background: user?.color || 'var(--info)' }} />
@@ -338,38 +339,38 @@ export default function Settings() {
             </select>
           </div>
           <div className="set-row set-row--sign-out">
-            <button className="btn ghost sm" onClick={() => signOut()}>Sign out</button>
+            <Button variant="ghost" size="sm" onClick={() => signOut()}>Sign out</Button>
           </div>
-        </div>
+        </Card>
       </Section>
 
       {/* ── Household members ── */}
       <Section title="Household members" subtitle="Both members see the same records.">
-        <div className="card set-card">
+        <Card className="set-card">
           {people.map((p) => (
             <div key={p.id} className="set-row member-row">
               <span className="who-dot" style={{ background: p.color }} />
               <span className="who-name">{p.name}</span>
               {user?.id === p.id && <span className="tag">you</span>}
               <div className="member-actions">
-                <button className="btn ghost sm" onClick={() => setEditTarget(p)}>Edit</button>
+                <Button variant="ghost" size="sm" onClick={() => setEditTarget(p)}>Edit</Button>
                 {user?.id !== p.id && (
-                  <button className="btn ghost sm danger-btn" onClick={() => setRemoveTarget(p)}>Remove</button>
+                  <Button variant="ghost" size="sm" className="danger-btn" onClick={() => setRemoveTarget(p)}>Remove</Button>
                 )}
               </div>
             </div>
           ))}
-        </div>
-        <button className="btn primary add-member-btn" onClick={() => setAddOpen(true)}>
+        </Card>
+        <Button variant="primary" className="add-member-btn" onClick={() => setAddOpen(true)}>
           + Add household member
-        </button>
+        </Button>
       </Section>
 
       {/* ── App preferences (personal prefs moved to Profile) ── */}
 
       {/* ── Visible apps ── */}
       <Section title="Visible apps" subtitle="Choose which apps appear on the launcher. Settings can't be hidden.">
-        <div className="card set-card">
+        <Card className="set-card">
           {HIDEABLE_APPS.map((a) => (
             <div key={a.id} className="set-row pref-row">
               <span className="pref-label">{a.name}</span>
@@ -382,7 +383,7 @@ export default function Settings() {
               />
             </div>
           ))}
-        </div>
+        </Card>
       </Section>
 
       {/* ── Your data ── */}
@@ -390,7 +391,7 @@ export default function Settings() {
         title="Your data"
         subtitle={totalRecords != null ? `${totalRecords} records across ${DATA_APPS.length} apps.` : 'Counting…'}
       >
-        <div className="card set-card">
+        <Card className="set-card">
           <table className="data-table">
             <tbody>
               {DATA_APPS.map((a) => (
@@ -398,22 +399,24 @@ export default function Settings() {
                   <td className="dt-name">{a.name}</td>
                   <td className="dt-count">{counts ? counts[a.id] : '·'}</td>
                   <td className="dt-action">
-                    <button
-                      className="btn ghost sm danger-btn"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="danger-btn"
                       disabled={busy || !counts || counts[a.id] === 0}
                       onClick={() => clearApp(a)}
                     >
                       Clear
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-        <button className="btn ghost block" onClick={exportAll} disabled={busy}>
+        </Card>
+        <Button variant="ghost" block onClick={exportAll} disabled={busy}>
           {busy ? 'Working…' : 'Export a backup (JSON)'}
-        </button>
+        </Button>
         <p className="fine">
           Clearing soft-deletes an app's records; they're marked deleted rather than purged.
           Export downloads every record to a file you keep.
