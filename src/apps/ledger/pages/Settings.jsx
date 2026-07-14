@@ -143,7 +143,7 @@ function PaychecksCard() {
                   <td className="num">{fmt(p.amount, { showCents: false })}</td>
                   <td>{p.cadence}</td>
                   <td className="mono" style={{ fontSize: 12, color: 'var(--ink-muted)' }}>{p.next_date || '—'}</td>
-                  <td style={{ textAlign: 'right' }}><button className="icon-btn" onClick={() => { setEditing({ ...p }); setOpen(true) }}>✎</button></td>
+                  <td style={{ textAlign: 'right' }}><button className="icon-btn" aria-label={`Edit ${p.label}`} onClick={() => { setEditing({ ...p }); setOpen(true) }}>✎</button></td>
                 </tr>
               )
             })}
@@ -224,8 +224,8 @@ function CrudList({ type, title, fields, defaults, orderBy }) {
                 </td>
               ))}
               <td style={{ width: 80, textAlign: 'right' }}>
-                <button className="icon-btn" onClick={() => { setEditing({ ...row }); setOpen(true) }}>✎</button>
-                <button className="icon-btn" onClick={() => { if (confirm('Delete?')) remove(row.id) }}>×</button>
+                <button className="icon-btn" aria-label={`Edit ${row[fields.find(f => f.type !== 'color')?.key] || ''}`} onClick={() => { setEditing({ ...row }); setOpen(true) }}>✎</button>
+                <button className="icon-btn" aria-label={`Delete ${row[fields.find(f => f.type !== 'color')?.key] || ''}`} onClick={() => { if (confirm('Delete?')) remove(row.id) }}>×</button>
               </td>
             </tr>
           ))}

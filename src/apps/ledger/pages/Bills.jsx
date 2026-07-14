@@ -99,8 +99,8 @@ export default function Bills() {
                   </div>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-base)', textDecoration: b._paid ? 'line-through' : 'none', color: b._paid ? 'var(--text-soft)' : 'var(--text)', flexShrink: 0 }}>{fmt(b.amount, { showCents: false })}</span>
                   <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-                    <button className="icon-btn" onClick={() => openEdit(b)}>&#9998;</button>
-                    <button className="icon-btn" onClick={() => { if (confirm(`Delete ${b.name}?`)) remove(b.id) }}>&times;</button>
+                    <button className="icon-btn" aria-label="Edit bill" onClick={() => openEdit(b)}>&#9998;</button>
+                    <button className="icon-btn" aria-label={`Delete ${b.name}`} onClick={() => { if (confirm(`Delete ${b.name}?`)) remove(b.id) }}>&times;</button>
                   </div>
                 </div>
               )

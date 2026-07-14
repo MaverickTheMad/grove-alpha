@@ -126,7 +126,7 @@ export default function Snowball() {
                 <span style={{ fontFamily: 'var(--font-mono)', textAlign: 'right', color: 'var(--app-accent)' }}>{fmt(Number(d.snowball_payment) || Number(d.min_payment) || 0, { showCents: false })}</span>
                 <span style={{ fontSize: 'var(--fs-xs)', color: d.paid_off ? 'var(--ok)' : 'var(--text-soft)' }}>{d.paid_off ? '✓ Paid off' : 'Active'}</span>
                 <div style={{ textAlign: 'right' }}>
-                  <button className="icon-btn" onClick={() => openEdit(d)}>&#9998;</button>
+                  <button className="icon-btn" aria-label="Edit debt" onClick={() => openEdit(d)}>&#9998;</button>
                 </div>
               </div>
             ))}

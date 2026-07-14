@@ -118,7 +118,7 @@ export default function Goals() {
             <div key={g.id} style={{ background: 'var(--bg-paper)', border: '1px solid var(--border)', borderRadius: 16, padding: '18px 20px', borderTop: `3px solid ${g.color || 'var(--app-accent)'}` }}>
               <div className="card-head">
                 <h3>{g.name}</h3>
-                <button className="icon-btn" onClick={() => openEdit(g)}>✎</button>
+                <button className="icon-btn" aria-label="Edit goal" onClick={() => openEdit(g)}>✎</button>
               </div>
 
               <div className="goal-body">

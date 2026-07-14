@@ -24,9 +24,9 @@ export default function RecipeView({ recipe, isSelected, onToggle, onEdit, onClo
             <span className="tag">{recipe.category || 'Other'}</span>
             {recipe.url && <a href={recipe.url} target="_blank" rel="noopener" style={{ color: 'var(--text-soft)' }} onClick={(e) => e.stopPropagation()}><Icon name="external" size={14} /></a>}
             {recipe.pdf_url && <a href={recipe.pdf_url} target="_blank" rel="noopener" className="tag" style={{ color: 'var(--app-accent)', background: 'var(--app-soft)' }} onClick={(e) => e.stopPropagation()}>PDF</a>}
-            <span role="button" tabIndex={0} onClick={() => onToggleFavorite(recipe)} style={{ color: recipe.is_favorite ? 'var(--danger)' : 'var(--text-soft)', display: 'inline-flex' }}>
+            <button onClick={() => onToggleFavorite(recipe)} aria-label={recipe.is_favorite ? 'Remove from favourites' : 'Add to favourites'} aria-pressed={!!recipe.is_favorite} style={{ color: recipe.is_favorite ? 'var(--danger)' : 'var(--text-soft)', display: 'inline-flex', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
               <Icon name="heart" size={18} filled={!!recipe.is_favorite} />
-            </span>
+            </button>
           </div>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-2xl)', lineHeight: 1.1 }}>{recipe.name}</h2>
           <div className="row" style={{ gap: 'var(--sp-4)', marginTop: 'var(--sp-2)', fontSize: 'var(--fs-sm)', color: 'var(--text-soft)', flexWrap: 'wrap' }}>

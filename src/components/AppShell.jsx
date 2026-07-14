@@ -19,7 +19,7 @@ export default function AppShell({ app, name, theme, onCycleTheme, onExit, child
         </button>
       </header>
       {/* #grove-main is the skip-nav target — first meaningful content after the top bar */}
-      <div id="grove-main" className="app-content">
+      <div id="grove-main" className="app-content" role="main">
         {children}
       </div>
     </div>

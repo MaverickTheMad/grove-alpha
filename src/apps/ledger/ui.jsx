@@ -1,13 +1,15 @@
 // Grove SubTabs — in-page segmented nav (Money = Transactions/Imports/Rules,
 // Plan = Budgets/Bills/Goals/Snowball). Local state instead of the router.
-export function SubTabs({ tabs, current, onChange }) {
+export function SubTabs({ tabs, current, onChange, name }) {
   return (
     <div className="subtabs" role="tablist">
       {tabs.map((t) => (
         <button
           key={t.id}
           role="tab"
+          id={name ? `${name}-tab-${t.id}` : undefined}
           aria-selected={current === t.id}
+          aria-controls={name ? `${name}-panel-${t.id}` : undefined}
           className={'subtab' + (current === t.id ? ' active' : '')}
           onClick={() => onChange(t.id)}
         >

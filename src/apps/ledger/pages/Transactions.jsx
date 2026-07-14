@@ -249,8 +249,8 @@ export default function Transactions() {
                   {fmt(t.amount, { signed: true })}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-                  <button className="icon-btn" onClick={() => openEdit(t)} title="Edit">&#9998;</button>
-                  <button className="icon-btn" onClick={() => handleDelete(t)} title="Delete">&times;</button>
+                  <button className="icon-btn" aria-label="Edit transaction" onClick={() => openEdit(t)}>&#9998;</button>
+                  <button className="icon-btn" aria-label="Delete transaction" onClick={() => handleDelete(t)}>&times;</button>
                 </div>
               </div>
             )

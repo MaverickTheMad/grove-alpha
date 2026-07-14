@@ -99,25 +99,29 @@ export default function Ledger() {
 
       {tab === 'money' && (
         <div>
-          <SubTabs tabs={MONEY_TABS} current={moneyView} onChange={setMoneyView} />
-          {moneyView === 'transactions' && <Transactions />}
-          {moneyView === 'imports' && (
-            <Suspense fallback={<div className="ledger-page"><div className="empty"><p>Loading importer…</p></div></div>}>
-              <Imports />
-            </Suspense>
-          )}
-          {moneyView === 'rules' && <Rules />}
+          <SubTabs name="money" tabs={MONEY_TABS} current={moneyView} onChange={setMoneyView} />
+          <div role="tabpanel" id={`money-panel-${moneyView}`} aria-labelledby={`money-tab-${moneyView}`}>
+            {moneyView === 'transactions' && <Transactions />}
+            {moneyView === 'imports' && (
+              <Suspense fallback={<div className="ledger-page"><div className="empty"><p>Loading importer…</p></div></div>}>
+                <Imports />
+              </Suspense>
+            )}
+            {moneyView === 'rules' && <Rules />}
+          </div>
         </div>
       )}
 
       {tab === 'home' && (
         <div>
-          <SubTabs tabs={HOME_TABS} current={homeView} onChange={setHomeView} />
-          {homeView === 'homefund' && <HomeFund />}
-          {homeView === 'budgets' && <Budgets />}
-          {homeView === 'bills' && <Bills />}
-          {homeView === 'goals' && <Goals />}
-          {homeView === 'snowball' && <Snowball />}
+          <SubTabs name="home" tabs={HOME_TABS} current={homeView} onChange={setHomeView} />
+          <div role="tabpanel" id={`home-panel-${homeView}`} aria-labelledby={`home-tab-${homeView}`}>
+            {homeView === 'homefund' && <HomeFund />}
+            {homeView === 'budgets' && <Budgets />}
+            {homeView === 'bills' && <Bills />}
+            {homeView === 'goals' && <Goals />}
+            {homeView === 'snowball' && <Snowball />}
+          </div>
         </div>
       )}
 

@@ -60,10 +60,15 @@ export default function MealsTab({ recipes, selected, multipliers, mealPlan, onT
                   isDragTarget ? 'drag-target' : '',
                   dragFrom === off ? 'dragging' : '',
                   assignedRecipe ? 'has-meal' : isPast ? 'past' : ''].join(' ').replace(/\s+/g, ' ').trim()
+                const dateLabel = date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
+                const mealLabel = assignedRecipe ? assignedRecipe.name : isPast ? 'no meal' : 'plan a meal'
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={off}
                     className={cls}
+                    aria-label={`${dateLabel} — ${mealLabel}`}
+                    aria-pressed={picking}
                     draggable={!!assignedRecipe}
                     onDragStart={() => { setDragFrom(off); setAssigningDay(null) }}
                     onDragEnd={() => { setDragFrom(null); setDragOver(null) }}
@@ -88,7 +93,7 @@ export default function MealsTab({ recipes, selected, multipliers, mealPlan, onT
                     {assignedRecipe
                       ? <span className="cal-meal">{assignedRecipe.name}</span>
                       : !isPast && <span style={{ fontSize: '12.5px', color: 'var(--text-soft)' }}>+ Plan a meal</span>}
-                  </div>
+                  </button>
                 )
               })}
             </div>

@@ -30,7 +30,7 @@
   --font-display:'Fraunces Variable','Fraunces', serif;
   --font-body:'Plus Jakarta Sans', sans-serif;
   --font-mono:'JetBrains Mono', monospace;
-  --fs-xs:.64rem; --fs-sm:.8rem; --fs-base:1rem; --fs-lg:1.25rem;
+  --fs-xs:.75rem; --fs-sm:.8rem; --fs-base:1rem; --fs-lg:1.25rem;
   --fs-xl:1.563rem; --fs-2xl:1.953rem; --fs-3xl:2.441rem;
   --fw-title:600; --fw-body:400; --fw-med:500;
 
@@ -351,7 +351,7 @@ button.card:focus-visible, .rcard:focus-visible {
     width: 72px;
     min-height: 48px;
     padding: var(--sp-2) 0;
-    font-size: 10px;
+    font-size: var(--fs-xs);
     border-radius: var(--r-md);
   }
   .bottom-nav .nav-item.on {
