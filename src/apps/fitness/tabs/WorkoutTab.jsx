@@ -10,6 +10,7 @@ import {
 } from '../constants.js'
 import { byKey } from '../../../lib/sort.js'
 import Sheet from '../../../components/Sheet'
+import { Button, Card, Chip } from '../../../ds'
 
 const SORTED_CATEGORIES = [...CATEGORIES].sort(byKey('label'))
 const REST_PRESETS = [30, 45, 60, 90]
@@ -217,17 +218,18 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
     return (
       <div className="tab-pad">
         <div className="session-head">
-          <button className="btn ghost sm" onClick={cancelSession}>← Cancel</button>
+          <Button variant="ghost" size="sm" onClick={cancelSession}>← Cancel</Button>
           <h2 className="session-title">{CATEGORY_LABEL[category]}</h2>
           <span className="muted sm">{doneCount}/{session.length} done</span>
         </div>
 
-        <button
-          className={`btn ghost block rest-open-btn${restRunning ? ' rest-running' : ''}`}
+        <Button
+          variant="ghost" block
+          className={`rest-open-btn${restRunning ? ' rest-running' : ''}`}
           onClick={() => setRestOpen(true)}
         >
           ⏱ {restRunning ? `${restMm}:${restSs}` : 'Start rest timer'}
-        </button>
+        </Button>
 
         <div className="ex-list">
           {session.map((r) => {
@@ -278,12 +280,12 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
           })}
         </div>
 
-        <button className="btn ghost block" onClick={() => setAddOpen(true)}>+ Add exercise</button>
+        <Button variant="ghost" block onClick={() => setAddOpen(true)}>+ Add exercise</Button>
 
-        <button className="btn primary block big-cta" disabled={saving || doneCount === 0}
-          onClick={() => award({ rest: false })}>
+        <Button variant="primary" block disabled={saving || doneCount === 0}
+          className="big-cta" onClick={() => award({ rest: false })}>
           {saving ? 'Saving…' : `Finish workout · ${doneCount} exercise${doneCount === 1 ? '' : 's'}`}
-        </button>
+        </Button>
 
         {/* Rest timer — bottom sheet on mobile, centered dialog on desktop */}
         <Sheet open={restOpen} onClose={() => setRestOpen(false)} title="Rest timer">
@@ -329,7 +331,7 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
       <LevelStrip profile={profile} />
 
       {canResume && (
-        <button className="card resume-card" onClick={resumeLast}>
+        <Card as="button" className="resume-card" onClick={resumeLast}>
           <span className="cat-emoji">{CATEGORY_EMOJI[lastWorkout.category] || '🏋️'}</span>
           <div className="grow">
             <div className="ex-name">Resume last workout</div>
@@ -338,7 +340,7 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
             </div>
           </div>
           <span className="caret">›</span>
-        </button>
+        </Card>
       )}
 
       <h2 className="section-h">Start a workout</h2>
@@ -361,9 +363,9 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
         })}
       </div>
 
-      <button className="btn ghost block rest-cta" onClick={() => setConfirmRest(true)}>
+      <Button variant="ghost" block className="rest-cta" onClick={() => setConfirmRest(true)}>
         🌿 Log a rest / stretch / walk day
-      </button>
+      </Button>
       <p className="muted sm center">Rest days keep your streak alive — they just don't earn XP or tokens.</p>
 
       <Sheet
@@ -372,11 +374,11 @@ export default function WorkoutTab({ person, profile, onProfileChange }) {
         title="Log a rest day?"
         footer={
           <div className="row-btns">
-            <button className="btn ghost" onClick={() => setConfirmRest(false)}>Cancel</button>
-            <button className="btn primary" disabled={saving}
+            <Button variant="ghost" onClick={() => setConfirmRest(false)}>Cancel</Button>
+            <Button variant="primary" disabled={saving}
               onClick={() => { setConfirmRest(false); award({ rest: true }) }}>
               Log rest day
-            </button>
+            </Button>
           </div>
         }
       >
@@ -444,8 +446,8 @@ function AddExerciseSheet({ open, onClose, onAdd }) {
     <Sheet open={open} onClose={onClose} title="Add an exercise"
       footer={
         <div className="row-btns">
-          <button className="btn ghost" onClick={onClose}>Cancel</button>
-          <button className="btn primary" disabled={!name.trim()} onClick={add}>Add</button>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button variant="primary" disabled={!name.trim()} onClick={add}>Add</Button>
         </div>
       }>
       <label className="field block"><span>Name</span>
@@ -457,9 +459,9 @@ function AddExerciseSheet({ open, onClose, onAdd }) {
       <div className="field block"><span>Type</span>
         <div className="chip-row">
           {SORTED_MODES.map((m) => (
-            <button key={m} className={`chip ${mode === m ? 'on' : ''}`} onClick={() => setMode(m)}>
+            <Chip key={m} active={mode === m} onClick={() => setMode(m)}>
               {MODE_LABEL[m]}
-            </button>
+            </Chip>
           ))}
         </div>
       </div>
@@ -493,7 +495,7 @@ function SummaryModal({ summary, onClose }) {
             )}
           </>
         )}
-        <button className="btn primary block" onClick={onClose}>Nice</button>
+        <Button variant="primary" block onClick={onClose}>Nice</Button>
       </div>
     </div>
   )

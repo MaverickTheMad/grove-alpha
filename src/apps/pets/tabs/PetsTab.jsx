@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import * as store from '../lib/store.js'
 import Sheet from '../../../components/Sheet'
 import Confirm from '../components/Confirm.jsx'
-import Toast from '../components/Toast.jsx'
+import { useToast } from '../../../components/Toast'
 import {
   IconPlus, IconEdit, IconCamera, IconSyringe, IconPill, IconStethoscope, IconScale,
   IconPaw, IconAlert, IconClock, IconCheck,
@@ -85,7 +85,7 @@ function PetDetail({ pet, onClose, onEdit }) {
   const [loading, setLoading] = useState(true)
   const [sub, setSub] = useState(null)         // which add-sheet is open
   const [editingVax, setEditingVax] = useState(null) // vax record | null
-  const [toast, setToast] = useState(null)
+  const toast = useToast()
 
   const load = useCallback(async () => {
     const [weights, vax, meds, conds, visits] = await Promise.all([
@@ -106,9 +106,9 @@ function PetDetail({ pet, onClose, onEdit }) {
     const snap = await store.getOne(id)
     await store.remove(id)
     load()
-    setToast({
-      message: `Deleted ${label}`,
-      undo: async () => {
+    toast.show(`Deleted ${label}`, {
+      actionLabel: 'Undo',
+      onAction: async () => {
         if (snap) { const { id: _omit, ...rest } = snap; await store.add(type, rest) }
         load()
       },
@@ -332,11 +332,6 @@ function PetDetail({ pet, onClose, onEdit }) {
         onSaved={() => { setEditingVax(null); load() }}
       />
 
-      <Toast
-        toast={toast}
-        onUndo={() => toast?.undo?.()}
-        onDismiss={() => setToast(null)}
-      />
     </Sheet>
   )
 }

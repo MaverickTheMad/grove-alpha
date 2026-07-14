@@ -5,6 +5,7 @@ import { fmt, monthName } from '../lib/format'
 import { getPayCycle, formatCycleLabel, toISODate, resolvePersonAnchor } from '../lib/payCycle'
 import { useIsDesktop } from '../../../lib/viewport'
 import * as data from '../../../lib/data'
+import { Button } from '../../../ds'
 
 const SETTING_KEY = 'budget_mode'
 
@@ -289,7 +290,7 @@ export default function Budgets() {
               ))}
             </div>
             <div className="modal-actions">
-              <button className="btn" onClick={() => setManageOpen(false)}>Done</button>
+              <Button onClick={() => setManageOpen(false)}>Done</Button>
             </div>
           </div>
         </div>
