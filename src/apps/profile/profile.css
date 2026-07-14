@@ -363,56 +363,7 @@
   padding: 3px var(--sp-2);
 }
 
-/* ── Password sheet ── */
-.profile-sheet-backdrop {
-  position: fixed;
-  inset: 0;
-  background: color-mix(in srgb, var(--bg-sunken) 72%, transparent);
-  z-index: 100;
-  display: flex;
-  align-items: flex-end;
-}
-@media (min-width: 480px) {
-  .profile-sheet-backdrop { align-items: center; justify-content: center; }
-}
-
-.profile-sheet {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg) var(--r-lg) 0 0;
-  padding: var(--sp-5);
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-4);
-}
-@media (min-width: 480px) {
-  .profile-sheet {
-    border-radius: var(--r-lg);
-    max-width: 400px;
-  }
-}
-
-.profile-sheet-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.profile-sheet-title {
-  font-family: var(--font-display);
-  font-weight: var(--fw-title);
-  font-size: var(--fs-lg);
-}
-.profile-sheet-close {
-  background: transparent;
-  border: none;
-  color: var(--text-soft);
-  font-size: var(--fs-lg);
-  cursor: pointer;
-  line-height: 1;
-}
-.profile-sheet-close:hover { color: var(--text); }
-
+/* ── Password sheet (form body — rendered inside shared Sheet) ── */
 .profile-pw-form {
   display: flex;
   flex-direction: column;
