@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import * as store from '../lib/store.js'
 import Sheet from '../../../components/Sheet'
-import Toast from '../components/Toast.jsx'
+import { useToast } from '../../../components/Toast'
 import { IconPlus, IconDoc, IconCamera } from '../../../components/Icon'
 import { DOC_TYPES, speciesMeta, fmtDate, fmtMoney, todayStr } from '../constants.js'
 
@@ -10,7 +10,7 @@ export default function DocsTab({ pets }) {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')   // 'all' | 'household' | pet.id
   const [adding, setAdding] = useState(false)
-  const [toast, setToast] = useState(null)
+  const toast = useToast()
 
   const petById = (id) => pets.find((p) => p.id === id)
 
@@ -27,9 +27,9 @@ export default function DocsTab({ pets }) {
     const snap = { ...doc }
     await store.remove(doc.id)
     load()
-    setToast({
-      message: `Deleted "${doc.title}"`,
-      undo: async () => {
+    toast.show(`Deleted "${doc.title}"`, {
+      actionLabel: 'Undo',
+      onAction: async () => {
         const { id, created_at, ...rest } = snap
         await store.add('document', rest)
         load()
@@ -122,11 +122,6 @@ export default function DocsTab({ pets }) {
         onSaved={() => { setAdding(false); load() }}
       />
 
-      <Toast
-        toast={toast}
-        onUndo={() => toast?.undo?.()}
-        onDismiss={() => setToast(null)}
-      />
     </div>
   )
 }

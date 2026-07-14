@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Button, Chip } from '../../../ds'
 import Icon from '../../../components/Icon'
 import { PageHeader, Checkbox } from '../ui'
 
@@ -42,11 +43,11 @@ export default function ExtrasTab({ extras, onToggle, onAdd, onDelete, onUpdateQ
       <div className="stack" style={{ gap: 'var(--sp-2)', marginBottom: 'var(--sp-5)' }}>
         <div className="row" style={{ gap: 'var(--sp-2)' }}>
           <input className="input grow" placeholder="add an item…" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && add()} />
-          <button className="btn" onClick={add}><Icon name="log" size={16} /> Add</button>
+          <Button onClick={add}><Icon name="log" size={16} /> Add</Button>
         </div>
         <div className="btn-row">
-          <button className={`chip ${!isStaple ? 'on' : ''}`} onClick={() => setIsStaple(false)}>One-time</button>
-          <button className={`chip ${isStaple ? 'on' : ''}`} onClick={() => setIsStaple(true)}>Running low</button>
+          <Chip active={!isStaple} onClick={() => setIsStaple(false)}>One-time</Chip>
+          <Chip active={isStaple} onClick={() => setIsStaple(true)}>Running low</Chip>
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Button } from '../../../ds'
 import Icon from '../../../components/Icon'
 import Sheet from '../../../components/Sheet'
 import { getSection, sumQuantities } from '../lib/shopping'
@@ -26,7 +27,7 @@ export default function ListTab({ groups, checked, onToggle, total, sections, on
     <main className="screen">
       <PageHeader title="List" action={
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn sm" onClick={() => setShowPrint(true)}><Icon name="print" size={16} /> Print / PDF</button>
+          <Button size="sm" onClick={() => setShowPrint(true)}><Icon name="print" size={16} /> Print / PDF</Button>
           <button style={{ background: 'var(--accent)', color: '#0B0F09', border: 'none', borderRadius: 12, padding: '10px 14px', fontFamily: 'inherit', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', whiteSpace: 'nowrap', minHeight: 44 }} onClick={onNewTrip}>New trip</button>
         </div>
       } />
@@ -74,8 +75,8 @@ export default function ListTab({ groups, checked, onToggle, total, sections, on
         title="Shopping list"
         footer={
           <div style={{ display: 'flex', gap: 'var(--sp-2)', width: '100%' }}>
-            <button className="btn ghost grow" onClick={() => setShowPrint(false)}>Back to Pantry</button>
-            <button className="btn primary grow" onClick={handlePrint}>Print / Save PDF</button>
+            <Button variant="ghost" className="grow" onClick={() => setShowPrint(false)}>Back to Pantry</Button>
+            <Button variant="primary" className="grow" onClick={handlePrint}>Print / Save PDF</Button>
           </div>
         }
       >

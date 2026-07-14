@@ -1,3 +1,4 @@
+import { Button, Card } from '../../../ds'
 import Icon from '../../../components/Icon'
 import Sheet from '../../../components/Sheet'
 import { normIng, timeAgo } from '../lib/shopping'
@@ -11,10 +12,10 @@ export default function RecipeView({ recipe, isSelected, onToggle, onEdit, onClo
       onClose={onClose}
       footer={
         <>
-          <button className={`btn grow ${isSelected ? '' : 'primary'}`} style={isSelected ? { color: 'var(--ok)', borderColor: 'var(--ok)' } : {}} onClick={onToggle}>
+          <Button variant={isSelected ? 'default' : 'primary'} className="grow" style={isSelected ? { color: 'var(--ok)', borderColor: 'var(--ok)' } : {}} onClick={onToggle}>
             {isSelected ? '✓ Added to this week' : '+ Add to this week'}
-          </button>
-          <button className="btn" onClick={onEdit}><Icon name="edit" size={16} /> Edit</button>
+          </Button>
+          <Button onClick={onEdit}><Icon name="edit" size={16} /> Edit</Button>
         </>
       }
     >
@@ -40,10 +41,10 @@ export default function RecipeView({ recipe, isSelected, onToggle, onEdit, onClo
       </div>
 
       {recipe.notes && (
-        <div className="card" style={{ borderColor: 'var(--app-accent)', background: 'var(--app-weak)' }}>
+        <Card style={{ borderColor: 'var(--app-accent)', background: 'var(--app-weak)' }}>
           <div className="p-eyebrow" style={{ marginBottom: 4 }}>Notes</div>
           <p style={{ fontSize: 'var(--fs-sm)', maxWidth: 'var(--measure)' }}>{recipe.notes}</p>
-        </div>
+        </Card>
       )}
 
       {ings.length > 0 ? (

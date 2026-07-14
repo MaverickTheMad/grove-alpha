@@ -3,6 +3,7 @@ import * as store from '../lib/store.js'
 import Sheet from '../../../components/Sheet'
 import { useToast } from '../../../components/Toast'
 import { PHASES, FLOW_LEVELS, computeCyclePhase, todayLocalISO, formatDateLong, localDayBounds, isoToLocalDateStr } from '../constants.js'
+import { Button, Card } from '../../../ds'
 
 // ============================================================
 // CYCLE RING
@@ -50,19 +51,19 @@ export default function CalendarTab({ periodStarts, onPeriodStartsChange, refres
 
   if (!cycle) {
     return (
-      <div className="card">
+      <Card>
         <div className="empty">
           Add at least one period start date to see your cycle wheel.
         </div>
-      </div>
+      </Card>
     )
   }
 
   return (
     <div className="calendar-tab stack">
-      <div className="card">
+      <Card>
         <div className="cycle-nav">
-          <button className="btn ghost btn sm" onClick={() => setCycleOffset(o => o - 1)} aria-label="Previous cycle">‹</button>
+          <Button variant="ghost" size="sm" onClick={() => setCycleOffset(o => o - 1)} aria-label="Previous cycle">‹</Button>
           <div className="cycle-nav-center">
             <h3 className="card-title cycle-title">
               {cycleOffset === 0 ? 'This cycle' : cycleOffset === -1 ? 'Last cycle' : `${Math.abs(cycleOffset)} cycles ago`}
@@ -72,12 +73,13 @@ export default function CalendarTab({ periodStarts, onPeriodStartsChange, refres
               {cycle.estimated && <span className="muted"> (est.)</span>}
             </div>
           </div>
-          <button
-            className="btn ghost btn sm"
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setCycleOffset(o => o + 1)}
             disabled={cycleOffset >= 0}
             aria-label="Next cycle"
-          >›</button>
+          >›</Button>
         </div>
 
         {loading ? (
@@ -94,7 +96,7 @@ export default function CalendarTab({ periodStarts, onPeriodStartsChange, refres
         )}
 
         <CycleLegend />
-      </div>
+      </Card>
 
       {selected && (
         <SelectedDayCard
@@ -545,8 +547,8 @@ function SelectedDayCard({ date, periodStarts, onClose, onPeriodStartsChange }) 
         title="Remove period start?"
         footer={
           <>
-            <button className="btn ghost grow" onClick={() => setConfirmRemove(false)}>Keep it</button>
-            <button className="btn danger grow" onClick={doRemovePeriodStart}>Remove</button>
+            <Button variant="ghost" className="grow" onClick={() => setConfirmRemove(false)}>Keep it</Button>
+            <Button variant="danger" className="grow" onClick={doRemovePeriodStart}>Remove</Button>
           </>
         }
       >
@@ -556,7 +558,7 @@ function SelectedDayCard({ date, periodStarts, onClose, onPeriodStartsChange }) 
         </p>
       </Sheet>
 
-      <div className="card fade-in">
+      <Card className="fade-in">
         <div className="row-between">
           <div>
             <h3 className="card-title section-h" style={{ fontSize: 20 }}>{formatDateLong(date)}</h3>
@@ -566,7 +568,7 @@ function SelectedDayCard({ date, periodStarts, onClose, onPeriodStartsChange }) 
               </span>
             )}
           </div>
-          <button className="btn ghost btn sm" onClick={onClose}>✕</button>
+          <Button variant="ghost" size="sm" onClick={onClose}>✕</Button>
         </div>
 
       <div className="day-detail-stats">
@@ -591,13 +593,13 @@ function SelectedDayCard({ date, periodStarts, onClose, onPeriodStartsChange }) 
         </>
       )}
 
-      <button
-        className="btn block"
+      <Button
+        block
         style={{ marginTop: 14 }}
         onClick={togglePeriodStart}
       >
         {isPeriodStart ? '★ Unmark as period start' : '☆ Mark as period start'}
-      </button>
+      </Button>
 
       <p className="muted" style={{ fontSize: 12, marginTop: 10, textAlign: 'center' }}>
         Tip: to log or edit details for this day, switch to the Log tab and pick this date.
@@ -640,7 +642,7 @@ function SelectedDayCard({ date, periodStarts, onClose, onPeriodStartsChange }) 
           text-transform: uppercase;
         }
       `}</style>
-    </div>
+    </Card>
     </>
   )
 }
@@ -680,7 +682,7 @@ function PeriodHistoryCard({ periodStarts, onChange }) {
   const sorted = [...periodStarts].sort().reverse().filter(d => !pendingRemoves[d])
 
   return (
-    <div className="card">
+    <Card>
       <button className="row-between" style={{ width: '100%' }} onClick={() => setOpen(o => !o)}>
         <div>
           <div className="card-title section-h" style={{ fontSize: 16 }}>Period history</div>
@@ -700,7 +702,7 @@ function PeriodHistoryCard({ periodStarts, onChange }) {
               max={todayLocalISO()}
               onChange={e => setNewDate(e.target.value)}
             />
-            <button className="btn primary btn sm" onClick={add} disabled={!newDate}>Add</button>
+            <Button variant="primary" size="sm" onClick={add} disabled={!newDate}>Add</Button>
           </div>
           <div style={{ marginTop: 14 }}>
             {sorted.length === 0 ? (
@@ -719,7 +721,7 @@ function PeriodHistoryCard({ periodStarts, onChange }) {
           </div>
         </div>
       )}
-    </div>
+    </Card>
   )
 }
 

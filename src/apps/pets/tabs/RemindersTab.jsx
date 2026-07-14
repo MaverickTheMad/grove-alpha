@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import * as store from '../lib/store.js'
 import Sheet from '../../../components/Sheet'
-import Toast from '../components/Toast.jsx'
+import { useToast } from '../../../components/Toast'
 import {
   IconSyringe, IconPill, IconBell, IconAlert, IconClock, IconCheck, IconPlus, IconPaw,
 } from '../../../components/Icon'
@@ -33,7 +33,7 @@ export default function RemindersTab({ pets, onJump }) {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [adding, setAdding] = useState(false)
-  const [toast, setToast] = useState(null)
+  const toast = useToast()
 
   const petById = (id) => pets.find((p) => p.id === id)
 
@@ -74,15 +74,15 @@ export default function RemindersTab({ pets, onJump }) {
       next.setDate(next.getDate() + Number(item.repeat_days))
       const nextStr = next.toISOString().slice(0, 10)
       await store.update(item.remId, { due_date: nextStr })
-      setToast({
-        message: `Done — rolled forward to ${fmtDate(nextStr)}`,
-        undo: async () => { await store.update(item.remId, { due_date: item.due }); load() },
+      toast.show(`Done — rolled forward to ${fmtDate(nextStr)}`, {
+        actionLabel: 'Undo',
+        onAction: async () => { await store.update(item.remId, { due_date: item.due }); load() },
       })
     } else {
       await store.update(item.remId, { done: true })
-      setToast({
-        message: 'Done',
-        undo: async () => { await store.update(item.remId, { done: false }); load() },
+      toast.show('Done', {
+        actionLabel: 'Undo',
+        onAction: async () => { await store.update(item.remId, { done: false }); load() },
       })
     }
     load()
@@ -192,11 +192,6 @@ export default function RemindersTab({ pets, onJump }) {
         onSaved={() => { setAdding(false); load() }}
       />
 
-      <Toast
-        toast={toast}
-        onUndo={() => toast?.undo?.()}
-        onDismiss={() => setToast(null)}
-      />
     </div>
   )
 }

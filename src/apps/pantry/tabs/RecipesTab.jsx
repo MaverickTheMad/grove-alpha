@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Button, Chip } from '../../../ds'
 import Icon from '../../../components/Icon'
 import { normIng } from '../lib/shopping'
 import { RECIPE_CATEGORIES } from '../constants'
@@ -48,11 +49,11 @@ export default function RecipesTab({ recipes, selected, lastCooked, onView, onTo
 
       <div className="row" style={{ gap: 'var(--sp-2)', overflowX: 'auto', marginBottom: 'var(--sp-4)', paddingBottom: 4 }}>
         {['All', 'Favorites', ...SORTED_CATEGORIES].map((c) => (
-          <button key={c} className={`chip ${filterCat === c ? 'on' : ''}`} style={{ whiteSpace: 'nowrap' }} onClick={() => setFilterCat(c)}>
+          <Chip key={c} active={filterCat === c} style={{ whiteSpace: 'nowrap' }} onClick={() => setFilterCat(c)}>
             {c === 'Favorites' ? '♥ Favorites' : c}
-          </button>
+          </Chip>
         ))}
-        <button className="btn sm" style={{ whiteSpace: 'nowrap' }} onClick={onAddRecipe}><Icon name="log" size={16} /> New</button>
+        <Button size="sm" style={{ whiteSpace: 'nowrap' }} onClick={onAddRecipe}><Icon name="log" size={16} /> New</Button>
       </div>
 
       {recipes.length === 0 ? (

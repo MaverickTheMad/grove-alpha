@@ -1,4 +1,5 @@
 import { isoToLocalDateStr, todayStr, addDays, weekStart, prettyDate } from '../constants'
+import { Card } from '../../../ds'
 
 function BarRow({ label, value, max, sublabel }) {
   const pct = max > 0 ? Math.round((value / max) * 100) : 0
@@ -71,9 +72,9 @@ export default function TrendsTab({ ctx }) {
       <h1 className="q-title" style={{ marginBottom: 20 }}>Insight</h1>
 
       {totalCompleted === 0 ? (
-        <div className="card">
+        <Card>
           <p className="empty">No tasks completed yet.</p>
-        </div>
+        </Card>
       ) : (
         <>
           <div className="q-stat-card">
@@ -81,27 +82,27 @@ export default function TrendsTab({ ctx }) {
             <div className="q-stat-value">{thisWeekCount}</div>
           </div>
 
-          <div className="card">
+          <Card>
             <div className="card-title">This week <span className="card-title-meta">{thisWeekCount} tasks</span></div>
             {weekDays.map((d, i) => (
               <BarRow key={d} label={DAY_LABELS[i]} value={weekCounts[i].count} max={maxWeekDay} />
             ))}
-          </div>
+          </Card>
 
-          <div className="card">
+          <Card>
             <div className="card-title">Tasks by week</div>
             {weekRows.map(r => (
               <BarRow key={r.week} label={weekLabel(r.week)} value={r.count} max={maxWeek} />
             ))}
-          </div>
+          </Card>
 
           {catRows.length > 0 && (
-            <div className="card">
+            <Card>
               <div className="card-title">By category</div>
               {catRows.map(([cat, count]) => (
                 <BarRow key={cat} label={cat} value={count} max={maxCat} />
               ))}
-            </div>
+            </Card>
           )}
         </>
       )}

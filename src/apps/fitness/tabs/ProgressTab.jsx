@@ -6,6 +6,7 @@ import {
 } from '../constants.js'
 import { cmpText } from '../../../lib/sort.js'
 import Sheet from '../../../components/Sheet'
+import { Button, Card, Chip } from '../../../ds'
 
 export default function ProgressTab({ person, profile, onProfileChange }) {
   const [workouts, setWorkouts] = useState(null)
@@ -82,7 +83,7 @@ export default function ProgressTab({ person, profile, onProfileChange }) {
         <h1 className="f-title">Progress</h1>
       </header>
       {/* Level + streak card */}
-      <div className="card stat-card">
+      <Card className="stat-card">
         <div className="stat-row">
           <div>
             <div className="lvl-title">{levelTitle(profile.level)}</div>
@@ -92,18 +93,18 @@ export default function ProgressTab({ person, profile, onProfileChange }) {
         </div>
         <div className="xp-bar"><div className="xp-fill" style={{ width: `${prog.pct}%` }} /></div>
         <div className="muted sm">{prog.toNext} XP to Level {prog.level + 1}</div>
-      </div>
+      </Card>
 
       {/* Quick stats */}
       <div className="stat-grid">
-        <div className="card mini"><div className="mini-num">{weekCount}</div><div className="mini-lbl">this week</div></div>
-        <div className="card mini"><div className="mini-num">{workouts.filter(w => w.category !== 'rest').length}</div><div className="mini-lbl">workouts logged</div></div>
-        <div className="card mini"><div className="mini-num">{profile.longest_streak}</div><div className="mini-lbl">best streak</div></div>
+        <Card className="mini"><div className="mini-num">{weekCount}</div><div className="mini-lbl">this week</div></Card>
+        <Card className="mini"><div className="mini-num">{workouts.filter(w => w.category !== 'rest').length}</div><div className="mini-lbl">workouts logged</div></Card>
+        <Card className="mini"><div className="mini-num">{profile.longest_streak}</div><div className="mini-lbl">best streak</div></Card>
       </div>
 
       {/* Progress bars */}
       {exNames.length > 0 && (
-        <div className="card">
+        <Card>
           <div className="card-head">
             <h3 className="section-h flush">Progress over time</h3>
             <select className="select" value={activeEx} onChange={(e) => setPickEx(e.target.value)}>
@@ -112,13 +113,13 @@ export default function ProgressTab({ person, profile, onProfileChange }) {
           </div>
           <div className="metric-row">
             {METRICS.map(m => (
-              <button key={m.key} className={`chip ${metric === m.key ? 'on' : ''}`} onClick={() => setMetric(m.key)}>
+              <Chip key={m.key} active={metric === m.key} onClick={() => setMetric(m.key)}>
                 {m.label}
-              </button>
+              </Chip>
             ))}
           </div>
           <BarChart data={sessionData} metric={metric} />
-        </div>
+        </Card>
       )}
 
       {/* History */}
@@ -131,7 +132,7 @@ export default function ProgressTab({ person, profile, onProfileChange }) {
           const isRest = w.category === 'rest'
           const open = openId === w.id
           return (
-            <div key={w.id} className="card hist">
+            <Card key={w.id} className="hist">
               <button className="hist-row" onClick={() => setOpenId(open ? null : w.id)}>
                 <span className="hist-emoji">{CATEGORY_EMOJI[w.category] || '🏋️'}</span>
                 <span className="grow">
@@ -152,10 +153,10 @@ export default function ProgressTab({ person, profile, onProfileChange }) {
                       <span className="mono">{summarizeExercise(e)}</span>
                     </div>
                   ))}
-                  <button className="btn ghost sm" onClick={() => setDeleteTarget(w.id)}>Delete workout</button>
+                  <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(w.id)}>Delete workout</Button>
                 </div>
               )}
-            </div>
+            </Card>
           )
         })}
       </div>
@@ -166,7 +167,7 @@ export default function ProgressTab({ person, profile, onProfileChange }) {
         title="Delete workout?"
         footer={
           <div className="row-btns">
-            <button className="btn ghost" onClick={() => setDeleteTarget(null)}>Keep it</button>
+            <Button variant="ghost" onClick={() => setDeleteTarget(null)}>Keep it</Button>
             <button className="btn ghost danger" onClick={performDelete}>Delete workout</button>
           </div>
         }

@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useTimeline } from '../useTimeline'
 import EventRow from '../components/EventRow'
 import { todayStr, addDays, dateRange, parseLocalDate, sortDayEvents } from '../constants'
+import { Chip } from '../../../ds'
 
 function upcomingDayLabel(dateStr, today) {
   const d = parseLocalDate(dateStr)
@@ -48,13 +49,13 @@ export default function UpcomingTab() {
 
       <div className="chip-row">
         {FILTERS.map((f) => (
-          <button
+          <Chip
             key={f.id}
-            className={`chip ${filter === f.id ? 'on' : ''}`}
+            active={filter === f.id}
             onClick={() => setFilter(f.id)}
           >
             {f.label}
-          </button>
+          </Chip>
         ))}
       </div>
 

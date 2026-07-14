@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useRecords } from '../lib/useRecords'
 import { fmt, ordinal, currentMonth, monthName } from '../lib/format'
+import { Button } from '../../../ds'
 
 export default function Bills() {
   const { year, month } = currentMonth()
@@ -141,8 +142,8 @@ export default function Bills() {
               </label>
             </div>
             <div className="modal-actions">
-              <button className="btn btn-ghost" onClick={() => setModalOpen(false)}>Cancel</button>
-              <button className="btn" onClick={handleSave}>Save</button>
+              <Button variant="ghost" onClick={() => setModalOpen(false)}>Cancel</Button>
+              <Button onClick={handleSave}>Save</Button>
             </div>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Button } from '../../../ds'
 import Icon from '../../../components/Icon'
 import Sheet from '../../../components/Sheet'
 import { useToast } from '../../../components/Toast'
@@ -179,7 +180,7 @@ export default function MealsTab({ recipes, selected, multipliers, mealPlan, onT
       )}
 
       <div className="row" style={{ justifyContent: 'center', paddingTop: 'var(--sp-2)' }}>
-        <button className="btn sm" onClick={onAddRecipe}><Icon name="log" size={16} /> Add new recipe</button>
+        <Button size="sm" onClick={onAddRecipe}><Icon name="log" size={16} /> Add new recipe</Button>
       </div>
     </main>
   )
